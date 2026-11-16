@@ -73,12 +73,17 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
 
   // ---- layers ----
   const tabs=()=>d.querySelectorAll('#tabs .tab');
-  ok('blank starts with one layer, which cannot be removed',tabs().length===1&&d.querySelector('#tabs [aria-label="Remove layer"]').disabled);
-  click('#tabs [aria-label="Add layer"]'); ok('add layer selects the new one',tabs().length===2&&tabs()[1].classList.contains('active'));
-  click('#tabs [aria-label="Duplicate layer"]'); ok('duplicate layer',tabs().length===3&&tabs()[2].classList.contains('active'));
-  click('#tabs [aria-label="Remove layer"]'); click('#tabs [aria-label="Remove layer"]'); click('#tabs [aria-label="Remove layer"]');
-  ok('remove layers down to one, last one cannot be removed',tabs().length===1&&d.querySelector('#tabs [aria-label="Remove layer"]').disabled);
-  click('#tabs [aria-label="Add layer"]'); click('#tabs [aria-label="Add layer"]');
+  ok('blank has exactly 3 layers, layer 1 active',tabs().length===3&&tabs()[0].classList.contains('active'));
+  ok('no add / duplicate / remove layer tools',!d.querySelector('#tabs .layertools, #tabs [aria-label="Add layer"], #tabs [aria-label="Remove layer"], #tabs [aria-label="Duplicate layer"]'));
+  click(tabs()[2]); ok('switching to layer 3',tabs()[2].classList.contains('active')&&/^Layer 3/.test(d.getElementById('editTitle').textContent));
+  ok('YAML always lists 3 layers',(d.getElementById('yamlOut').value.match(/^  - buttons:/gm)||[]).length===3);
+  d.getElementById('yamlIn').value=d.getElementById('yamlOut').value.replace(/^layers:\n/m,'layers:\n  - buttons:\n      - ["a"]\n')
+    .replace(/^rows: \d+/m,'rows: 1').replace(/^columns: \d+/m,'columns: 1').replace(/^knobs: \d+/m,'knobs: 0');
+  click('#btnImport');
+  ok('import of 4 layers keeps the first 3 and says so: '+d.getElementById('toast').textContent,tabs().length===3&&/only the first 3 layers kept/.test(d.getElementById('toast').textContent));
+  d.getElementById('yamlIn').value='orientation: normal\nrows: 1\ncolumns: 2\nknobs: 0\nlayers:\n  - buttons:\n      - ["a", "b"]\n';
+  click('#btnImport'); ok('import of 1 layer pads to 3',tabs().length===3&&!/only the first/.test(d.getElementById('toast').textContent));
+  click('#btnBlank');
 
   // ---- knobs drawn as dials ----
   const k=d.getElementById('knobs'); k.value='4'; k.dispatchEvent(new w.Event('change',{bubbles:true}));

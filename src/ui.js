@@ -68,16 +68,6 @@ function renderTabs(){
   state.layers.forEach((_,i)=>box.append(h('button',{type:'button',class:'tab'+(i===layerIdx?' active':''),title:'Layer '+(i+1),
     'aria-label':'Layer '+(i+1),'aria-pressed':String(i===layerIdx),text:String(i+1),
     onclick:()=>{layerIdx=i;clampSel();renderAll();save();}})));
-  const tools=h('div',{class:'layertools'});
-  tools.append(h('button',{type:'button',class:'tool',title:'Add layer (most boards have 3)','aria-label':'Add layer',text:'+',onclick:()=>{
-    state.layers.push(blankLayer(state)); layerIdx=state.layers.length-1; renderAll(); save();}}));
-  tools.append(h('button',{type:'button',class:'tool',title:'Duplicate this layer','aria-label':'Duplicate layer',text:'⧉',onclick:()=>{
-    state.layers.splice(layerIdx+1,0,JSON.parse(JSON.stringify(layer()))); layerIdx++; renderAll(); save();}}));
-  const rm=h('button',{type:'button',class:'tool',title:'Remove this layer','aria-label':'Remove layer',text:'−',onclick:()=>{
-    if(state.layers.length<2) return; state.layers.splice(layerIdx,1); layerIdx=Math.max(0,layerIdx-1); renderAll(); save();}});
-  rm.disabled = state.layers.length<2;
-  tools.append(rm);
-  box.append(tools);
 }
 function cellEl(t,val,label,extra){
   const v=validateAction(val);
@@ -293,10 +283,12 @@ $('btnBlank').addEventListener('click',()=>{
 });
 function loadText(text, okMsg){
   try{
-    state=fromObj(parseYaml(text)); layerIdx=0; sel={t:'b',r:0,c:0};
+    const obj=parseYaml(text), extra=Array.isArray(obj&&obj.layers)?obj.layers.length-LAYER_COUNT:0;
+    state=fromObj(obj); layerIdx=0; sel={t:'b',r:0,c:0};
     // A file that documents its keys is more useful with the comments showing, so turn that view on.
     const n=countNotes(state); if(n && !showNotes){ showNotes=true; saveNotesPref(); }
-    renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':''));
+    renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':'')
+      +(extra>0?' · only the first '+LAYER_COUNT+' layers kept':''));
   }catch(e){ toast('Import failed: '+e.message); }
 }
 $('btnImport').addEventListener('click',()=>{ const t=$('yamlIn').value; if(t.trim()) loadText(t,'Imported YAML'); else toast('Paste some YAML first'); });

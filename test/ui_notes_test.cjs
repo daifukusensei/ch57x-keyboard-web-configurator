@@ -83,13 +83,9 @@ function boot(seed){
   A.click('#tabs .tab:nth-of-type(2)');
   cells=A.cells();
   ok('layer 2 comments (row 4, knob 1)',noteOf(cells[9])==='vs 2022 split'&&noteOf(cells[12])==='decrease zoom (Edge browser & vscode)'&&noteOf(cells[3])==='');
-  A.click('#tabs [aria-label="Duplicate layer"]');
-  ok('duplicating a layer copies its comments',A.cells().length===24&&noteOf(A.cells()[10])==='vs 2022 full-screen');
-  A.click(A.cells()[10]); A.type('note','changed on the copy'); A.click('#tabs .tab:nth-of-type(2)');
-  ok('editing the copy leaves the original alone',noteOf(A.cells()[10])==='vs 2022 full-screen');
-  A.click('#tabs [aria-label="Add layer"]');
-  ok('a new layer starts without comments',A.cells().every(c=>noteOf(c)===''));
-  A.click('#tabs [aria-label="Remove layer"]');
+  A.click(A.cells()[10]); A.type('note','changed on layer 2'); A.click('#tabs .tab:nth-of-type(3)');
+  ok('a comment on layer 2 stays on layer 2',noteOf(A.cells()[10])!=='changed on layer 2');
+  A.click('#tabs .tab:nth-of-type(2)'); ok('…and is kept there',noteOf(A.cells()[10])==='changed on layer 2');
 
   // ---- round trip through the exported YAML ----
   A.click('#tabs .tab:nth-of-type(1)');

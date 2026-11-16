@@ -53,7 +53,7 @@ The scripts are classic (non-module) scripts sharing one global scope: `ui.js` c
 
 - **Validation**: `validateAction(raw)` → `{level:'ok'|'warn'|'error', kind:'empty'|'keys'|'media'|'mouse'|…, msgs[]}`; helpers `splitTop`, `splitDash`, `mouseParse`, `inRange` (mouse values clamp to **-127..127**).
 - **YAML subset parser** (hand-written, no library): `stripComment`, `splitFlow`, `parseScalar`, `parseYaml`. Each parsed line is `{indent,text,comment}`; a trailing `# …` comment is kept (see §5).
-- **State**: `blankLayer`, `normalizeState` (clamps rows/cols/knobs, sizes every layer), `fromObj` (YAML object → state), `toYaml` (state → YAML). State shape:
+- **State**: `blankLayer`, `normalizeState` (clamps rows/cols/knobs, forces exactly `LAYER_COUNT` = 3 layers by padding with blank ones or dropping extras, sizes every layer), `fromObj` (YAML object → state), `toYaml` (state → YAML). State shape:
   ```js
   { model, orientation, rows, columns, knobs,
     layers: [{ buttons: [[str]],            // R x C action strings
@@ -69,7 +69,7 @@ The scripts are classic (non-module) scripts sharing one global scope: `ui.js` c
 
 QMK-Configurator-style layout (the user asked for "simplified, looks like QMK's"):
 
-- Top nav (title, Help link, theme toggle) → layout settings card (orientation, rows, columns, knobs, "Load repo example", "New blank", one-line layout hint) → **layer column** (1/2/3…, add/duplicate/remove) beside a dark **"case"** with 3D keycaps (buttons grid + knobs drawn as dashed dials with ↺ ccw / ● press / ↻ cw) → status line + collapsible legend + **Show comments on keys** switch → **selected-key editor** (action text box, "Add as next chord", Clear, message area, **Comment** box) → **keycode palette** (tabs Basic / Media / Mouse / Advanced) → sticky **upload bar** (Connect, Read device info, layers selector, Preview packets, Upload) → collapsed drawers: YAML (copy/download/import), CLI-script fallback, Help.
+- Top nav (title, Help link, theme toggle: amber ☀ in dark mode / indigo ☾ in light mode, classes `.sun`/`.moon`) → layout settings card (orientation, rows, columns, knobs, "Load repo example", "New blank", one-line layout hint) → **layer column** (fixed tabs 1/2/3: no add/duplicate/remove, every CH57x board has 3 layers) beside a dark **"case"** with 3D keycaps (buttons grid + knobs drawn as dashed dials with ↺ ccw / ● press / ↻ cw) → status line + collapsible legend + **Show comments on keys** switch → **selected-key editor** (action text box, "Add as next chord", Clear, message area, **Comment** box) → **keycode palette** (tabs Basic / Media / Mouse / Advanced) → sticky **upload bar** (Connect, Read device info, layers selector, Preview packets, Upload) → collapsed drawers: YAML (copy/download/import), CLI-script fallback, Help.
 - Main render functions: `renderAll` → `renderSettings`, `renderTabs`, `renderDevice` (uses `cellEl`), `renderEditor`, `renderMsg`, `renderYaml`, then `hidSync()` (**required**: the protocol for 514c:8850 depends on the layout, so the info/upload buttons must be re-synced after any layout change).
 - Palette: `buildControls`, `wirePalette`, `setPane`, `assignKey`, `assignMouse`, `applyAction`. Modifiers are one-shot chips; "Add as next chord" appends instead of replacing (palette caps a sequence at 5 chords; the validators allow more per family).
 - Delay: one button toggles **Apply delay option ↔ Remove delay option** (`syncDelayUi`, `DELAY_RE`).
@@ -144,7 +144,7 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 - Parser: `parseYaml` stores `comment` on each line; `parseSeq` copies it onto flow-sequence rows (`arr.comment`) and across `- key: value` lines; `parseMap` stores per-key comments on a **non-enumerable** `__notes` property.
 - `splitRowNotes(text, n)` splits a row comment into `n` notes (gaps keep positions; extras beyond `n` are joined onto the last key; trailing `;` adds nothing).
 - Export: `toYaml` aligns the `#` column per block; `rowNote()` joins notes with `; `, trims trailing empties, and **turns a `;` typed inside a non-last note into `,`** (otherwise it would shift later notes). Knob notes may contain `;`.
-- UI: **Comment** input under the action (`#note`, `getNote/setNote`), dot on commented keys (`.hasnote`), **Show comments on keys** (`#showNotes`) swaps the keycap text to the comment with the action in small type beneath (`.device.notes`, CSS vars `--cw/--ch`). Importing a file with comments auto-enables the view and the toast says e.g. `Loaded daise_….yaml · 30 comments on keys`. *Clear* clears only the action. Duplicate layer copies comments; resizing keeps comments on their keys.
+- UI: **Comment** input under the action (`#note`, `getNote/setNote`), dot on commented keys (`.hasnote`), **Show comments on keys** (`#showNotes`) swaps the keycap text to the comment with the action in small type beneath (`.device.notes`, CSS vars `--cw/--ch`). Importing a file with comments auto-enables the view and the toast says e.g. `Loaded daise_….yaml · 30 comments on keys`. *Clear* clears only the action. Resizing keeps comments on their keys.
 - Backward compatible: a mapping with no comments exports **byte-identically** to the previous version (apart from the `# Generated by …` header line, which changed with the 2026-11-15 rename); saved state from older versions gets empty notes (`normalizeState`).
 
 **Known limits (told to the user):** header comments and any comment not attached to a key row/knob line are dropped on export; `;` in a non-last button note becomes `,`.
@@ -217,6 +217,7 @@ See the layout in `README.md`. The old scratchpad bundle was reorganised as foll
 9. Moved to this git repo (2026-11-15): tests made path-independent; split into `src/` + `build.mjs`; tests moved to `test/`; reference repos fetched instead of vendored; CI added (tests + oracle reproducibility); 4×4 514c:8850 delay warning; `CLAUDE.md` added.
 10. **Renamed** to *CH57x Keyboard Web Configurator* (page title, heading, `# Generated by` header in exported YAML and upload scripts). 
 11. **Renamed the rest** (2026-11-15): the deliverable is now `ch57x-keyboard-web-configurator.html`, the npm package is `ch57x-keyboard-web-configurator`, and localStorage keys are `ch57x-configurator-*`, with a one-time migration from the old keys (§3.4).
+12. (2026-11-16) Theme toggle tinted (amber sun / indigo moon). **Layers fixed at 3** (the CH57x maximum): add/duplicate/remove removed; imports and saved state are padded to 3, and a file with more than 3 layers keeps the first 3 (the import toast says so). Blank layers upload nothing, since empty keys are skipped.
 
 ---
 

@@ -72,6 +72,13 @@
   .nav a.navlink:hover{opacity:1;text-decoration:underline}
   #themeToggle{white-space:nowrap;border-radius:99px;background:transparent;color:var(--nav-fg);border-color:var(--nav-line);padding:5px 12px;font-size:13px}
   #themeToggle:hover{border-color:var(--nav-fg)}
+  #themeToggle .ti{display:inline-block;margin-right:2px}
+  #themeToggle.sun{border-color:rgba(245,185,66,.45);background:rgba(245,185,66,.08)}
+  #themeToggle.sun .ti{color:#f5b942}
+  #themeToggle.sun:hover{border-color:#f5b942}
+  #themeToggle.moon{border-color:rgba(154,168,255,.45);background:rgba(154,168,255,.08)}
+  #themeToggle.moon .ti{color:#a9b4ff}
+  #themeToggle.moon:hover{border-color:#a9b4ff}
 
   main{max-width:1100px;margin:0 auto;padding:14px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
@@ -87,8 +94,6 @@
   #tabs{display:flex;flex-direction:column;gap:6px;align-items:center}
   #tabs .tab{width:38px;height:38px;padding:0;font-weight:600}
   #tabs .tab.active{background:var(--accent);color:var(--accent-fg);border-color:transparent}
-  .layertools{display:flex;flex-direction:column;gap:6px;margin-top:4px;padding-top:8px;border-top:1px solid var(--line)}
-  .layertools .tool{width:38px;height:30px;padding:0;font-size:15px;line-height:1}
   .case{background:var(--case);border:1px solid var(--case-line);border-radius:14px;padding:18px;display:grid;place-items:center;min-width:0;
     box-shadow:inset 0 2px 10px rgba(0,0,0,.35)}
   .device{display:flex;gap:26px;align-items:center;justify-content:center;max-width:100%;overflow-x:auto;padding:6px}
@@ -194,8 +199,6 @@
     .keymap{grid-template-columns:minmax(0,1fr)}
     .layerbar{flex-direction:row;justify-content:flex-start;padding:8px 10px;flex-wrap:wrap}
     #tabs{flex-direction:row;flex-wrap:wrap}
-    .layertools{flex-direction:row;margin:0 0 0 4px;padding:0 0 0 10px;border-top:0;border-left:1px solid var(--line)}
-    .layertools .tool{width:34px}
     .case{padding:12px 8px}
     .device.normal,.device.upsidedown{flex-direction:column}
     .device.notes{--cw:92px;--ch:84px}
@@ -432,6 +435,7 @@ knobs:
 <script id="core">
 // ---------- Core logic (no DOM) ----------
 const ORIENTATIONS = ['normal','upsidedown','clockwise','counterclockwise'];
+const LAYER_COUNT = 3;   // every CH57x board has exactly 3 layers
 const MODS_KB = {ctrl:1,rctrl:1,shift:1,rshift:1,alt:1,opt:1,ralt:1,ropt:1,win:1,cmd:1,rwin:1,rcmd:1};
 const MODS_MOUSE = {ctrl:1,shift:1,alt:1};
 const MEDIA = ['screenbrightnessup','screenbrightnessdown','next','previous','prev','stop','play','mute',
@@ -625,7 +629,8 @@ function clampInt(v,lo,hi,def){ v=parseInt(v,10); if(isNaN(v)) v=def; return Mat
 function normalizeState(st){
   st.rows=clampInt(st.rows,1,8,3); st.columns=clampInt(st.columns,1,8,4); st.knobs=clampInt(st.knobs,0,6,0);
   if(!ORIENTATIONS.includes(st.orientation)) st.orientation='normal';
-  if(!st.layers||!st.layers.length) st.layers=[blankLayer(st)];
+  st.layers=(st.layers||[]).slice(0,LAYER_COUNT);
+  while(st.layers.length<LAYER_COUNT) st.layers.push(blankLayer(st));
   const {R,C}=dimsOf(st);
   st.layers.forEach(l=>{
     const b=[];
@@ -1115,16 +1120,6 @@ function renderTabs(){
   state.layers.forEach((_,i)=>box.append(h('button',{type:'button',class:'tab'+(i===layerIdx?' active':''),title:'Layer '+(i+1),
     'aria-label':'Layer '+(i+1),'aria-pressed':String(i===layerIdx),text:String(i+1),
     onclick:()=>{layerIdx=i;clampSel();renderAll();save();}})));
-  const tools=h('div',{class:'layertools'});
-  tools.append(h('button',{type:'button',class:'tool',title:'Add layer (most boards have 3)','aria-label':'Add layer',text:'+',onclick:()=>{
-    state.layers.push(blankLayer(state)); layerIdx=state.layers.length-1; renderAll(); save();}}));
-  tools.append(h('button',{type:'button',class:'tool',title:'Duplicate this layer','aria-label':'Duplicate layer',text:'⧉',onclick:()=>{
-    state.layers.splice(layerIdx+1,0,JSON.parse(JSON.stringify(layer()))); layerIdx++; renderAll(); save();}}));
-  const rm=h('button',{type:'button',class:'tool',title:'Remove this layer','aria-label':'Remove layer',text:'−',onclick:()=>{
-    if(state.layers.length<2) return; state.layers.splice(layerIdx,1); layerIdx=Math.max(0,layerIdx-1); renderAll(); save();}});
-  rm.disabled = state.layers.length<2;
-  tools.append(rm);
-  box.append(tools);
 }
 function cellEl(t,val,label,extra){
   const v=validateAction(val);
@@ -1340,10 +1335,12 @@ $('btnBlank').addEventListener('click',()=>{
 });
 function loadText(text, okMsg){
   try{
-    state=fromObj(parseYaml(text)); layerIdx=0; sel={t:'b',r:0,c:0};
+    const obj=parseYaml(text), extra=Array.isArray(obj&&obj.layers)?obj.layers.length-LAYER_COUNT:0;
+    state=fromObj(obj); layerIdx=0; sel={t:'b',r:0,c:0};
     // A file that documents its keys is more useful with the comments showing, so turn that view on.
     const n=countNotes(state); if(n && !showNotes){ showNotes=true; saveNotesPref(); }
-    renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':''));
+    renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':'')
+      +(extra>0?' · only the first '+LAYER_COUNT+' layers kept':''));
   }catch(e){ toast('Import failed: '+e.message); }
 }
 $('btnImport').addEventListener('click',()=>{ const t=$('yamlIn').value; if(t.trim()) loadText(t,'Imported YAML'); else toast('Paste some YAML first'); });
@@ -1510,7 +1507,8 @@ clampSel(); renderAll();
   function effective(){ var t=root.getAttribute('data-theme'); return t || (mq && mq.matches ? 'dark' : 'light'); }
   function paint(){
     var dark=effective()==='dark';
-    btn.textContent = dark ? '☀ Light' : '☾ Dark';
+    btn.className = dark ? 'sun' : 'moon';
+    btn.innerHTML = dark ? '<span class="ti" aria-hidden="true">☀</span> Light' : '<span class="ti" aria-hidden="true">☾</span> Dark';
     btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
   }
   btn.addEventListener('click',function(){

@@ -1,5 +1,6 @@
 // ---------- Core logic (no DOM) ----------
 const ORIENTATIONS = ['normal','upsidedown','clockwise','counterclockwise'];
+const LAYER_COUNT = 3;   // every CH57x board has exactly 3 layers
 const MODS_KB = {ctrl:1,rctrl:1,shift:1,rshift:1,alt:1,opt:1,ralt:1,ropt:1,win:1,cmd:1,rwin:1,rcmd:1};
 const MODS_MOUSE = {ctrl:1,shift:1,alt:1};
 const MEDIA = ['screenbrightnessup','screenbrightnessdown','next','previous','prev','stop','play','mute',
@@ -193,7 +194,8 @@ function clampInt(v,lo,hi,def){ v=parseInt(v,10); if(isNaN(v)) v=def; return Mat
 function normalizeState(st){
   st.rows=clampInt(st.rows,1,8,3); st.columns=clampInt(st.columns,1,8,4); st.knobs=clampInt(st.knobs,0,6,0);
   if(!ORIENTATIONS.includes(st.orientation)) st.orientation='normal';
-  if(!st.layers||!st.layers.length) st.layers=[blankLayer(st)];
+  st.layers=(st.layers||[]).slice(0,LAYER_COUNT);
+  while(st.layers.length<LAYER_COUNT) st.layers.push(blankLayer(st));
   const {R,C}=dimsOf(st);
   st.layers.forEach(l=>{
     const b=[];

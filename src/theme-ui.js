@@ -4,7 +4,8 @@
   function effective(){ var t=root.getAttribute('data-theme'); return t || (mq && mq.matches ? 'dark' : 'light'); }
   function paint(){
     var dark=effective()==='dark';
-    btn.textContent = dark ? '☀ Light' : '☾ Dark';
+    btn.className = dark ? 'sun' : 'moon';
+    btn.innerHTML = dark ? '<span class="ti" aria-hidden="true">☀</span> Light' : '<span class="ti" aria-hidden="true">☾</span> Dark';
     btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
   }
   btn.addEventListener('click',function(){
