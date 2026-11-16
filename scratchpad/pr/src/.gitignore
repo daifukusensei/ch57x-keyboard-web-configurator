@@ -1,7 +1,0 @@
-*~
-*.swp
-*.zip
-*.log
-
-node_modules/
-dist/
