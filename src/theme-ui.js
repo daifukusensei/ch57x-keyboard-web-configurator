@@ -10,7 +10,7 @@
   btn.addEventListener('click',function(){
     var next=effective()==='dark' ? 'light' : 'dark';
     root.setAttribute('data-theme',next);
-    try{ localStorage.setItem('ch57x-theme',next); }catch(e){}
+    try{ localStorage.setItem('ch57x-configurator-theme',next); }catch(e){}
     paint();
   });
   if(mq){ if(mq.addEventListener) mq.addEventListener('change',paint); else if(mq.addListener) mq.addListener(paint); }

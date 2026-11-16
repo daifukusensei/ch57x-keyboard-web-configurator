@@ -1,5 +1,5 @@
 {
-  "name": "ch57x-config-editor",
+  "name": "ch57x-keyboard-web-configurator",
   "version": "1.0.0",
   "private": true,
   "description": "Single-file web editor and WebHID uploader for ch57x-keyboard-tool YAML mappings",

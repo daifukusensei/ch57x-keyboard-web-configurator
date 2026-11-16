@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
       async open(){this.opened=true;},async sendReport(){},addEventListener(){},removeEventListener(){}};
     Object.defineProperty(navigator,'hid',{value:{getDevices:async()=>[],requestDevice:async()=>[dev],addEventListener(){}}});
   });
-  await p.goto(require('url').pathToFileURL(require('path').join(__dirname,'../../ch57x-config-editor.html')).href);
+  await p.goto(require('url').pathToFileURL(require('path').join(__dirname,'../../ch57x-keyboard-web-configurator.html')).href);
   await p.click('#hidConnect'); await p.waitForTimeout(200);
   await p.click('#hidPreview'); await p.waitForTimeout(100);
   const sec=await p.locator('#hidConnect').locator('xpath=ancestor::section[1]');

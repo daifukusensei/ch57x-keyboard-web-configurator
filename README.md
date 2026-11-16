@@ -4,7 +4,7 @@ A single-file web app for editing [ch57x-keyboard-tool](https://github.com/kriom
 YAML mappings and uploading them straight to the keyboard over WebHID (Chrome/Edge desktop), with a
 CLI-script fallback for other browsers.
 
-**The deliverable is [`ch57x-config-editor.html`](ch57x-config-editor.html)**: one file, no dependencies, no
+**The deliverable is [`ch57x-keyboard-web-configurator.html`](ch57x-keyboard-web-configurator.html)**: one file, no dependencies, no
 network. Open it in a browser. It is *built* from `src/`; don't edit it by hand.
 
 ## Layout
@@ -12,11 +12,11 @@ network. Open it in a browser. It is *built* from `src/`; don't edit it by hand.
 ```
 src/index.template.html   markup; lines like <!-- @inline core.js --> are replaced by src/core.js
 src/style.css             styles
-src/theme-init.js         applies the saved theme before first paint (in <head>)
+src/theme-init.js         migrates renamed localStorage keys, applies the saved theme before first paint (in <head>)
 src/core.js               pure logic, no DOM: validation, YAML, state, protocol, upload planner
 src/ui.js                 DOM, palette, WebHID
 src/theme-ui.js           theme toggle
-build.mjs                 inlines src/ into ch57x-config-editor.html (zero dependencies)
+build.mjs                 inlines src/ into ch57x-keyboard-web-configurator.html (zero dependencies)
 test/                     suites (*.cjs) + run.mjs; they load the *built* HTML
 test/fixtures/            user YAML, Rust oracle outputs + their action lists, pre-comments HTML, stub tool
 test/reference/           ch57x-programmer TS reference bundled to ref.cjs (committed)
@@ -32,7 +32,7 @@ HANDOFF.md                architecture, protocol decisions, history, open items
 ```sh
 npm ci
 # edit src/...
-npm run build      # writes ch57x-config-editor.html; commit it together with src/
+npm run build      # writes ch57x-keyboard-web-configurator.html; commit it together with src/
 npm run check      # fails if the committed HTML is out of date (CI runs this)
 npm test           # all suites; pass another HTML path to test that: npm test -- path/to.html
 ```

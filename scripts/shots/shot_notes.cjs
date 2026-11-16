@@ -6,7 +6,7 @@ const yaml=fs.readFileSync(require('path').join(__dirname,'../../test/fixtures/u
   const run=async(name,vp,theme,fn)=>{
     const ctx=await b.newContext({viewport:vp,deviceScaleFactor:1,colorScheme:theme});
     const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-    await p.goto(require('url').pathToFileURL(require('path').join(__dirname,'../../ch57x-config-editor.html')).href); 
+    await p.goto(require('url').pathToFileURL(require('path').join(__dirname,'../../ch57x-keyboard-web-configurator.html')).href); 
     await p.evaluate(()=>{ window.confirm=()=>true; });
     await p.evaluate(y=>{ document.getElementById('yamlIn').value=y; document.getElementById('btnImport').click(); },yaml);
     if(fn) await fn(p);

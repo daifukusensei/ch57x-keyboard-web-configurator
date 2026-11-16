@@ -2,7 +2,7 @@
 // whose name contains a quote: it writes the exact YAML, validates, then uploads; a failed
 // validate stops before upload. upload.ps1 is only checked for content (no PowerShell here).
 const fs=require('fs'), path=require('path'), os=require('os'), {spawnSync}=require('child_process');
-const html=fs.readFileSync(process.argv[2]||path.join(__dirname,'../ch57x-config-editor.html'),'utf8');
+const html=fs.readFileSync(process.argv[2]||path.join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseYaml,toYaml,fromObj,EXAMPLE,makeUploadScript};')();
 let fail=0; const ok=(n,c,extra)=>{ if(!c) fail++; console.log(c?'ok  ':'FAIL',n,c||extra===undefined?'':'\n      '+extra); };

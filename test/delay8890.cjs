@@ -1,7 +1,7 @@
 // Delay handling per family at upload time: limits (≤ 6000 ms) and "no delay on 1189:8890".
 // The 4×4 8850 driver drops the delay, as upstream k8850_4x4 does (KeyboardEvent(_, presses)), and warns about it.
 const fs=require('fs');
-const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'),'utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseActionToMacro,bindPackets,makeReport,validateAction,familyWarnings};')();
 const MAX='maximum supported delay is 6000 ms', NODELAY='delay is not supported by this keyboard model';

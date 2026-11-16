@@ -1,5 +1,5 @@
 const fs=require('fs');
-const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'),'utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseActionToMacro,bindPackets,makeReport,planUpload,buttonIndex,fromObj,parseYaml,normalizeState};')();
 const KEYS={b0:0,b5:5,b11:11,b15:15,k0ccw:[0,'ccw'],k0press:[0,'press'],k1cw:[1,'cw'],k2press:[2,'press']};

@@ -1,6 +1,6 @@
 # CH57x Keyboard Web Configurator — handoff to Claude Code
 
-*Written 2026-11-15 for the hand-over; updated the same day after the move to this repo (split into `src/` + `build.mjs`, tests in `test/`, CI). Source of truth for the code is now `src/`; `ch57x-config-editor.html` is the built single-file deliverable (see `README.md`).*
+*Written 2026-11-15 for the hand-over; updated the same day after the move to this repo (split into `src/` + `build.mjs`, tests in `test/`, CI). Source of truth for the code is now `src/`; `ch57x-keyboard-web-configurator.html` is the built single-file deliverable (see `README.md`).*
 
 ---
 
@@ -40,7 +40,7 @@ Where sources disagree the editor follows **upstream**, except for the 514c:8850
 | Block | Source | Purpose |
 |---|---|---|
 | `<style>` | `src/style.css` | All styles. |
-| `<script id="theme-init">` (in `<head>`) | `src/theme-init.js` | Applies saved theme before first paint (no flash). |
+| `<script id="theme-init">` (in `<head>`) | `src/theme-init.js` | Migrates renamed localStorage keys (§3.4), then applies the saved theme before first paint (no flash). |
 | `<script id="core">` | `src/core.js` | **Pure logic, no DOM.** Action validation, YAML parse/export, state model, protocol encoders, upload planner, upload-script generator, `EXAMPLE` YAML. |
 | `<script id="ui">` | `src/ui.js` | All DOM code: rendering, palette, events, WebHID connect/preview/upload, upload-script drawer, init. |
 | `<script id="theme-ui">` | `src/theme-ui.js` | Theme toggle button. |
@@ -74,7 +74,7 @@ QMK-Configurator-style layout (the user asked for "simplified, looks like QMK's"
 - Palette: `buildControls`, `wirePalette`, `setPane`, `assignKey`, `assignMouse`, `applyAction`. Modifiers are one-shot chips; "Add as next chord" appends instead of replacing (palette caps a sequence at 5 chords; the validators allow more per family).
 - Delay: one button toggles **Apply delay option ↔ Remove delay option** (`syncDelayUi`, `DELAY_RE`).
 - Confirmations (`confirm()`): Load repo example, New blank, and Clear (only when the action is non-empty).
-- Theme: light/dark toggle, saved in `localStorage['ch57x-theme']`, defaults to system.
+- Theme: light/dark toggle, saved in `localStorage['ch57x-configurator-theme']`, defaults to system.
 
 ### 3.3 Element IDs the tests rely on (don't rename casually)
 
@@ -84,9 +84,11 @@ QMK-Configurator-style layout (the user asked for "simplified, looks like QMK's"
 
 | Key | Contents |
 |---|---|
-| `ch57x-editor-v1` | `{state, layerIdx}` — the whole mapping incl. comments |
-| `ch57x-editor-notes` | `'1'`/`'0'` — "Show comments on keys" preference (a viewer preference, not part of the mapping) |
-| `ch57x-theme` | `'light'` / `'dark'` |
+| `ch57x-configurator-v1` | `{state, layerIdx}` — the whole mapping incl. comments |
+| `ch57x-configurator-notes` | `'1'`/`'0'` — "Show comments on keys" preference (a viewer preference, not part of the mapping) |
+| `ch57x-configurator-theme` | `'light'` / `'dark'` |
+
+Until 2026-11-15 these were `ch57x-editor-v1`, `ch57x-editor-notes` and `ch57x-theme`. `src/theme-init.js` (the first script to run) copies an old value to its new key once, if the new key is empty. Old keys are kept so an older copy of the page still works. Renaming a key again needs the same kind of migration.
 
 ---
 
@@ -151,7 +153,7 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 
 ## 6. Test and verification inventory
 
-`npm test` runs every `test/*.cjs` against the built `ch57x-config-editor.html` (pass another path with `npm test -- other.html`); each suite also runs alone with `node test/<suite>.cjs [html]`. CI (`.github/workflows/test.yml`) runs `npm ci`, `npm run check` (built HTML up to date with `src/`) and `npm test`; a second job `oracles` installs Rust, runs `fetch-refs.sh` + `regen-oracles.sh` and fails if `test/fixtures` changes.
+`npm test` runs every `test/*.cjs` against the built `ch57x-keyboard-web-configurator.html` (pass another path with `npm test -- other.html`); each suite also runs alone with `node test/<suite>.cjs [html]`. CI (`.github/workflows/test.yml`) runs `npm ci`, `npm run check` (built HTML up to date with `src/`) and `npm test`; a second job `oracles` installs Rust, runs `fetch-refs.sh` + `regen-oracles.sh` and fails if `test/fixtures` changes.
 
 | Suite | Checks | Result |
 |---|---|---|
@@ -164,6 +166,7 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 | `ui_test.cjs`, `ui_test3.cjs`, `ui_test8890.cjs`, `ui_test_palette.cjs`, `confirm_test.cjs`, `theme_test.cjs`, `delay_clear_test.cjs` | UI flows with **mocked WebHID devices** (jsdom), palette, confirmations, theme, delay toggle, 8890 behaviour | `ALL PASSED` |
 | `delay8890.cjs` | delay limits per family at upload (≤ 6000 ms; error on 8890; 4×4 8850 drops the delay like upstream, with a warning) | `ALL PASSED` |
 | `upload_script_test.cjs` | CLI-fallback `upload.sh` run end to end with the stub `fixtures/it's-tool` (quoting, validate-before-upload, failure stops upload); `upload.ps1` content | `ALL PASSED` |
+| `storage_migration_test.cjs` | values under the old localStorage keys are carried over to the renamed ones; existing new keys win; old keys kept | `ALL PASSED` |
 | `core_purity.cjs` | `src/core.js` uses no DOM/browser globals | `ALL PASSED` |
 | `scripts/shots/*.cjs` (Playwright, not in CI) | screenshots for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px), written to `scripts/shots/out/` | visual only; all 5 run and reviewed 2026-11-15, no horizontal scroll at 320–1100 px |
 
@@ -212,7 +215,8 @@ See the layout in `README.md`. The old scratchpad bundle was reorganised as foll
 7. **QMK-style interface redesign.**
 8. **Per-key comments** (§5), completed and delivered.
 9. Moved to this git repo (2026-11-15): tests made path-independent; split into `src/` + `build.mjs`; tests moved to `test/`; reference repos fetched instead of vendored; CI added (tests + oracle reproducibility); 4×4 514c:8850 delay warning; `CLAUDE.md` added.
-10. **Renamed** to *CH57x Keyboard Web Configurator* (page title, heading, `# Generated by` header in exported YAML and upload scripts). File name, npm package name and localStorage keys unchanged.
+10. **Renamed** to *CH57x Keyboard Web Configurator* (page title, heading, `# Generated by` header in exported YAML and upload scripts). 
+11. **Renamed the rest** (2026-11-15): the deliverable is now `ch57x-keyboard-web-configurator.html`, the npm package is `ch57x-keyboard-web-configurator`, and localStorage keys are `ch57x-configurator-*`, with a one-time migration from the old keys (§3.4).
 
 ---
 

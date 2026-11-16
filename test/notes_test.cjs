@@ -2,7 +2,7 @@
 const fs=require('fs'), path=require('path');
 const S=path.join(__dirname,'fixtures');
 const load=p=>{ const h=fs.readFileSync(p,'utf8'); return new Function(h.match(/<script id="core">([\s\S]*?)<\/script>/)[1]+';return {parseYaml,fromObj,toYaml,normalizeState,blankLayer,splitRowNotes:typeof splitRowNotes==="function"?splitRowNotes:null,validateAction};')(); };
-const cur=load(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'));
+const cur=load(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'));
 const old=load(path.join(S,'before-comments.html'));
 const src=fs.readFileSync(path.join(S,'user.yaml'),'utf8');
 let fail=0; const eq=(n,a,b)=>{ const x=JSON.stringify(a),y=JSON.stringify(b); if(x!==y){ fail++; console.log('FAIL',n,'\n   got ',x,'\n   want',y); } else console.log('ok  ',n); };

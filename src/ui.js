@@ -1,11 +1,11 @@
 // ---------- UI ----------
 const $ = id => document.getElementById(id);
-const STORE = 'ch57x-editor-v1';
+const STORE = 'ch57x-configurator-v1';
 const MOD_ORDER = ['ctrl','shift','alt','win','rctrl','rshift','ralt','rwin'];
 const chips = new Set();
 let state, layerIdx = 0, sel = {t:'b',r:0,c:0};
 // "Show comments on keys" is a per-viewer preference (it is not part of the mapping).
-const NOTES_PREF = 'ch57x-editor-notes';
+const NOTES_PREF = 'ch57x-configurator-notes';
 let showNotes = false;
 try{ showNotes = localStorage.getItem(NOTES_PREF)==='1'; }catch(e){}
 function saveNotesPref(){ try{ localStorage.setItem(NOTES_PREF, showNotes?'1':'0'); }catch(e){} }

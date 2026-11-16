@@ -1,6 +1,6 @@
 // Per-key comments in the UI, driven with the user's own (CRLF) file.
 const {JSDOM}=require('jsdom'); const fs=require('fs'), path=require('path');
-const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'),'utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const userYaml=fs.readFileSync(path.join(__dirname,'fixtures/user.yaml'),'utf8');   // CRLF, as attached
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };
@@ -75,9 +75,9 @@ function boot(seed){
   // ---- toggle ----
   A.click('#showNotes');
   ok('toggle off: plain keycaps, dot still marks commented keys',!d.getElementById('device').classList.contains('notes')&&A.cells()[3].classList.contains('hasnote'));
-  ok('preference stored',w.localStorage.getItem('ch57x-editor-notes')==='0');
+  ok('preference stored',w.localStorage.getItem('ch57x-configurator-notes')==='0');
   A.click('#showNotes');
-  ok('toggle on again',d.getElementById('device').classList.contains('notes')&&w.localStorage.getItem('ch57x-editor-notes')==='1');
+  ok('toggle on again',d.getElementById('device').classList.contains('notes')&&w.localStorage.getItem('ch57x-configurator-notes')==='1');
 
   // ---- layers ----
   A.click('#tabs .tab:nth-of-type(2)');
@@ -104,7 +104,7 @@ function boot(seed){
   r.value='4'; r.dispatchEvent(new w.Event('change',{bubbles:true}));
 
   // ---- saved state and preference survive a reload ----
-  const seed={}; for(const k of ['ch57x-editor-v1','ch57x-editor-notes']) seed[k]=w.localStorage.getItem(k);
+  const seed={}; for(const k of ['ch57x-configurator-v1','ch57x-configurator-notes']) seed[k]=w.localStorage.getItem(k);
   const C=boot(seed); await sleep(30);
   ok('reload: comments restored and view still on',C.cells()[3].querySelector('.note').textContent==='IntelliJ split'&&C.d.getElementById('showNotes').checked&&C.d.getElementById('device').classList.contains('notes')&&C.errors.length===0);
 

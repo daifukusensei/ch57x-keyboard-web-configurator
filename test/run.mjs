@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Runs every suite against the built ch57x-config-editor.html (or argv[2]) and fails if any fails.
+// Runs every suite against the built ch57x-keyboard-web-configurator.html (or argv[2]) and fails if any fails.
 import { spawnSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';

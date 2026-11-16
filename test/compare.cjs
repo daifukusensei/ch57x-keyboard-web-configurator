@@ -1,6 +1,6 @@
 const fs=require('fs');
 const ref=require('./reference/ref.cjs');
-const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'),'utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseActionToMacro,bindPackets,keyIdFor,planUpload,buttonIndex,WELL_KNOWN,MEDIA_VALUES,HID_MODS,fromObj,parseYaml,EXAMPLE,familyFromProductId};')();
 let fail=0,n=0; const ok=(name,c)=>{n++; if(!c){fail++;console.log('FAIL',name);}};

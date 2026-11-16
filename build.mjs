@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Builds the single-file deliverable ch57x-config-editor.html from src/.
+// Builds the single-file deliverable ch57x-keyboard-web-configurator.html from src/.
 //
 // src/index.template.html holds the markup; every line that is exactly
 //   <!-- @inline NAME -->
 // is replaced by the contents of src/NAME. The surrounding <style>/<script id="…">
 // tags live in the template, so the tests' <script id="core"> regex keeps working.
 //
-//   node build.mjs           write ch57x-config-editor.html
+//   node build.mjs           write ch57x-keyboard-web-configurator.html
 //   node build.mjs --check   exit 1 if the committed file differs from a fresh build
 //
 // No dependencies, no network.
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const src = join(root, 'src');
-const outPath = join(root, 'ch57x-config-editor.html');
+const outPath = join(root, 'ch57x-keyboard-web-configurator.html');
 const PLACEHOLDER = /^<!-- @inline ([\w.-]+) -->$/;
 
 // A part must not close its own tag early, or the browser would end the block there.
@@ -45,11 +45,11 @@ const html = build();
 if (process.argv.includes('--check')) {
   const current = existsSync(outPath) ? readFileSync(outPath, 'utf8') : '';
   if (current !== html) {
-    console.error('ch57x-config-editor.html is out of date: run `npm run build` and commit the result.');
+    console.error('ch57x-keyboard-web-configurator.html is out of date: run `npm run build` and commit the result.');
     process.exit(1);
   }
-  console.log('ch57x-config-editor.html is up to date.');
+  console.log('ch57x-keyboard-web-configurator.html is up to date.');
 } else {
   writeFileSync(outPath, html);
-  console.log(`wrote ch57x-config-editor.html (${(Buffer.byteLength(html) / 1024).toFixed(1)} KB)`);
+  console.log(`wrote ch57x-keyboard-web-configurator.html (${(Buffer.byteLength(html) / 1024).toFixed(1)} KB)`);
 }

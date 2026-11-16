@@ -1,5 +1,5 @@
 const {JSDOM}=require('jsdom'); const fs=require('fs');
-const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'),'utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 let answer=false, asked=[]; const errors=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',url:'http://localhost/',beforeParse(w){ w.confirm=m=>{asked.push(m);return answer;}; w.addEventListener('error',e=>errors.push(e.message)); }});
 const w=dom.window,d=w.document,$=id=>d.getElementById(id);
