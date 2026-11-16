@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 F="$PWD/test/fixtures"
 
 run() { # repo actions-file prefix out-file
-  ( cd "refs/$1" && ORACLE_ACTIONS="$F/$2" cargo test --quiet oracle::dump -- --nocapture 2>/dev/null ) \
+  ( cd "refs/$1" && ORACLE_ACTIONS="$F/$2" cargo test --quiet oracle::dump -- --nocapture ) \
     | grep "^$3|" > "$F/$4.tmp"
   [ -s "$F/$4.tmp" ] || { echo "no $3| lines from $1" >&2; rm -f "$F/$4.tmp"; exit 1; }
   mv "$F/$4.tmp" "$F/$4"; echo "wrote test/fixtures/$4 ($(wc -l < "$F/$4") lines)"

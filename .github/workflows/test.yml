@@ -15,3 +15,16 @@ jobs:
       - name: Built HTML matches src/
         run: npm run check
       - run: npm test
+
+  # The Rust oracle files must be reproducible from the pinned upstream/fork revisions + patches/.
+  oracles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install libusb (needed by rusb)
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev pkg-config
+      - run: sh scripts/fetch-refs.sh
+      - run: sh scripts/regen-oracles.sh
+      - name: Regenerated oracles match the committed fixtures
+        run: git diff --exit-code --stat test/fixtures
