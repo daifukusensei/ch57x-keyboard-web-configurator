@@ -151,7 +151,7 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 
 ## 6. Test and verification inventory
 
-`npm test` runs every `test/*.cjs` against the built `ch57x-config-editor.html` (pass another path with `npm test -- other.html`); each suite also runs alone with `node test/<suite>.cjs [html]`. CI (`.github/workflows/test.yml`) runs `npm ci`, `npm run check` (built HTML up to date with `src/`) and `npm test`.
+`npm test` runs every `test/*.cjs` against the built `ch57x-config-editor.html` (pass another path with `npm test -- other.html`); each suite also runs alone with `node test/<suite>.cjs [html]`. CI (`.github/workflows/test.yml`) runs `npm ci`, `npm run check` (built HTML up to date with `src/`) and `npm test`; a second job `oracles` installs Rust, runs `fetch-refs.sh` + `regen-oracles.sh` and fails if `test/fixtures` changes.
 
 | Suite | Checks | Result |
 |---|---|---|
@@ -162,12 +162,12 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 | `notes_test.cjs` | comment parse/export/round-trip/edge cases using `fixtures/user.yaml`; backward compatibility against `fixtures/before-comments.html`; writes `fixtures/exported.yaml` | `ALL PASSED` |
 | `ui_notes_test.cjs` | comment UI end-to-end (jsdom) | `ALL PASSED` |
 | `ui_test.cjs`, `ui_test3.cjs`, `ui_test8890.cjs`, `ui_test_palette.cjs`, `confirm_test.cjs`, `theme_test.cjs`, `delay_clear_test.cjs` | UI flows with **mocked WebHID devices** (jsdom), palette, confirmations, theme, delay toggle, 8890 behaviour | `ALL PASSED` |
-| `delay8890.cjs` | delay limits per family at upload (≤ 6000 ms; error on 8890; 4×4 8850 drops the delay like upstream) | `ALL PASSED` |
+| `delay8890.cjs` | delay limits per family at upload (≤ 6000 ms; error on 8890; 4×4 8850 drops the delay like upstream, with a warning) | `ALL PASSED` |
 | `upload_script_test.cjs` | CLI-fallback `upload.sh` run end to end with the stub `fixtures/it's-tool` (quoting, validate-before-upload, failure stops upload); `upload.ps1` content | `ALL PASSED` |
 | `core_purity.cjs` | `src/core.js` uses no DOM/browser globals | `ALL PASSED` |
-| `scripts/shots/*.cjs` (Playwright, not in CI) | screenshots for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px), written to `scripts/shots/out/` | visual only |
+| `scripts/shots/*.cjs` (Playwright, not in CI) | screenshots for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px), written to `scripts/shots/out/` | visual only; all 5 run and reviewed 2026-11-15, no horizontal scroll at 320–1100 px |
 
-Regenerating the Rust oracles: `npm run fetch-refs` clones upstream, the fork and ch57x-programmer into `refs/` at the pinned revisions and applies `patches/*-oracle-harness.patch` (a `#[cfg(test)] mod oracle` with `oracle::dump` in `src/keyboard/mod.rs`; the fork also gets `oracle::bind` in `k884x.rs`). Then `sh scripts/regen-oracles.sh` (needs cargo) runs those tests with `ORACLE_ACTIONS=test/fixtures/{upstream,fork}-actions.txt` and writes the `ORACLE|` / `FORK|` lines to `test/fixtures/{upstream,fork}-oracle.txt`. *The fetch + patch step was verified (the patched clones are byte-identical to the copies used originally); the cargo step has not been run on this machine (no Rust toolchain).*
+Regenerating the Rust oracles: `npm run fetch-refs` clones upstream, the fork and ch57x-programmer into `refs/` at the pinned revisions and applies `patches/*-oracle-harness.patch` (a `#[cfg(test)] mod oracle` with `oracle::dump` in `src/keyboard/mod.rs`; the fork also gets `oracle::bind` in `k884x.rs`). Then `sh scripts/regen-oracles.sh` (needs cargo) runs those tests with `ORACLE_ACTIONS=test/fixtures/{upstream,fork}-actions.txt` and writes the `ORACLE|` / `FORK|` lines to `test/fixtures/{upstream,fork}-oracle.txt`. *Verified 2026-11-15: the patched clones are byte-identical to the copies used originally, and the user's local run of `regen-oracles.sh` reproduced both oracle files exactly. The CI job `oracles` repeats this on every push.*
 
 Dependencies (root `package.json`, dev only): `jsdom`, `esbuild`, `zod` (zod only for `build:ref`). Playwright is not a dependency; see `README.md`.
 
@@ -179,6 +179,7 @@ Dependencies (root `package.json`, dev only): `jsdom`, `esbuild`, `zod` (zod onl
 1. The user's message *"Two things: * mouse movement is only in the range of -127 to 127"* arrived with the **second bullet missing**. Ask what it was.
 2. Does `move(x,y)` go the wrong way on their **1189:8890**? If yes, switch that family to the fork's (y,x) order.
 3. **Hardware confirmation** that the 514c:8850 12-key upload (ported from their fork) behaves on their device.
+3a. **Delay on the 4×4 514c:8850.** The user says the 4×4 pad supports delays, but upstream (even latest `master`), the fork and ch57x-programmer have no 4×4 delay encoding. Since 2026-11-15 the editor warns (amber, while editing with a 4×4 connected + upload preview/confirm) that the delay is dropped. To implement it, ask for a **USB capture** (Wireshark + USBPcap) of the vendor software programming `a` with 100 ms and 1000 ms delays plus plain `a`; a best-guess 884x-style packet tested on hardware is the fallback.
 
 **Optional features discussed but not built**
 4. Export in the **fork's YAML syntax** (`delay[ms]`, `mousemove[x,y]`) as an alternative to upstream syntax (editor currently only writes upstream syntax; the fork-syntax mapping exists in `test/fork_cmp.cjs: toEditor()`).
