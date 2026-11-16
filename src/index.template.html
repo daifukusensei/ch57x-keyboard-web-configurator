@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CH57x Macropad Config Editor</title>
+<style>
+<!-- @inline style.css -->
+</style>
+<script id="theme-init">
+<!-- @inline theme-init.js -->
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="2" width="11" height="11" rx="3" fill="#6b97ff"/><rect x="15" y="2" width="11" height="11" rx="3" fill="#8fb1ff"/><rect x="2" y="15" width="11" height="11" rx="3" fill="#8fb1ff"/><circle cx="20.5" cy="20.5" r="5.5" fill="none" stroke="#6b97ff" stroke-width="2.5" stroke-dasharray="3 2.4"/></svg>
+      <h1>CH57x Macropad Config Editor</h1>
+    </div>
+    <span class="spacer"></span>
+    <a class="navlink" href="#help" id="helpLink">Help</a>
+    <button id="themeToggle" type="button" aria-label="Switch theme">Theme</button>
+  </div>
+</header>
+
+<main>
+  <!-- keyboard / layout selectors -->
+  <section class="card toolbar" id="settingsCard">
+    <div class="row">
+      <label class="f">Orientation
+        <select id="orientation">
+          <option value="normal">Normal (knobs right)</option>
+          <option value="upsidedown">Upside down (knobs left)</option>
+          <option value="clockwise">Clockwise (knobs bottom)</option>
+          <option value="counterclockwise">Counter-clockwise (knobs top)</option>
+        </select>
+      </label>
+      <label class="f">Rows<input type="number" id="rows" min="1" max="8"></label>
+      <label class="f">Columns<input type="number" id="columns" min="1" max="8"></label>
+      <label class="f">Knobs<input type="number" id="knobs" min="0" max="6"></label>
+      <span class="spacer"></span>
+      <button id="btnExample" type="button">Load repo example</button>
+      <button id="btnBlank" type="button">New blank</button>
+    </div>
+    <p class="hint" style="margin:10px 0 0">Count the rows and columns of keys on your keyboard with it in <em>normal</em> orientation (knobs on the right).</p>
+  </section>
+
+  <!-- keymap -->
+  <section class="keymap" aria-label="Keymap">
+    <div class="layerbar">
+      <div class="eyebrow">Layers</div>
+      <div id="tabs"></div>
+    </div>
+    <div class="case"><div class="device" id="device"></div></div>
+  </section>
+  <div class="status">
+    <div class="msg" id="summary"></div>
+    <div class="legendrow">
+      <details class="legend">
+        <summary>What do the labels and outlines mean?</summary>
+        <ul>
+          <li>Click a button or knob action to edit it.</li>
+          <li>Amber outline = warning, red = invalid.</li>
+          <li><strong>R1 C1</strong> = row 1, column 1 of the button grid, counted from the top left (R2 C3 = row 2, column 3, and so on).</li>
+          <li>On each knob, <strong>↺ ccw</strong> = turn counter-clockwise, <strong>● press</strong> = push the knob in, <strong>↻ cw</strong> = turn clockwise.</li>
+          <li>A small dot in a key's corner = it has a comment.</li>
+        </ul>
+      </details>
+      <label class="chip" id="showNotesWrap" title="Show each key's comment on its keycap instead of just the action"><input type="checkbox" id="showNotes">Show comments on keys</label>
+    </div>
+  </div>
+
+  <!-- selected key -->
+  <section class="card" id="editor">
+    <div class="strip-head"><span id="editTitle">Action</span></div>
+    <div class="strip-row">
+      <input type="text" id="action" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Pick a keycode below, or type e.g.  ctrl-c   |   h,e,l,l,o   |   volumeup">
+      <label class="chip" title="Clicking a keycode adds another chord (up to 5) instead of replacing the action"><input type="checkbox" id="seqMode">Add as next chord</label>
+      <button id="btnClear" type="button">Clear</button>
+    </div>
+    <div class="msg" id="actionMsg"></div>
+    <div class="noterow">
+      <label for="note">Comment</label>
+      <input type="text" id="note" autocomplete="off" placeholder="What does this key do?  (saved as a # comment in the YAML; the tool ignores it)">
+    </div>
+  </section>
+
+  <!-- keycode palette -->
+  <section class="card palette" aria-label="Keycodes">
+    <div class="ptabs" role="tablist">
+      <button type="button" class="ptab active" role="tab" id="ptab-basic" data-pane="basic" aria-selected="true">Basic</button>
+      <button type="button" class="ptab" role="tab" id="ptab-media" data-pane="media" aria-selected="false">Media</button>
+      <button type="button" class="ptab" role="tab" id="ptab-mouse" data-pane="mouse" aria-selected="false">Mouse</button>
+      <button type="button" class="ptab" role="tab" id="ptab-advanced" data-pane="advanced" aria-selected="false">Advanced</button>
+    </div>
+    <div class="modrow" id="modRow">
+      <span class="eyebrow">Modifiers</span>
+      <span id="modChips" class="caps"></span>
+    </div>
+    <div id="pane-basic"></div>
+    <div id="pane-media" hidden></div>
+    <div id="pane-mouse" hidden>
+      <div class="pgroup"><h4>Click</h4><div class="caps" id="mouseClicks"></div></div>
+      <div class="pgroup"><h4>Wheel</h4><div class="caps" id="mouseWheels"></div></div>
+      <div class="pgroup"><h4>Move and drag</h4>
+        <div class="prow" style="margin-top:0">
+          <label class="f">x<input type="number" id="mx" min="-127" max="127" value="10"></label>
+          <label class="f">y<input type="number" id="my" min="-127" max="127" value="0"></label>
+          <button type="button" class="pcap wide" id="msMove">Move</button>
+          <label class="f">Drag with
+            <select id="mbtn"><option value="left">left</option><option value="right">right</option><option value="middle">middle</option><option value="left+right">left + right</option></select>
+          </label>
+          <button type="button" class="pcap wide" id="msDrag">Drag</button>
+        </div>
+        <div class="prow">
+          <label class="f">Scroll amount<input type="number" id="mn" min="-127" max="127" value="1"></label>
+          <button type="button" class="pcap wide" id="msWheel">Scroll</button>
+        </div>
+        <p class="hint" style="margin:10px 0 0">Mouse actions only take the ctrl, shift and alt modifiers. Values go from -127 to 127.</p>
+      </div>
+    </div>
+    <div id="pane-advanced" hidden>
+      <div class="pgroup"><h4>Delay</h4>
+        <div class="prow" style="margin-top:0">
+          <label class="f">Delay between chords (ms)<input type="number" id="delay" min="0" placeholder="none"></label>
+          <button id="btnDelay" type="button">Apply delay option</button>
+        </div>
+        <p class="hint" style="margin:8px 0 0">Not available on 1189:8890 boards.</p>
+      </div>
+      <div class="pgroup"><h4>Raw HID code</h4>
+        <div class="prow" style="margin-top:0">
+          <label class="f">Code (0–255)<input type="number" id="bhid" min="0" max="255" placeholder="101"></label>
+          <button type="button" class="pcap wide" id="hidCodeSet">Use code</button>
+        </div>
+      </div>
+      <p class="hint" style="margin:14px 0 0">You can also type any action straight into the box above — see <a href="#help" class="helpjump">Help</a> for the syntax.</p>
+    </div>
+  </section>
+
+  <!-- upload -->
+  <section class="card bar" aria-label="Upload">
+    <div class="row">
+      <button id="hidConnect" type="button">Connect keyboard</button>
+      <button id="hidInfo" type="button" disabled>Read device info</button>
+      <span class="spacer"></span>
+      <label class="f" style="grid-auto-flow:column;align-items:center;gap:6px">Write
+        <select id="hidLayers">
+          <option value="all">All layers</option>
+          <option value="current">Current layer only</option>
+        </select>
+      </label>
+      <button id="hidPreview" type="button">Preview packets</button>
+      <button id="hidUpload" class="go" type="button" disabled>Upload to keyboard</button>
+    </div>
+    <div class="msg" id="hidStatus"></div>
+  </section>
+  <textarea id="hidPlan" rows="8" readonly spellcheck="false" hidden aria-label="Packets to send"></textarea>
+
+  <details class="more" id="yamlDrawer">
+    <summary>YAML: copy, download, import</summary>
+    <div class="body">
+      <textarea id="yamlOut" rows="14" readonly spellcheck="false"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button id="btnCopy" type="button">Copy YAML</button>
+        <button id="btnDownload" type="button">Download mapping.yaml</button>
+      </div>
+      <h3>Import existing YAML</h3>
+      <textarea id="yamlIn" rows="6" spellcheck="false" placeholder="Paste a mapping file here…"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="btnImport" type="button">Load pasted YAML</button>
+        <label class="f">…or choose a file<input type="file" id="fileIn" accept=".yaml,.yml,.txt,text/yaml"></label>
+      </div>
+      <p class="hint">The importer reads the mapping format used by the tool (model, orientation, rows, columns, knobs, layers). Per-key comments are kept: a <code>#</code> comment after a button row (one note per key, separated by <code>;</code>) or after a knob line. Other comments, such as the header at the top of a file, are dropped when the file is re-exported.</p>
+    </div>
+  </details>
+
+  <details class="more" id="cliDrawer">
+    <summary>No WebHID? Upload with the command-line tool</summary>
+    <div class="body">
+      <pre class="cli">./ch57x-keyboard-tool validate mapping.yaml
+./ch57x-keyboard-tool upload mapping.yaml
+# Linux without udev rules: prefix with sudo
+# If your build reads the config from stdin instead: ./ch57x-keyboard-tool upload &lt; mapping.yaml</pre>
+      <p class="hint" style="margin:0 0 10px">If WebHID isn't available (Firefox, Safari, or your OS doesn't expose the interface), this generates a script that writes <code>mapping.yaml</code>, runs <code>validate</code>, and only then runs <code>upload</code> with the original tool.</p>
+      <div class="row">
+        <label class="f">System
+          <select id="upOs">
+            <option value="sh">Linux / macOS (.sh)</option>
+            <option value="ps1">Windows (PowerShell .ps1)</option>
+          </select>
+        </label>
+        <label class="f">Path to ch57x-keyboard-tool
+          <input type="text" id="upTool" size="30" spellcheck="false">
+        </label>
+        <label class="chip" id="upSudoWrap"><input type="checkbox" id="upSudo">use sudo</label>
+        <button id="btnUpScript" type="button">Download upload script</button>
+        <button id="btnUpCopy" type="button">Copy commands</button>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Put the script next to the tool, or give the tool's full path. Linux/macOS: <code>chmod +x upload-ch57x.sh &amp;&amp; ./upload-ch57x.sh</code>. Windows: <code>powershell -ExecutionPolicy Bypass -File upload-ch57x.ps1</code> (needs USBDK installed).</p>
+    </div>
+  </details>
+
+  <details class="more" id="help">
+    <summary>Help and reference</summary>
+    <div class="body">
+      <p>Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. Build a layout, then upload straight from this page, or copy or download the YAML and use the CLI.</p>
+      <h3>Comments on keys</h3>
+      <p>Type a note in the <em>Comment</em> box under the action to remember what a key does. It is saved in the YAML as a <code>#</code> comment, which the tool ignores, so the file still validates and uploads exactly as before; comments are never sent to the keyboard. A button row carries one comment after the row, with one note per key in column order, separated by <code>;</code>. Each knob line (<code>ccw</code>, <code>press</code>, <code>cw</code>) carries its own. Files written that way are read back onto the right keys when you import them, and turn on <em>Show comments on keys</em> so you can read them on the keycaps.</p>
+      <pre class="cli">- ["ctrl-b", "ctrl-shift-v", "ctrl-k,v"]   # side bar; markdown view; markdown side-by-side
+...
+knobs:
+  - ccw: "ctrl-minus"       # zoom out
+    press: "ctrl-numpad0"   # reset zoom</pre>
+      <p class="hint">A <code>;</code> typed inside a button note is saved as <code>,</code>, because <code>;</code> separates the notes in a row. If a row has more notes than keys, the extras are joined onto the last key.</p>
+      <h3>Direct upload (WebHID)</h3>
+      <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
+      <h3>Actions</h3>
+      <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. Sequences use commas: <code>win-r,c,m,d,enter</code>. Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>
+      <p><strong>Mouse.</strong> <code>click</code>, <code>click(left+right)</code>, <code>rclick</code>, <code>mclick</code>, <code>move(x,y)</code>, <code>drag(button,x,y)</code>, <code>wheel(n)</code>, <code>wheelup</code>, <code>wheeldown</code>, with ctrl / shift / alt only.</p>
+      <p><strong>Media.</strong> <code>screenbrightnessup</code> <code>screenbrightnessdown</code> <code>next</code> <code>previous</code>/<code>prev</code> <code>stop</code> <code>play</code> <code>mute</code> <code>volumeup</code> <code>volumedown</code> <code>favorites</code> <code>calculator</code> <code>screenlock</code> <code>webpagehome</code> <code>webpageback</code> <code>webpageforward</code>. Media keys can't take modifiers or be mixed with normal keys.</p>
+      <p><strong>LEDs</strong> (separate CLI command, not part of the YAML). 0x8840 / 0x8842: <code>led &lt;layer&gt; &lt;mode&gt;…</code> with modes <code>off</code>, <code>backlight</code>, <code>shock</code>, <code>shock2</code>, <code>press</code> and colors red, orange, yellow, green, cyan, blue, purple (backlight also white). 0x8890: <code>led 1</code>.</p>
+      <p><strong>3×1 + 1 knob boards:</strong> modifiers work on the first key of a sequence only.</p>
+      <p class="hint">Key names outside the ones this editor knows get a warning, not an error, because the tool's own list (<code>show-keys</code>) is authoritative. Always finish with <code>validate</code>.</p>
+    </div>
+  </details>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="core">
+<!-- @inline core.js -->
+</script>
+<script id="ui">
+<!-- @inline ui.js -->
+</script>
+<script id="theme-ui">
+<!-- @inline theme-ui.js -->
+</script>
+</body>
+</html>
