@@ -1,4 +1,4 @@
-# CH57x Macropad Config Editor
+# CH57x Keyboard Web Configurator
 
 Single-file web editor and WebHID uploader for [kriomant/ch57x-keyboard-tool](https://github.com/kriomant/ch57x-keyboard-tool) YAML mappings.
 The deliverable `ch57x-config-editor.html` is **built** from `src/`; never edit it by hand.

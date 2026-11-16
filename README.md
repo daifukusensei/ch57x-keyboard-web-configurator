@@ -1,4 +1,4 @@
-# CH57x Macropad Config Editor
+# CH57x Keyboard Web Configurator
 
 A single-file web app for editing [ch57x-keyboard-tool](https://github.com/kriomant/ch57x-keyboard-tool)
 YAML mappings and uploading them straight to the keyboard over WebHID (Chrome/Edge desktop), with a
