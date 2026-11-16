@@ -1,6 +1,6 @@
 # CH57x Macropad Config Editor — handoff to Claude Code
 
-*Written 2026-11-15. Source of truth for the code is `/home/claude/ch57x-config-editor.html` (1,516 lines, ~87 KB). Everything below was re-checked against that file and the scratchpad on this date.*
+*Written 2026-11-15 for the hand-over; updated the same day after the move to this repo (split into `src/` + `build.mjs`, tests in `test/`, CI). Source of truth for the code is now `src/`; `ch57x-config-editor.html` is the built single-file deliverable (see `README.md`).*
 
 ---
 
@@ -21,7 +21,7 @@ Browser support: WebHID is Chrome/Edge desktop only. Linux needs a udev rule for
 
 ---
 
-## 2. Reference repositories (all cloned in the scratchpad, see §8)
+## 2. Reference repositories (`npm run fetch-refs` clones them into `refs/`)
 
 | Repo | Role | Revision used |
 |---|---|---|
@@ -35,16 +35,19 @@ Where sources disagree the editor follows **upstream**, except for the 514c:8850
 
 ## 3. Architecture of the HTML file
 
-Four inline `<script>` blocks, in this order (line numbers approximate, current file):
+`build.mjs` inlines the `src/` files into `src/index.template.html`, giving one `<style>` and four inline `<script>` blocks, in this order:
 
-| Block | ~Lines | Purpose |
+| Block | Source | Purpose |
 |---|---|---|
-| `<script id="theme-init">` (in `<head>`) | 207 | Applies saved theme before first paint (no flash). |
-| `<script id="core">` | 428–1037 | **Pure logic, no DOM.** Action validation, YAML parse/export, state model, protocol encoders, upload planner, upload-script generator, `EXAMPLE` YAML. |
-| `<script id="ui">` | 1039–1494 | All DOM code: rendering, palette, events, WebHID connect/preview/upload, upload-script drawer, init. |
-| `<script id="theme-ui">` | 1495+ | Theme toggle button. |
+| `<style>` | `src/style.css` | All styles. |
+| `<script id="theme-init">` (in `<head>`) | `src/theme-init.js` | Applies saved theme before first paint (no flash). |
+| `<script id="core">` | `src/core.js` | **Pure logic, no DOM.** Action validation, YAML parse/export, state model, protocol encoders, upload planner, upload-script generator, `EXAMPLE` YAML. |
+| `<script id="ui">` | `src/ui.js` | All DOM code: rendering, palette, events, WebHID connect/preview/upload, upload-script drawer, init. |
+| `<script id="theme-ui">` | `src/theme-ui.js` | Theme toggle button. |
 
-**The test suites extract `<script id="core">` with a regex and run it with `new Function(...)`.** So: keep the `id="core"` tag, keep core free of `document`/`window`, and keep the function names the tests import (listed below).
+The scripts are classic (non-module) scripts sharing one global scope: `ui.js` calls `core.js` functions directly. `build.mjs` refuses a part that contains `</script` / `</style` or CR line endings.
+
+**The test suites extract `<script id="core">` from the built HTML with a regex and run it with `new Function(...)`.** So: keep the `id="core"` tag, keep core free of `document`/`window` (`test/core_purity.cjs` enforces this), and keep the function names the tests import (listed below).
 
 ### 3.1 Core (important functions)
 
@@ -148,22 +151,25 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 
 ## 6. Test and verification inventory
 
-All live in the scratchpad (§8). **Every one of these passed on the final file.** Run from the scratchpad root unless noted.
+`npm test` runs every `test/*.cjs` against the built `ch57x-config-editor.html` (pass another path with `npm test -- other.html`); each suite also runs alone with `node test/<suite>.cjs [html]`. CI (`.github/workflows/test.yml`) runs `npm ci`, `npm run check` (built HTML up to date with `src/`) and `npm test`.
 
-| Command | Checks | Final result |
+| Suite | Checks | Result |
 |---|---|---|
-| `node test_core.js /home/claude/ch57x-config-editor.html` | core parse/validate/YAML round-trip, range -127..127, upload-parser limits | `ALL PASSED` |
-| `cd tools && node oracle_cmp.cjs` | JS packets vs **upstream Rust** output (`orig/oracle.txt`) for drivers 884x/8890/8850, layers 0 & 2, 8 key positions × 70 actions | 1040 ok / 0 bad per family; 0 differing; 0 orientation mismatches; only intentional `-128` rejections |
-| `node tools/fork_cmp.cjs [html]` | JS 12-key protocol vs **fork Rust** output (`fork/fork_oracle.txt`) | `ALL OK` |
-| `node tools/compare.cjs` | JS vs **ch57x-programmer TS reference** (`tools/ref.cjs`, bundled from `ref_entry.ts` with esbuild) | `1460 checks, 0 failed` |
-| `node tools/notes_test.cjs [html]` | comment parse/export/round-trip/edge cases using `notes/user.yaml` | `ALL PASSED` |
-| `node tools/ui_notes_test.cjs` | comment UI end-to-end (jsdom) | `ALL PASSED` |
-| `node tools/ui_test.cjs`, `ui_test3.cjs`, `ui_test8890.cjs`, `ui_test_palette.cjs`, `confirm_test.cjs`, `theme_test.cjs`, `delay_clear_test.cjs`, `delay8890.cjs` | UI flows with **mocked WebHID devices** (jsdom), palette, confirmations, theme, delay toggle, 8890 behaviour | all `ALL PASSED` |
-| `shot_*.js` (Playwright) | screenshots used for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px) | visual only |
+| `test_core.cjs` | core parse/validate/YAML round-trip, range -127..127, upload-parser limits | `ALL PASSED` |
+| `oracle_cmp.cjs` | JS packets vs **upstream Rust** output (`fixtures/upstream-oracle.txt`) for drivers 884x/8890/8850, layers 0 & 2, 8 key positions × 70 actions | 1040 ok / 0 bad per family; 0 differing; 0 orientation mismatches; only intentional `-128` rejections |
+| `fork_cmp.cjs` | JS 12-key protocol vs **fork Rust** output (`fixtures/fork-oracle.txt`) | `ALL OK` |
+| `compare.cjs` | JS vs **ch57x-programmer TS reference** (`reference/ref.cjs`, bundled from `reference/ref_entry.ts` by `npm run build:ref`) | `1460 checks, 0 failed` |
+| `notes_test.cjs` | comment parse/export/round-trip/edge cases using `fixtures/user.yaml`; backward compatibility against `fixtures/before-comments.html`; writes `fixtures/exported.yaml` | `ALL PASSED` |
+| `ui_notes_test.cjs` | comment UI end-to-end (jsdom) | `ALL PASSED` |
+| `ui_test.cjs`, `ui_test3.cjs`, `ui_test8890.cjs`, `ui_test_palette.cjs`, `confirm_test.cjs`, `theme_test.cjs`, `delay_clear_test.cjs` | UI flows with **mocked WebHID devices** (jsdom), palette, confirmations, theme, delay toggle, 8890 behaviour | `ALL PASSED` |
+| `delay8890.cjs` | delay limits per family at upload (≤ 6000 ms; error on 8890; 4×4 8850 drops the delay like upstream) | `ALL PASSED` |
+| `upload_script_test.cjs` | CLI-fallback `upload.sh` run end to end with the stub `fixtures/it's-tool` (quoting, validate-before-upload, failure stops upload); `upload.ps1` content | `ALL PASSED` |
+| `core_purity.cjs` | `src/core.js` uses no DOM/browser globals | `ALL PASSED` |
+| `scripts/shots/*.cjs` (Playwright, not in CI) | screenshots for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px), written to `scripts/shots/out/` | visual only |
 
-Regenerating the Rust oracles: both repos have a scratch-only `#[cfg(test)]` module (`oracle::dump`, in `src/keyboard/mod.rs`; the fork also has `oracle::bind` in `k884x.rs`). Run that test with env `ORACLE_ACTIONS=<actions file>` (`orig/actions.txt`, `fork/fork_actions.txt`) and capture stdout lines starting `ORACLE|` / `FORK|` into `orig/oracle.txt` / `fork/fork_oracle.txt`. **These harness edits are uncommitted local changes in the clones; they are not part of the deliverable.**
+Regenerating the Rust oracles: `npm run fetch-refs` clones upstream, the fork and ch57x-programmer into `refs/` at the pinned revisions and applies `patches/*-oracle-harness.patch` (a `#[cfg(test)] mod oracle` with `oracle::dump` in `src/keyboard/mod.rs`; the fork also gets `oracle::bind` in `k884x.rs`). Then `sh scripts/regen-oracles.sh` (needs cargo) runs those tests with `ORACLE_ACTIONS=test/fixtures/{upstream,fork}-actions.txt` and writes the `ORACLE|` / `FORK|` lines to `test/fixtures/{upstream,fork}-oracle.txt`. *The fetch + patch step was verified (the patched clones are byte-identical to the copies used originally); the cargo step has not been run on this machine (no Rust toolchain).*
 
-Dependencies for the JS tests (in `tools/package.json`): `jsdom`, `esbuild`, `zod`. Playwright + Chromium were preinstalled in the cloud container — install them yourself locally.
+Dependencies (root `package.json`, dev only): `jsdom`, `esbuild`, `zod` (zod only for `build:ref`). Playwright is not a dependency; see `README.md`.
 
 ---
 
@@ -175,43 +181,22 @@ Dependencies for the JS tests (in `tools/package.json`): `jsdom`, `esbuild`, `zo
 3. **Hardware confirmation** that the 514c:8850 12-key upload (ported from their fork) behaves on their device.
 
 **Optional features discussed but not built**
-4. Export in the **fork's YAML syntax** (`delay[ms]`, `mousemove[x,y]`) as an alternative to upstream syntax (editor currently only writes upstream syntax; the fork-syntax mapping exists in `tools/fork_cmp.cjs: toEditor()`).
+4. Export in the **fork's YAML syntax** (`delay[ms]`, `mousemove[x,y]`) as an alternative to upstream syntax (editor currently only writes upstream syntax; the fork-syntax mapping exists in `test/fork_cmp.cjs: toEditor()`).
 5. Preserve **file-header comments** on re-export (currently dropped).
 6. LEDs are deliberately **out of scope** (separate CLI command, not in the YAML); Help mentions them.
 
-**Suggested engineering clean-up (my recommendation, not yet agreed with the user)**
-7. Move to a real repo: split into `core.js`, `ui.js`, `style.css`, `index.template.html` plus a small script that **inlines everything into the single deliverable HTML** (keep `<script id="core">` so the tests keep working). `git init`, CI running the test list in §6.
-8. Parameterise the tests: most hard-code `/home/claude/ch57x-config-editor.html` and scratchpad-relative paths (`../orig/oracle.txt`); only `test_core.js`, `fork_cmp.cjs`, `notes_test.cjs` accept a path argument.
-9. **Delete `qmk/assemble.py`.** It rebuilds the page from `qmk/before-qmk-style.html` (the pre-comments, pre-redesign core). Re-running it would **overwrite the comment feature**. All later edits were made directly to the deliverable.
-10. Commit the oracle harness (or a tiny Rust `examples/` binary) so the oracle files are reproducible without hand-patched clones.
+**Engineering clean-up** — 7–10 done 2026-11-15 on branch `repo-split`
+7. ~~Split into `src/` + inlining build, CI.~~ Done: `build.mjs`, `.github/workflows/test.yml`.
+8. ~~Parameterise the tests.~~ Done: all resolve paths from their own location and accept an HTML path as `argv[2]`.
+9. ~~Delete `qmk/assemble.py`.~~ Done, together with the rest of the stale `qmk/` redesign files.
+10. ~~Make the oracles reproducible.~~ Done via `patches/` + `scripts/fetch-refs.sh` + `scripts/regen-oracles.sh` (cargo step untested here).
 11. Consider a smoke test of the real WebHID path with a physical device (everything so far uses mocks).
 
 ---
 
 ## 8. File map
 
-**Deliverable**
-- `/home/claude/ch57x-config-editor.html` — the app (file mode is read-only for non-root; root edits work).
-- `/home/claude/HANDOFF.md` — this document.
-
-**Scratchpad** `/tmp/claude-0/-home-claude/038a93d8-c1b4-51f4-8b47-ffcf9aa7b814/scratchpad/` *(ephemeral — copy what you need out of it before it is cleaned up)*
-
-```
-ch57x-config-editor.html     older copy; ignore (deliverable is in /home/claude)
-test_core.js                 core test (takes html path as argv[2])
-gen.js                       upload-script generator check (takes html path)
-shot*.js, *.png              Playwright screenshots / visual QA
-notes/user.yaml              the user's attached file (CRLF) — fixture for the comment tests
-notes/exported.yaml          export of that file produced by the editor
-orig/  src/ oracle.txt actions.txt    upstream clone + harness + oracle output
-fork/  src/ fork_oracle.txt fork_actions.txt   the user's fork + harness + oracle output
-pr/    src/                  ch57x-programmer clone (TS reference)
-up/                          generated upload.sh / upload.ps1 / mapping.yaml samples
-qmk/   before-qmk-style.html head_body.html render.js builder.js assemble.py   redesign working files (STALE — see §7.9)
-tools/ oracle_cmp.cjs fork_cmp.cjs compare.cjs ref.cjs ref_entry.ts
-       ui_test*.cjs ui_notes_test.cjs notes_test.cjs confirm_test.cjs theme_test.cjs
-       delay_clear_test.cjs delay8890.cjs  package.json node_modules/
-```
+See the layout in `README.md`. The old scratchpad bundle was reorganised as follows: `tools/*.cjs` and `test_core.js` → `test/`; `notes/`, `orig/*.txt`, `fork/*.txt`, `qmk/before-qmk-style.html`, `up/it's-tool` → `test/fixtures/`; `tools/ref.cjs`, `ref_entry.ts` → `test/reference/`; `shot*.js` → `scripts/shots/`; `gen.js` + `up/` → `test/upload_script_test.cjs`. The vendored clones (`orig/src`, `fork/src`, `pr/src`) were replaced by `scripts/fetch-refs.sh`; the old screenshots, `qmk/` working files and `shot_qmk*.js` were dropped (all still in git history before `repo-split`).
 
 ---
 
