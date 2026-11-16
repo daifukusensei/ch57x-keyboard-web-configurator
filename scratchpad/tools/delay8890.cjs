@@ -1,5 +1,5 @@
 const fs=require('fs');
-const html=fs.readFileSync('/home/claude/ch57x-config-editor.html','utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../../ch57x-config-editor.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseActionToMacro,bindPackets,makeReport,validateAction};')();
 for(const fam of ['884x','8890','8850','884x-514c']) for(const a of ['{delay(100)}a','{delay(100)}left,a,right','{delay(6000)}a','{delay(6001)}a','a']){

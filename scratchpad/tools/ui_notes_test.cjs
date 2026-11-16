@@ -1,6 +1,6 @@
 // Per-key comments in the UI, driven with the user's own (CRLF) file.
 const {JSDOM}=require('jsdom'); const fs=require('fs'), path=require('path');
-const html=fs.readFileSync('/home/claude/ch57x-config-editor.html','utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../../ch57x-config-editor.html'),'utf8');
 const userYaml=fs.readFileSync(path.join(__dirname,'../notes/user.yaml'),'utf8');   // CRLF, as attached
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };

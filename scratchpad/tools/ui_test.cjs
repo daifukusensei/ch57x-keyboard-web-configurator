@@ -1,5 +1,5 @@
 const {JSDOM}=require('jsdom'); const fs=require('fs');
-const html=fs.readFileSync('/home/claude/ch57x-config-editor.html','utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../../ch57x-config-editor.html'),'utf8');
 const sent=[]; const listeners={};
 const dev={vendorId:0x1189,productId:0x8840,productName:'Mock Macropad',opened:false,
   collections:[{outputReports:[{reportId:3}]}],

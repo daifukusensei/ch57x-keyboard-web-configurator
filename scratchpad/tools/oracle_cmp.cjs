@@ -1,9 +1,9 @@
 const fs=require('fs');
-const html=fs.readFileSync('/home/claude/ch57x-config-editor.html','utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../../ch57x-config-editor.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseActionToMacro,bindPackets,makeReport,planUpload,buttonIndex,fromObj,parseYaml,normalizeState};')();
 const KEYS={b0:0,b5:5,b11:11,b15:15,k0ccw:[0,'ccw'],k0press:[0,'press'],k1cw:[1,'cw'],k2press:[2,'press']};
-const lines=fs.readFileSync('../orig/oracle.txt','utf8').split('\n').filter(Boolean).map(l=>l.split('|'));
+const lines=fs.readFileSync(require('path').join(__dirname,'../orig/oracle.txt'),'utf8').split('\n').filter(Boolean).map(l=>l.split('|'));
 const stats={}, diffs=[];
 for(const [_,drv,action,layer,key,status,...rest] of lines){
   if(drv==='parse'){ let threw=false; try{ api.parseActionToMacro(action);}catch(e){threw=true;} stats.parse=stats.parse||{ok:0,bad:0}; (threw?stats.parse.ok++:stats.parse.bad++); if(!threw) diffs.push(['parse-accepts-what-rust-rejects',action]); continue; }

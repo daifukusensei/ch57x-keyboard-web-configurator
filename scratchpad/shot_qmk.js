@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
     const ctx=await b.newContext({viewport:vp,deviceScaleFactor:1,colorScheme:theme});
     const p=await ctx.newPage();
     await p.addInitScript(t=>{ try{localStorage.setItem('ch57x-theme',t);}catch(e){} },theme);
-    await p.goto('file:///home/claude/ch57x-config-editor.html'); await p.waitForTimeout(150);
+    await p.goto(require('url').pathToFileURL(require('path').join(__dirname,'../ch57x-config-editor.html')).href); await p.waitForTimeout(150);
     if(prep) await prep(p);
     await p.screenshot({path:'qmk/'+name+'.png',fullPage:true});
     await ctx.close();

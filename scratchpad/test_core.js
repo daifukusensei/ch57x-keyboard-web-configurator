@@ -1,5 +1,5 @@
 const fs=require('fs');
-const html=fs.readFileSync(process.argv[2],'utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-config-editor.html'),'utf8');
 const core=html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
 const api=new Function(core+';return {parseYaml,toYaml,validateAction,fromObj,normalizeState,EXAMPLE,parseActionToMacro};')();
 let fail=0; const t=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };

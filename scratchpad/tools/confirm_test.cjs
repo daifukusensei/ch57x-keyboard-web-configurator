@@ -1,5 +1,5 @@
 const {JSDOM}=require('jsdom'); const fs=require('fs');
-const html=fs.readFileSync('/home/claude/ch57x-config-editor.html','utf8');
+const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../../ch57x-config-editor.html'),'utf8');
 let answer=false, asked=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',url:'http://localhost/',beforeParse(w){ w.confirm=m=>{asked.push(m);return answer;}; }});
 const w=dom.window,d=w.document; const click=id=>d.getElementById(id).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
