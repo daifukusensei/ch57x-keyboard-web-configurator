@@ -1,0 +1,54 @@
+diff --git a/src/keyboard/mod.rs b/src/keyboard/mod.rs
+index d28675e..5cf443f 100644
+--- a/src/keyboard/mod.rs
++++ b/src/keyboard/mod.rs
+@@ -483,3 +483,49 @@ mod tests {
+         assert_eq!(macro_zero_delay.to_string(), "a");
+     }
+ }
++
++#[cfg(test)]
++mod oracle {
++    use super::*;
++    use std::io::BufRead;
++
++    fn hexs(output: &[u8]) -> String {
++        output.chunks(64).map(|c| {
++            let mut v = c.to_vec();
++            while v.last() == Some(&0) { v.pop(); }
++            v.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ")
++        }).collect::<Vec<_>>().join(" ; ")
++    }
++
++    #[test]
++    fn dump() {
++        let path = match std::env::var("ORACLE_ACTIONS") { Ok(p) => p, Err(_) => return };
++        let f = std::io::BufReader::new(std::fs::File::open(path).unwrap());
++        let keys: Vec<(&str, Key)> = vec![
++            ("b0", Key::Button(0)), ("b5", Key::Button(5)), ("b11", Key::Button(11)), ("b15", Key::Button(15)),
++            ("k0ccw", Key::Knob(0, KnobAction::RotateCCW)), ("k0press", Key::Knob(0, KnobAction::Press)),
++            ("k1cw", Key::Knob(1, KnobAction::RotateCW)), ("k2press", Key::Knob(2, KnobAction::Press)),
++        ];
++        for line in f.lines() {
++            let action = line.unwrap();
++            if action.is_empty() { continue; }
++            let m = match action.parse::<Macro>() { Ok(m) => m, Err(_) => { println!("ORACLE|parse|{}|ERRPARSE", action); continue; } };
++            let drivers: Vec<(&str, Box<dyn Keyboard>)> = vec![
++                ("884x", Box::new(k884x::Keyboard884x::new(12, 2).unwrap())),
++                ("8890", Box::new(k8890::Keyboard8890::new())),
++                ("8850", Box::new(k8850_4x4::Keyboard8850_4x4::new())),
++            ];
++            for (dn, d) in drivers.iter() {
++                for layer in [0u8, 2u8] {
++                    for (kn, k) in keys.iter() {
++                        let mut out = vec![];
++                        match d.bind_key(layer, *k, &m, &mut out) {
++                            Ok(()) => println!("ORACLE|{}|{}|{}|{}|OK|{}", dn, action, layer, kn, hexs(&out)),
++                            Err(e) => println!("ORACLE|{}|{}|{}|{}|ERR|{}", dn, action, layer, kn, e),
++                        }
++                    }
++                }
++            }
++        }
++    }
++}

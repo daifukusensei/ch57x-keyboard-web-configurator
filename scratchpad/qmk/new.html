@@ -1,0 +1,1412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CH57x Macropad Config Editor</title>
+<style>
+  :root{
+    --bg:#e9edf2; --panel:#ffffff; --fg:#1b222b; --muted:#5d6978; --line:#d0d7e1; --input:#f5f7fa;
+    --nav:#20242b; --nav-fg:#eef1f5; --nav-line:#363c47;
+    --case:#2b3038; --case-line:#4a525e; --case-fg:#aeb7c4;
+    --cap:#d5dae2; --cap-top:#eceff4; --cap-fg:#1b222b; --cap-edge:#98a2b2;
+    --accent:#2f6df6; --accent-hi:#5b8dff; --accent-edge:#1c47b0; --accent-fg:#ffffff;
+    --go:#2a9d62; --go-edge:#1c7746; --go-fg:#ffffff;
+    --ok:#1a7f4b; --warn:#b26b00; --err:#c0352b; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  :root{color-scheme:light dark}
+  :root[data-theme="light"]{color-scheme:light}
+  :root[data-theme="dark"]{color-scheme:dark}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
+      --nav:#0f1216; --nav-line:#262b33;
+      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6;
+      --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
+      --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
+      --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
+      --ok:#4cc38a; --warn:#e5a63a; --err:#ff7b6f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
+    --nav:#0f1216; --nav-line:#262b33;
+    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6;
+    --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
+    --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
+    --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
+    --ok:#4cc38a; --warn:#e5a63a; --err:#ff7b6f;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  a{color:var(--accent)}
+  input,select,textarea,button{font:inherit;color:inherit}
+  input[type=text],input[type=number],select,textarea{
+    background:var(--input);border:1px solid var(--line);border-radius:8px;padding:7px 9px;min-width:0}
+  input[type=number]{width:76px}
+  input:focus,select:focus,textarea:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+  button:hover{border-color:var(--muted)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.go{background:var(--go);color:var(--go-fg);border-color:transparent;font-weight:600;box-shadow:0 2px 0 var(--go-edge)}
+  button.go:hover{filter:brightness(1.07)}
+  .hint{color:var(--muted);font-size:13px}
+  .msg{font-size:13px;min-height:18px}
+  .msg .ok{color:var(--ok)} .msg .warn{color:var(--warn)} .msg .err{color:var(--err)}
+  pre,code{font-family:var(--mono)}
+  textarea{width:100%;font:12.5px/1.45 var(--mono);resize:vertical}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+  label.f{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+  .spacer{flex:1}
+  .chip{display:inline-flex;gap:5px;align-items:center;padding:4px 9px;border:1px solid var(--line);border-radius:99px;background:var(--panel);cursor:pointer;font-size:13px;user-select:none}
+  .chip input{margin:0}
+
+  /* ---- top bar ---- */
+  .nav{background:var(--nav);color:var(--nav-fg);border-bottom:1px solid var(--nav-line)}
+  .nav-in{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand svg{flex:none}
+  .brand h1{margin:0;font-size:18px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav a.navlink{color:var(--nav-fg);text-decoration:none;opacity:.8;font-size:14px}
+  .nav a.navlink:hover{opacity:1;text-decoration:underline}
+  #themeToggle{white-space:nowrap;border-radius:99px;background:transparent;color:var(--nav-fg);border-color:var(--nav-line);padding:5px 12px;font-size:13px}
+  #themeToggle:hover{border-color:var(--nav-fg)}
+
+  main{max-width:1100px;margin:0 auto;padding:14px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+
+  /* ---- keyboard / layout selectors ---- */
+  .toolbar .row{align-items:flex-end}
+  .toolbar select{max-width:100%}
+
+  /* ---- keymap ---- */
+  .keymap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:stretch}
+  .layerbar{display:flex;flex-direction:column;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 8px}
+  .eyebrow{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  #tabs{display:flex;flex-direction:column;gap:6px;align-items:center}
+  #tabs .tab{width:38px;height:38px;padding:0;font-weight:600}
+  #tabs .tab.active{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+  .layertools{display:flex;flex-direction:column;gap:6px;margin-top:4px;padding-top:8px;border-top:1px solid var(--line)}
+  .layertools .tool{width:38px;height:30px;padding:0;font-size:15px;line-height:1}
+  .case{background:var(--case);border:1px solid var(--case-line);border-radius:14px;padding:18px;display:grid;place-items:center;min-width:0;
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.35)}
+  .device{display:flex;gap:26px;align-items:center;justify-content:center;max-width:100%;overflow-x:auto;padding:6px}
+  .device.normal{flex-direction:row}
+  .device.upsidedown{flex-direction:row-reverse}
+  .device.clockwise{flex-direction:column}
+  .device.counterclockwise{flex-direction:column-reverse}
+  .grid{display:grid;gap:10px}
+  .knobs{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .knobs.vert{flex-direction:column}
+  .knob{display:grid;gap:5px;justify-items:center}
+  .knob h3{margin:0;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--case-fg);font-weight:600}
+  .dial{display:flex;align-items:center;gap:7px;padding:9px 11px;border:2px dashed var(--case-line);border-radius:999px}
+
+  /* keycaps */
+  .cell{position:relative;width:70px;height:64px;padding:13px 4px 7px;border:0;border-radius:9px;
+    display:grid;place-items:center;text-align:center;min-width:0;cursor:pointer;
+    background:linear-gradient(var(--cap-top),var(--cap));color:var(--cap-fg);
+    box-shadow:0 3px 0 var(--cap-edge),0 5px 7px rgba(0,0,0,.35);transition:transform .05s,box-shadow .05s}
+  .cell:hover{filter:brightness(1.06)}
+  .cell:active{transform:translateY(2px);box-shadow:0 1px 0 var(--cap-edge),0 2px 4px rgba(0,0,0,.35)}
+  .cell .lbl{position:absolute;top:3px;left:0;right:0;font-size:9px;line-height:1;opacity:.6;letter-spacing:.02em}
+  .cell .val{font:600 11px/1.15 var(--mono);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere;max-width:100%}
+  .cell .val.empty{opacity:.4;font-weight:400}
+  .dial .cell.small{width:64px;height:56px;padding:12px 2px 5px}
+  .dial .cell.small .val{font-size:9.5px;-webkit-line-clamp:2}
+  .dial .cell.round{width:66px;height:66px;border-radius:50%;padding:13px 3px 6px}
+  .cell.sel{background:linear-gradient(var(--accent-hi),var(--accent));color:var(--accent-fg);
+    box-shadow:0 3px 0 var(--accent-edge),0 0 0 2px var(--accent-hi),0 5px 9px rgba(0,0,0,.4)}
+  .cell.warn{outline:2px solid var(--warn);outline-offset:2px}
+  .cell.err{outline:2px solid var(--err);outline-offset:2px}
+  .status{padding:0 2px}
+  .issues{margin:6px 0 0;padding-left:18px;font-size:13px}
+  .issues li.err{color:var(--err)} .issues li.warn{color:var(--warn)}
+  details.legend{font-size:13px;color:var(--muted)}
+  details.legend summary{cursor:pointer}
+  details.legend ul{margin:6px 0 0;padding-left:20px}
+
+  /* ---- selected key ---- */
+  .strip-head{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between}
+  #editTitle{font-weight:600}
+  .strip-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  #action{flex:1 1 260px;font:15px var(--mono)}
+  #actionMsg{margin-top:6px}
+
+  /* ---- keycode palette ---- */
+  .ptabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:-4px -4px 10px;flex-wrap:wrap}
+  .ptab{background:transparent;border:0;border-bottom:3px solid transparent;border-radius:6px 6px 0 0;padding:8px 16px;font-weight:600;color:var(--muted)}
+  .ptab:hover{color:var(--fg)}
+  .ptab.active{color:var(--fg);border-bottom-color:var(--accent)}
+  .modrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+  .modrow .eyebrow{margin-right:4px}
+  .modsep{width:1px;height:20px;background:var(--line);margin:0 4px}
+  .pgroup h4{margin:12px 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .pgroup:first-child h4{margin-top:0}
+  .caps{display:flex;flex-wrap:wrap;gap:6px}
+  .pcap{min-width:40px;height:38px;padding:0 9px;border:0;border-radius:7px;font:600 12px var(--mono);
+    background:linear-gradient(var(--cap-top),var(--cap));color:var(--cap-fg);box-shadow:0 2px 0 var(--cap-edge)}
+  .pcap:hover{filter:brightness(1.08);border:0}
+  .pcap:active{transform:translateY(1px);box-shadow:0 1px 0 var(--cap-edge)}
+  .pcap.mod{font-family:inherit;font-weight:600}
+  .pcap.mod[aria-pressed="true"]{background:linear-gradient(var(--accent-hi),var(--accent));color:var(--accent-fg);box-shadow:0 2px 0 var(--accent-edge)}
+  .pcap.wide{padding:0 14px}
+  .prow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px}
+
+  /* ---- upload bar ---- */
+  .bar .row{align-items:center}
+  #hidStatus{margin-top:8px}
+  #hidStatus:empty{display:none}
+  /* keep the upload buttons in reach while scrolling the long keycode palette (desktop only) */
+  @media (min-width:701px){ .bar{position:sticky;bottom:10px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.28)} }
+
+  /* ---- drawers ---- */
+  details.more{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0}
+  details.more>summary{cursor:pointer;font-weight:600;padding:11px 14px;list-style-position:inside}
+  details.more>.body{padding:2px 14px 14px}
+  details.more h3{font-size:14px;margin:16px 0 6px}
+  pre.cli{background:var(--input);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:12.5px;margin:10px 0}
+  #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);
+    padding:8px 14px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
+  #toast.show{opacity:.95}
+
+  @media (max-width:700px){
+    .keymap{grid-template-columns:minmax(0,1fr)}
+    .layerbar{flex-direction:row;justify-content:flex-start;padding:8px 10px;flex-wrap:wrap}
+    #tabs{flex-direction:row;flex-wrap:wrap}
+    .layertools{flex-direction:row;margin:0 0 0 4px;padding:0 0 0 10px;border-top:0;border-left:1px solid var(--line)}
+    .layertools .tool{width:34px}
+    .case{padding:12px 8px}
+    .device.normal,.device.upsidedown{flex-direction:column}
+    .brand h1{font-size:15px;line-height:1.15;white-space:normal}
+    .brand svg{width:24px;height:24px}
+    .nav-in{gap:10px}
+  }
+</style>
+<script id="theme-init">
+// Apply a saved theme choice before first paint (no flash). Without one, the system setting applies.
+(function(){ try{ var t=localStorage.getItem('ch57x-theme'); if(t==='light'||t==='dark') document.documentElement.setAttribute('data-theme',t); }catch(e){} })();
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="2" width="11" height="11" rx="3" fill="#6b97ff"/><rect x="15" y="2" width="11" height="11" rx="3" fill="#8fb1ff"/><rect x="2" y="15" width="11" height="11" rx="3" fill="#8fb1ff"/><circle cx="20.5" cy="20.5" r="5.5" fill="none" stroke="#6b97ff" stroke-width="2.5" stroke-dasharray="3 2.4"/></svg>
+      <h1>CH57x Macropad Config Editor</h1>
+    </div>
+    <span class="spacer"></span>
+    <a class="navlink" href="#help" id="helpLink">Help</a>
+    <button id="themeToggle" type="button" aria-label="Switch theme">Theme</button>
+  </div>
+</header>
+
+<main>
+  <!-- keyboard / layout selectors -->
+  <section class="card toolbar" id="settingsCard">
+    <div class="row">
+      <label class="f">Orientation
+        <select id="orientation">
+          <option value="normal">Normal (knobs right)</option>
+          <option value="upsidedown">Upside down (knobs left)</option>
+          <option value="clockwise">Clockwise (knobs bottom)</option>
+          <option value="counterclockwise">Counter-clockwise (knobs top)</option>
+        </select>
+      </label>
+      <label class="f">Rows<input type="number" id="rows" min="1" max="8"></label>
+      <label class="f">Columns<input type="number" id="columns" min="1" max="8"></label>
+      <label class="f">Knobs<input type="number" id="knobs" min="0" max="6"></label>
+      <span class="spacer"></span>
+      <button id="btnExample" type="button">Load repo example</button>
+      <button id="btnBlank" type="button">New blank</button>
+    </div>
+    <p class="hint" style="margin:10px 0 0">Count the rows and columns of keys on your keyboard with it in <em>normal</em> orientation (knobs on the right).</p>
+  </section>
+
+  <!-- keymap -->
+  <section class="keymap" aria-label="Keymap">
+    <div class="layerbar">
+      <div class="eyebrow">Layers</div>
+      <div id="tabs"></div>
+    </div>
+    <div class="case"><div class="device" id="device"></div></div>
+  </section>
+  <div class="status">
+    <div class="msg" id="summary"></div>
+    <details class="legend" style="margin-top:6px">
+      <summary>What do the labels and outlines mean?</summary>
+      <ul>
+        <li>Click a button or knob action to edit it.</li>
+        <li>Amber outline = warning, red = invalid.</li>
+        <li><strong>R1 C1</strong> = row 1, column 1 of the button grid, counted from the top left (R2 C3 = row 2, column 3, and so on).</li>
+        <li>On each knob, <strong>↺ ccw</strong> = turn counter-clockwise, <strong>● press</strong> = push the knob in, <strong>↻ cw</strong> = turn clockwise.</li>
+      </ul>
+    </details>
+  </div>
+
+  <!-- selected key -->
+  <section class="card" id="editor">
+    <div class="strip-head"><span id="editTitle">Action</span></div>
+    <div class="strip-row">
+      <input type="text" id="action" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Pick a keycode below, or type e.g.  ctrl-c   |   h,e,l,l,o   |   volumeup">
+      <label class="chip" title="Clicking a keycode adds another chord (up to 5) instead of replacing the action"><input type="checkbox" id="seqMode">Add as next chord</label>
+      <button id="btnClear" type="button">Clear</button>
+    </div>
+    <div class="msg" id="actionMsg"></div>
+  </section>
+
+  <!-- keycode palette -->
+  <section class="card palette" aria-label="Keycodes">
+    <div class="ptabs" role="tablist">
+      <button type="button" class="ptab active" role="tab" id="ptab-basic" data-pane="basic" aria-selected="true">Basic</button>
+      <button type="button" class="ptab" role="tab" id="ptab-media" data-pane="media" aria-selected="false">Media</button>
+      <button type="button" class="ptab" role="tab" id="ptab-mouse" data-pane="mouse" aria-selected="false">Mouse</button>
+      <button type="button" class="ptab" role="tab" id="ptab-advanced" data-pane="advanced" aria-selected="false">Advanced</button>
+    </div>
+    <div class="modrow" id="modRow">
+      <span class="eyebrow">Modifiers</span>
+      <span id="modChips" class="caps"></span>
+    </div>
+    <div id="pane-basic"></div>
+    <div id="pane-media" hidden></div>
+    <div id="pane-mouse" hidden>
+      <div class="pgroup"><h4>Click</h4><div class="caps" id="mouseClicks"></div></div>
+      <div class="pgroup"><h4>Wheel</h4><div class="caps" id="mouseWheels"></div></div>
+      <div class="pgroup"><h4>Move and drag</h4>
+        <div class="prow" style="margin-top:0">
+          <label class="f">x<input type="number" id="mx" min="-127" max="127" value="10"></label>
+          <label class="f">y<input type="number" id="my" min="-127" max="127" value="0"></label>
+          <button type="button" class="pcap wide" id="msMove">Move</button>
+          <label class="f">Drag with
+            <select id="mbtn"><option value="left">left</option><option value="right">right</option><option value="middle">middle</option><option value="left+right">left + right</option></select>
+          </label>
+          <button type="button" class="pcap wide" id="msDrag">Drag</button>
+        </div>
+        <div class="prow">
+          <label class="f">Scroll amount<input type="number" id="mn" min="-127" max="127" value="1"></label>
+          <button type="button" class="pcap wide" id="msWheel">Scroll</button>
+        </div>
+        <p class="hint" style="margin:10px 0 0">Mouse actions only take the ctrl, shift and alt modifiers. Values go from -127 to 127.</p>
+      </div>
+    </div>
+    <div id="pane-advanced" hidden>
+      <div class="pgroup"><h4>Delay</h4>
+        <div class="prow" style="margin-top:0">
+          <label class="f">Delay between chords (ms)<input type="number" id="delay" min="0" placeholder="none"></label>
+          <button id="btnDelay" type="button">Apply delay option</button>
+        </div>
+        <p class="hint" style="margin:8px 0 0">Not available on 1189:8890 boards.</p>
+      </div>
+      <div class="pgroup"><h4>Raw HID code</h4>
+        <div class="prow" style="margin-top:0">
+          <label class="f">Code (0–255)<input type="number" id="bhid" min="0" max="255" placeholder="101"></label>
+          <button type="button" class="pcap wide" id="hidCodeSet">Use code</button>
+        </div>
+      </div>
+      <p class="hint" style="margin:14px 0 0">You can also type any action straight into the box above — see <a href="#help" class="helpjump">Help</a> for the syntax.</p>
+    </div>
+  </section>
+
+  <!-- upload -->
+  <section class="card bar" aria-label="Upload">
+    <div class="row">
+      <button id="hidConnect" type="button">Connect keyboard</button>
+      <button id="hidInfo" type="button" disabled>Read device info</button>
+      <span class="spacer"></span>
+      <label class="f" style="grid-auto-flow:column;align-items:center;gap:6px">Write
+        <select id="hidLayers">
+          <option value="all">All layers</option>
+          <option value="current">Current layer only</option>
+        </select>
+      </label>
+      <button id="hidPreview" type="button">Preview packets</button>
+      <button id="hidUpload" class="go" type="button" disabled>Upload to keyboard</button>
+    </div>
+    <div class="msg" id="hidStatus"></div>
+  </section>
+  <textarea id="hidPlan" rows="8" readonly spellcheck="false" hidden aria-label="Packets to send"></textarea>
+
+  <details class="more" id="yamlDrawer">
+    <summary>YAML: copy, download, import</summary>
+    <div class="body">
+      <textarea id="yamlOut" rows="14" readonly spellcheck="false"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button id="btnCopy" type="button">Copy YAML</button>
+        <button id="btnDownload" type="button">Download mapping.yaml</button>
+      </div>
+      <h3>Import existing YAML</h3>
+      <textarea id="yamlIn" rows="6" spellcheck="false" placeholder="Paste a mapping file here…"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="btnImport" type="button">Load pasted YAML</button>
+        <label class="f">…or choose a file<input type="file" id="fileIn" accept=".yaml,.yml,.txt,text/yaml"></label>
+      </div>
+      <p class="hint">The importer reads the mapping format used by the tool (model, orientation, rows, columns, knobs, layers). Comments are dropped when the file is re-exported.</p>
+    </div>
+  </details>
+
+  <details class="more" id="cliDrawer">
+    <summary>No WebHID? Upload with the command-line tool</summary>
+    <div class="body">
+      <pre class="cli">./ch57x-keyboard-tool validate mapping.yaml
+./ch57x-keyboard-tool upload mapping.yaml
+# Linux without udev rules: prefix with sudo
+# If your build reads the config from stdin instead: ./ch57x-keyboard-tool upload &lt; mapping.yaml</pre>
+      <p class="hint" style="margin:0 0 10px">If WebHID isn't available (Firefox, Safari, or your OS doesn't expose the interface), this generates a script that writes <code>mapping.yaml</code>, runs <code>validate</code>, and only then runs <code>upload</code> with the original tool.</p>
+      <div class="row">
+        <label class="f">System
+          <select id="upOs">
+            <option value="sh">Linux / macOS (.sh)</option>
+            <option value="ps1">Windows (PowerShell .ps1)</option>
+          </select>
+        </label>
+        <label class="f">Path to ch57x-keyboard-tool
+          <input type="text" id="upTool" size="30" spellcheck="false">
+        </label>
+        <label class="chip" id="upSudoWrap"><input type="checkbox" id="upSudo">use sudo</label>
+        <button id="btnUpScript" type="button">Download upload script</button>
+        <button id="btnUpCopy" type="button">Copy commands</button>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Put the script next to the tool, or give the tool's full path. Linux/macOS: <code>chmod +x upload-ch57x.sh &amp;&amp; ./upload-ch57x.sh</code>. Windows: <code>powershell -ExecutionPolicy Bypass -File upload-ch57x.ps1</code> (needs USBDK installed).</p>
+    </div>
+  </details>
+
+  <details class="more" id="help">
+    <summary>Help and reference</summary>
+    <div class="body">
+      <p>Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. Build a layout, then upload straight from this page, or copy or download the YAML and use the CLI.</p>
+      <h3>Direct upload (WebHID)</h3>
+      <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
+      <h3>Actions</h3>
+      <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. Sequences use commas: <code>win-r,c,m,d,enter</code>. Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>
+      <p><strong>Mouse.</strong> <code>click</code>, <code>click(left+right)</code>, <code>rclick</code>, <code>mclick</code>, <code>move(x,y)</code>, <code>drag(button,x,y)</code>, <code>wheel(n)</code>, <code>wheelup</code>, <code>wheeldown</code>, with ctrl / shift / alt only.</p>
+      <p><strong>Media.</strong> <code>screenbrightnessup</code> <code>screenbrightnessdown</code> <code>next</code> <code>previous</code>/<code>prev</code> <code>stop</code> <code>play</code> <code>mute</code> <code>volumeup</code> <code>volumedown</code> <code>favorites</code> <code>calculator</code> <code>screenlock</code> <code>webpagehome</code> <code>webpageback</code> <code>webpageforward</code>. Media keys can't take modifiers or be mixed with normal keys.</p>
+      <p><strong>LEDs</strong> (separate CLI command, not part of the YAML). 0x8840 / 0x8842: <code>led &lt;layer&gt; &lt;mode&gt;…</code> with modes <code>off</code>, <code>backlight</code>, <code>shock</code>, <code>shock2</code>, <code>press</code> and colors red, orange, yellow, green, cyan, blue, purple (backlight also white). 0x8890: <code>led 1</code>.</p>
+      <p><strong>3×1 + 1 knob boards:</strong> modifiers work on the first key of a sequence only.</p>
+      <p class="hint">Key names outside the ones this editor knows get a warning, not an error, because the tool's own list (<code>show-keys</code>) is authoritative. Always finish with <code>validate</code>.</p>
+    </div>
+  </details>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="core">
+// ---------- Core logic (no DOM) ----------
+const ORIENTATIONS = ['normal','upsidedown','clockwise','counterclockwise'];
+const MODS_KB = {ctrl:1,rctrl:1,shift:1,rshift:1,alt:1,opt:1,ralt:1,ropt:1,win:1,cmd:1,rwin:1,rcmd:1};
+const MODS_MOUSE = {ctrl:1,shift:1,alt:1};
+const MEDIA = ['screenbrightnessup','screenbrightnessdown','next','previous','prev','stop','play','mute',
+  'volumeup','volumedown','favorites','calculator','screenlock','webpagehome','webpageback','webpageforward'];
+const KNOWN_KEYS = new Set();   // filled below from the full key table (lowercase, as in the original tool)
+const BTN = '(?:left|right|middle)(?:\\+(?:left|right|middle))*';
+const NUM = '-?\\d+';
+
+function splitTop(s, sep){
+  const out=[]; let d=0, cur='';
+  for(const ch of s){
+    if(ch==='(') d++; else if(ch===')') d--;
+    if(ch===sep && d===0){ out.push(cur); cur=''; } else cur+=ch;
+  }
+  out.push(cur); return out;
+}
+function splitDash(s){
+  const out=[]; let d=0, cur='';
+  for(const ch of s){
+    if(ch==='(') d++; else if(ch===')') d--;
+    if(ch==='-' && d===0 && cur!==''){ out.push(cur); cur=''; } else cur+=ch;
+  }
+  out.push(cur); return out;
+}
+function inRange(vals){ return vals.every(v=>{const n=parseInt(v,10);return n>=-127&&n<=127;}); }
+
+// Returns null if token is not a mouse action, else {kind, error?}
+function mouseParse(tok){
+  let m;
+  if(/^(click|rclick|mclick)(\+(click|rclick|mclick))*$/.test(tok)) return {kind:'click'};
+  if(new RegExp('^click\\(\\s*'+BTN+'\\s*\\)$').test(tok)) return {kind:'click'};
+  const chk=(kind,vals)=> inRange(vals)?{kind}:{kind,error:'Value out of range (-127 to 127)'};
+  if((m=tok.match(new RegExp('^move\\(\\s*('+NUM+')\\s*,\\s*('+NUM+')\\s*\\)$')))) return chk('move',[m[1],m[2]]);
+  if((m=tok.match(new RegExp('^drag\\(\\s*('+BTN+')\\s*,\\s*('+NUM+')\\s*,\\s*('+NUM+')\\s*\\)$')))) return chk('drag',[m[2],m[3]]);
+  if((m=tok.match(new RegExp('^wheel\\(\\s*('+NUM+')\\s*\\)$')))) return chk('wheel',[m[1]]);
+  if(tok==='wheelup'||tok==='wheeldown') return {kind:'wheel'};
+  if(/^(click|move|drag|wheel)$/.test(tok)) return {kind:'mouse',error:'"'+tok+'" needs arguments, e.g. '+(tok==='click'?'click(left)':tok==='move'?'move(10,0)':tok==='drag'?'drag(left,10,0)':'wheel(1)')};
+  if(/^(click|rclick|mclick|move|drag|wheel)\(/.test(tok)) return {kind:'mouse',error:'Malformed mouse action "'+tok+'"'};
+  return null;
+}
+
+function validateAction(raw){
+  const res={level:'ok',kind:'keys',msgs:[]};
+  const err=m=>{res.level='error';res.msgs.push(m);};
+  const warn=m=>{if(res.level==='ok')res.level='warn';res.msgs.push(m);};
+  let s=(raw==null?'':String(raw)).trim();
+  if(!s){res.level='warn';res.kind='empty';res.msgs.push('Empty. It is written as "" — run validate to confirm the tool accepts that.');return res;}
+  const om=s.match(/^\{([^}]*)\}(.*)$/);
+  if(om){
+    if(!/^\s*delay\(\s*\d+\s*\)\s*$/.test(om[1])) err('Only the {delay(<ms>)} option is supported');
+    s=om[2].trim();
+    if(!s){err('Option given but no keys follow');return res;}
+  }
+  const chords=splitTop(s,',').map(x=>x.trim());
+  if(chords.length>5) err('At most 5 chords per action ('+chords.length+' given)');
+  const kinds=[];
+  for(const c of chords){
+    if(!c){err('Empty chord (stray comma?)');continue;}
+    const toks=splitDash(c); const key=toks.pop(); const mods=toks;
+    if(!key){err('Missing key in "'+c+'"');continue;}
+    const mp=mouseParse(key);
+    if(mp){
+      kinds.push('mouse');
+      if(mp.error) err(mp.error);
+      mods.forEach(m=>{ if(!MODS_MOUSE[m]) err('Modifier "'+m+'" is not supported for mouse actions (ctrl, shift, alt only)'); });
+    } else if(MEDIA.includes(key)){
+      kinds.push('media');
+      if(mods.length) err('Media key "'+key+'" cannot take modifiers');
+    } else {
+      kinds.push('keys');
+      mods.forEach(m=>{ if(!MODS_KB[m]) err('Unknown modifier "'+m+'"'); });
+      if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) warn('HID code '+n+' is above 255'); }
+      else if(MODS_KB[key]){ /* modifier-only chord, e.g. alt-shift */ }
+      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not in the key list this editor knows — check ./ch57x-keyboard-tool show-keys');
+    }
+  }
+  const set=new Set(kinds);
+  if(set.has('media') && (kinds.length>1)) err('Media commands cannot be mixed with normal keys, modifiers or other chords');
+  else if(set.has('mouse') && kinds.length>1) warn('Mouse actions combined with other chords are untested here — run validate');
+  res.kind = set.size===1 ? [...set][0] : 'mixed';
+  if(om && (set.has('media')||set.has('mouse')) && kinds.length===1) warn('delay option has no effect on a single action');
+  return res;
+}
+
+// ---------- YAML (subset used by the tool) ----------
+function stripComment(line){
+  let q=null;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(q){ if(ch==='\\'&&q==='"') i++; else if(ch===q) q=null; }
+    else if(ch==='"'||ch==="'") q=ch;
+    else if(ch==='#'&&(i===0||/\s/.test(line[i-1]))) return line.slice(0,i);
+  }
+  return line;
+}
+function splitFlow(s){
+  const out=[]; let cur='', q=null;
+  for(let i=0;i<s.length;i++){
+    const ch=s[i];
+    if(q){ cur+=ch; if(ch==='\\'&&q==='"'){cur+=s[++i]||'';} else if(ch===q) q=null; }
+    else if(ch==='"'||ch==="'"){ q=ch; cur+=ch; }
+    else if(ch===','){ out.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  if(cur.trim()!==''||out.length) out.push(cur);
+  return out;
+}
+function parseScalar(s){
+  s=s.trim();
+  if(s[0]==='['&&s[s.length-1]===']'){
+    const inner=s.slice(1,-1).trim();
+    return inner?splitFlow(inner).map(parseScalar):[];
+  }
+  if(s[0]==='"'){ try{return JSON.parse(s);}catch(e){return s.slice(1,-1);} }
+  if(s[0]==="'") return s.slice(1,-1).replace(/''/g,"'");
+  return s;
+}
+function parseYaml(src){
+  const lines=[];
+  for(const raw of String(src).split(/\r?\n/)){
+    const t=stripComment(raw);
+    if(!t.trim()||t.trim()==='---'||t.trim()==='...') continue;
+    if(/^\t/.test(t)) throw new Error('Tabs are not allowed for indentation');
+    lines.push({indent:t.match(/^ */)[0].length,text:t.trim()});
+  }
+  let i=0;
+  const isSeq=t=>t==='-'||t.startsWith('- ');
+  const isKV=t=>/^[A-Za-z_][\w-]*\s*:(\s|$)/.test(t);
+  function parseBlock(){ const l=lines[i]; return isSeq(l.text)?parseSeq(l.indent):parseMap(l.indent); }
+  function parseSeq(indent){
+    const arr=[];
+    while(i<lines.length&&lines[i].indent===indent&&isSeq(lines[i].text)){
+      const rest=lines[i].text.slice(1).trim();
+      if(!rest){ i++; arr.push(i<lines.length&&lines[i].indent>indent?parseBlock():null); continue; }
+      if(isKV(rest)){
+        const off=lines[i].text.length-rest.length;
+        lines[i]={indent:indent+off,text:rest};
+        arr.push(parseMap(indent+off));
+      } else { arr.push(parseScalar(rest)); i++; }
+    }
+    return arr;
+  }
+  function parseMap(indent){
+    const obj={};
+    while(i<lines.length&&lines[i].indent===indent&&isKV(lines[i].text)){
+      const t=lines[i].text, idx=t.indexOf(':');
+      const key=t.slice(0,idx).trim(), rest=t.slice(idx+1).trim();
+      i++;
+      if(rest) obj[key]=parseScalar(rest);
+      else if(i<lines.length&&lines[i].indent>indent) obj[key]=parseBlock();
+      else if(i<lines.length&&lines[i].indent===indent&&isSeq(lines[i].text)) obj[key]=parseSeq(indent);
+      else obj[key]=null;
+    }
+    return obj;
+  }
+  if(!lines.length) throw new Error('File is empty');
+  const root=parseBlock();
+  if(i<lines.length) throw new Error('Could not parse near: '+lines[i].text.slice(0,40));
+  return root;
+}
+
+function dimsOf(st){
+  return (st.orientation==='clockwise'||st.orientation==='counterclockwise')
+    ? {R:st.columns,C:st.rows} : {R:st.rows,C:st.columns};
+}
+function blankLayer(st){
+  const {R,C}=dimsOf(st);
+  return {buttons:Array.from({length:R},()=>Array(C).fill('')),
+          knobs:Array.from({length:st.knobs},()=>({ccw:'',press:'',cw:''}))};
+}
+function clampInt(v,lo,hi,def){ v=parseInt(v,10); if(isNaN(v)) v=def; return Math.max(lo,Math.min(hi,v)); }
+function normalizeState(st){
+  st.rows=clampInt(st.rows,1,8,3); st.columns=clampInt(st.columns,1,8,4); st.knobs=clampInt(st.knobs,0,6,0);
+  if(!ORIENTATIONS.includes(st.orientation)) st.orientation='normal';
+  if(!st.layers||!st.layers.length) st.layers=[blankLayer(st)];
+  const {R,C}=dimsOf(st);
+  st.layers.forEach(l=>{
+    const b=[];
+    for(let r=0;r<R;r++){ b.push([]); for(let c=0;c<C;c++) b[r].push(String((l.buttons&&l.buttons[r]&&l.buttons[r][c])??'')); }
+    l.buttons=b;
+    const k=[];
+    for(let n=0;n<st.knobs;n++){ const o=(l.knobs&&l.knobs[n])||{}; k.push({ccw:String(o.ccw??''),press:String(o.press??''),cw:String(o.cw??'')}); }
+    l.knobs=k;
+  });
+  return st;
+}
+function fromObj(o){
+  if(!o||typeof o!=='object'||Array.isArray(o)) throw new Error('Top level must be a mapping');
+  const st={model:String(o.model||'ch57x-2'),orientation:o.orientation||'normal',
+    rows:o.rows,columns:o.columns,knobs:o.knobs==null?0:o.knobs,layers:[]};
+  if(!Array.isArray(o.layers)||!o.layers.length) throw new Error('No "layers" found');
+  o.layers.forEach(l=>{
+    st.layers.push({
+      buttons:(l&&l.buttons||[]).map(r=>Array.isArray(r)?r:[r]),
+      knobs:(l&&l.knobs||[]).map(k=>k||{})
+    });
+  });
+  return normalizeState(st);
+}
+function toYaml(st){
+  const q=s=>JSON.stringify(String(s));
+  const out=['# Generated by CH57x Macropad Config Editor','model: '+st.model,'orientation: '+st.orientation,
+    'rows: '+st.rows,'columns: '+st.columns,'knobs: '+st.knobs,'layers:'];
+  st.layers.forEach((l,li)=>{
+    if(li) out.push('');
+    out.push('  - buttons:');
+    l.buttons.forEach(r=>out.push('      - ['+r.map(q).join(', ')+']'));
+    if(!l.knobs.length) out.push('    knobs: []');
+    else{
+      out.push('    knobs:');
+      l.knobs.forEach(k=>{ out.push('      - ccw: '+q(k.ccw)); out.push('        press: '+q(k.press)); out.push('        cw: '+q(k.cw)); });
+    }
+  });
+  return out.join('\n')+'\n';
+}
+
+function makeUploadScript(yaml, os, tool, sudo){
+  yaml = yaml.replace(/\r\n/g,'\n').replace(/\n*$/,'\n');
+  if(os==='ps1'){
+    if(/^'@/m.test(yaml)) throw new Error('YAML contains a line that would end the PowerShell here-string');
+    const t=tool.replace(/'/g,"''");
+    return ['# Generated by CH57x Macropad Config Editor','$ErrorActionPreference = \'Stop\'',
+      'Set-Location -LiteralPath $PSScriptRoot','$Tool = \''+t+'\'',
+      '$yaml = @\'', yaml.replace(/\n$/,''), '\'@',
+      '[System.IO.File]::WriteAllText((Join-Path $PSScriptRoot \'mapping.yaml\'), $yaml + "`n", (New-Object System.Text.UTF8Encoding $false))',
+      '& $Tool validate mapping.yaml','if($LASTEXITCODE -ne 0){ Write-Error \'Validation failed, nothing uploaded.\'; exit $LASTEXITCODE }',
+      '& $Tool upload mapping.yaml','if($LASTEXITCODE -ne 0){ exit $LASTEXITCODE }','Write-Host \'Uploaded.\'',''].join('\n');
+  }
+  if(/^CH57X_YAML_EOF$/m.test(yaml)) throw new Error('YAML contains the heredoc delimiter');
+  const t="'"+tool.replace(/'/g,"'\\''")+"'";
+  return ['#!/usr/bin/env bash','# Generated by CH57x Macropad Config Editor','set -euo pipefail','cd "$(dirname "$0")"',
+    'TOOL='+t,'cat > mapping.yaml <<\'CH57X_YAML_EOF\'', yaml.replace(/\n$/,''), 'CH57X_YAML_EOF',
+    '"$TOOL" validate mapping.yaml',(sudo?'sudo ':'')+'"$TOOL" upload mapping.yaml','echo Uploaded.',''].join('\n');
+}
+
+// ---------- Direct upload via WebHID ----------
+// Packet formats ported from github.com/PollRobots/ch57x-programmer (MIT), itself derived from kriomant/ch57x-keyboard-tool.
+const WELL_KNOWN = [
+  "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
+  "1","2","3","4","5","6","7","8","9","0","Enter","Escape","Backspace","Tab","Space",
+  "Minus","Equal","LeftBracket","RightBracket","Backslash","NonUSHash","Semicolon","Quote","Grave","Comma","Dot","Slash",
+  "CapsLock","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
+  "PrintScreen","ScrollLock","Pause","Insert","Home","PageUp","Delete","End","PageDown","Right","Left","Down","Up",
+  "NumLock","NumPadSlash","NumPadAsterisk","NumPadMinus","NumPadPlus","NumPadEnter",
+  "NumPad1","NumPad2","NumPad3","NumPad4","NumPad5","NumPad6","NumPad7","NumPad8","NumPad9","NumPad0","NumPadDot",
+  "NonUSBackslash","Application","Power","NumPadEqual",
+  "F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24"];
+const HID_MODS = ['Ctrl','Shift','Alt','Meta','RightCtrl','RightShift','RightAlt','RightMeta'];
+const KB_MOD_NAME = {ctrl:'Ctrl',shift:'Shift',alt:'Alt',opt:'Alt',win:'Meta',cmd:'Meta',
+  rctrl:'RightCtrl',rshift:'RightShift',ralt:'RightAlt',ropt:'RightAlt',rwin:'RightMeta',rcmd:'RightMeta'};
+// Names exactly as the original tool accepts them: the lowercase code names (so "escape" and "delete", not "esc"/"del"),
+// plus its two Mac aliases.
+const WK_BY_NAME = (()=>{ const m={}; WELL_KNOWN.forEach(n=>{ m[n.toLowerCase()]=n; }); m.macbrightnessdown='ScrollLock'; m.macbrightnessup='Pause'; return m; })();
+Object.keys(WK_BY_NAME).forEach(k=>KNOWN_KEYS.add(k));
+const MEDIA_VALUES = {BrightnessUp:0x6f,BrightnessDown:0x70,Next:0xb5,Previous:0xb6,Stop:0xb7,Play:0xcd,Mute:0xe2,
+  VolumeUp:0xe9,VolumeDown:0xea,Favorites:0x182,Calculator:0x192,Screenlock:0x19e};
+const MEDIA_BY_NAME = {screenbrightnessup:'BrightnessUp',screenbrightnessdown:'BrightnessDown',next:'Next',previous:'Previous',
+  prev:'Previous',stop:'Stop',play:'Play',mute:'Mute',volumeup:'VolumeUp',volumedown:'VolumeDown',favorites:'Favorites',
+  calculator:'Calculator',screenlock:'Screenlock'};
+const MEDIA_UNSUPPORTED = ['webpagehome','webpageback','webpageforward'];
+const ENC_ACTION = {ccw:0,press:1,cw:2};
+const MOUSE_BTN = {Left:1,Right:2,Middle:4};
+const MOUSE_MOD = {Ctrl:1,Shift:2,Alt:4};   // Alt is 0x04 in the original tool (ch57x-programmer uses 3); verified against its output
+const MACRO_KIND = {Keyboard:1,Media:2,Mouse:3};
+const modsValue = mods => mods.reduce((a,m)=>a|(1<<HID_MODS.indexOf(m)),0);
+const codeVal = c => c===undefined ? 0 : typeof c==='number' ? c : WELL_KNOWN.indexOf(c)+4;
+const btnVal = bs => bs.reduce((a,b)=>a|MOUSE_BTN[b],0);
+function s2u(v){ if(v<=-128) return 128; if(v>=127) return 127; if(v>0) return v; return 256+v; }
+const capBtns = s => [...new Set(s.split('+').map(b=>b.trim()).map(b=>b[0].toUpperCase()+b.slice(1)))];
+
+function mouseDetail(tok){
+  let m;
+  if(/^(click|rclick|mclick)(\+(click|rclick|mclick))*$/.test(tok)){
+    const al={click:'Left',rclick:'Right',mclick:'Middle'};
+    return {type:'Click',buttons:[...new Set(tok.split('+').map(x=>al[x]))]};
+  }
+  if((m=tok.match(new RegExp('^click\\(\\s*('+BTN+')\\s*\\)$')))) return {type:'Click',buttons:capBtns(m[1])};
+  if((m=tok.match(new RegExp('^move\\(\\s*('+NUM+')\\s*,\\s*('+NUM+')\\s*\\)$')))) return {type:'Move',x:+m[1],y:+m[2]};
+  if((m=tok.match(new RegExp('^drag\\(\\s*('+BTN+')\\s*,\\s*('+NUM+')\\s*,\\s*('+NUM+')\\s*\\)$')))) return {type:'Drag',buttons:capBtns(m[1]),x:+m[2],y:+m[3]};
+  if((m=tok.match(new RegExp('^wheel\\(\\s*('+NUM+')\\s*\\)$')))) return {type:'Wheel',delta:+m[1]};
+  if(tok==='wheelup') return {type:'Wheel',delta:1};
+  if(tok==='wheeldown') return {type:'Wheel',delta:-1};
+  return null;
+}
+// One chord -> {kind:'key',chord} | {kind:'mouse',macro} | {kind:'media',macro}
+function parseChord(c){
+  const toks=splitDash(c); const key=toks.pop(); const mods=toks;
+  const md=mouseDetail(key);
+  if(md){
+    if(mods.length>1) throw new Error('mouse actions support one modifier ('+c+')');
+    let modifier;
+    if(mods.length){ if(!MODS_MOUSE[mods[0]]) throw new Error('mouse modifier must be ctrl, shift or alt ('+c+')'); modifier=KB_MOD_NAME[mods[0]]; }
+    for(const v of [md.x,md.y,md.delta]) if(v!==undefined && (v<-127||v>127)) throw new Error('value out of range -127..127 ('+c+')');
+    return {kind:'mouse',macro:{type:'Mouse',action:md,modifier}};
+  }
+  if(MEDIA_UNSUPPORTED.includes(key)) throw new Error('"'+key+'" is not supported by direct upload (use the CLI script)');
+  if(MEDIA_BY_NAME[key]){
+    if(mods.length) throw new Error('media keys cannot take modifiers ('+c+')');
+    return {kind:'media',macro:{type:'Media',mediaCode:MEDIA_BY_NAME[key]}};
+  }
+  const modNames=[];
+  for(const m of mods){ if(!KB_MOD_NAME[m]) throw new Error('unknown modifier "'+m+'"'); modNames.push(KB_MOD_NAME[m]); }
+  if(KB_MOD_NAME[key]) return {kind:'key',chord:{modifiers:[...modNames,KB_MOD_NAME[key]]}};   // modifier-only chord
+  if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) throw new Error('HID code above 255'); return {kind:'key',chord:{modifiers:modNames,code:n}}; }
+  const wk=WK_BY_NAME[key.toLowerCase()];
+  if(!wk) throw new Error('unknown key "'+key+'" (use <hid code> for keys without a known name)');
+  return {kind:'key',chord:{modifiers:modNames,code:wk}};
+}
+// -> null for empty action, else Macro in the shape used by ch57x-programmer
+function parseActionToMacro(raw){
+  let s=String(raw==null?'':raw).trim(); if(!s) return null;
+  let delay=0; const om=s.match(/^\{\s*delay\(\s*(\d+)\s*\)\s*\}(.*)$/);
+  if(om){ delay=parseInt(om[1],10); s=om[2].trim(); }
+  else if(/^\{/.test(s)) throw new Error('only the {delay(<ms>)} option is supported');
+  const chords=splitTop(s,',').map(x=>x.trim());
+  if(chords.some(c=>!c)) throw new Error('empty chord');
+  const parsed=chords.map(parseChord);
+  const nonKey=parsed.find(p=>p.kind!=='key');
+  if(nonKey){
+    if(parsed.length>1) throw new Error('mouse/media actions cannot be combined in a sequence');
+    return nonKey.macro;
+  }
+  return {type:'Keyboard',options:{delay},keyChords:parsed.map(p=>p.chord)};
+}
+
+function keyIdFor(family,key){
+  const maxButtons = (family==='884x'||family==='884x-514c') ? 15 : family==='8850' ? 16 : 12;
+  if(typeof key==='number'){
+    if(key>=maxButtons) throw new Error('button index '+key+' is out of range for this keyboard family');
+    return key+1;
+  }
+  const [enc,act]=key;
+  if(family==='884x-514c'){
+    // 12-key/4-knob pad (Key::to_key_id in the fork): knobs 1-3 follow the buttons as usual, the 4th knob uses ids 13-15.
+    if(enc>=4) throw new Error('this protocol supports at most 4 knobs');
+    if(enc===3) return 13+ENC_ACTION[act];
+  } else if(family!=='8850' && enc>=3) throw new Error('this protocol supports at most 3 knobs');
+  return maxButtons+1+3*enc+ENC_ACTION[act];
+}
+function bind884x(layer,kid,macro){
+  if(layer>=16) throw new Error('invalid layer index '+layer);
+  const m=[0xfe,kid,layer+1,MACRO_KIND[macro.type],0,0,0,0,0];
+  if(macro.type==='Keyboard'){
+    const p=macro.keyChords;
+    if(p.length>18) throw new Error('macro sequence too long ('+p.length+', max 18)');
+    if(p.length===1 && p[0].code===undefined) m.push(0); else m.push(p.length);
+    for(const c of p) m.push(modsValue(c.modifiers),codeVal(c.code));
+  } else if(macro.type==='Media'){
+    const v=MEDIA_VALUES[macro.mediaCode]; m.push(0,v&0xff,(v>>8)&0xff,0,0,0,0);
+  } else {
+    const a=macro.action, mv=MOUSE_MOD[macro.modifier]||0;
+    if(a.type==='Move') m.push(0x05,mv,0,s2u(a.x),s2u(a.y));
+    else if(a.type==='Drag') m.push(0x05,mv,btnVal(a.buttons),s2u(a.x),s2u(a.y));
+    else if(a.type==='Click') m.push(0x01,mv,btnVal(a.buttons));
+    else m.push(0x03,mv,0,0,0,s2u(a.delta));
+  }
+  const out=[m];
+  if(macro.type==='Keyboard' && macro.options.delay>0){
+    const d=macro.options.delay; if(d>6000) throw new Error('maximum supported delay is 6000 ms');
+    out.push([0xfe,kid,layer+1,5,d&0xff,(d>>8)&0xff]);
+  }
+  out.push([0xaa,0xaa,0,0,0,0,0,0],[0xfd,0xfe,0xff],[0xaa,0xaa,0,0,0,0,0,0]);
+  return out;
+}
+function bind8890(layer,kid,macro){
+  if(layer>=16) throw new Error('invalid layer index '+layer);
+  const out=[[0xfe,layer+1,1,1]];
+  const head=((layer+1)<<4)|MACRO_KIND[macro.type];
+  if(macro.type==='Keyboard'){
+    if(macro.options.delay!==0) throw new Error('delay is not supported by this keyboard model');
+    if(macro.keyChords.length>6) throw new Error('macro sequence too long ('+macro.keyChords.length+', max 6)');
+    const items=[[0,0],...macro.keyChords.map(c=>[modsValue(c.modifiers),codeVal(c.code)])];
+    items.forEach(([mo,co],i)=>out.push([kid,head,macro.keyChords.length,i,mo,co]));
+  } else if(macro.type==='Mouse'){
+    const a=macro.action;
+    out.push([kid,head,a.buttons?btnVal(a.buttons):0,a.x!==undefined?s2u(a.x):0,a.y!==undefined?s2u(a.y):0,
+      a.delta!==undefined?s2u(a.delta):0,MOUSE_MOD[macro.modifier]||0]);
+  } else {
+    const v=MEDIA_VALUES[macro.mediaCode]; out.push([kid,head,v&0xff,(v>>8)&0xff]);
+  }
+  out.push([0xaa,0xaa]);
+  return out;
+}
+// ch57x-3 (514c:8850). Ported from kriomant/ch57x-keyboard-tool src/keyboard/k8850_4x4.rs; the leading 0x03 of its
+// messages is the HID report ID, which WebHID's sendReport adds itself, so it is not part of the data here.
+const MOD_CODE_8850 = {Ctrl:0xf1,Shift:0xf2,Alt:0xf3,Meta:0xf4,RightCtrl:0xf5,RightShift:0xf6,RightAlt:0xf7,RightMeta:0xf8};
+function bind8850(layer,kid,macro){
+  if(layer>15) throw new Error('invalid layer index '+layer);
+  const m=[0xfd,kid,layer+1,MACRO_KIND[macro.type]];
+  if(macro.type==='Keyboard'){
+    const seq=[];
+    for(const c of macro.keyChords){
+      const mods=HID_MODS.filter(x=>c.modifiers.includes(x));   // fixed order, duplicates collapsed
+      mods.forEach(x=>seq.push([0,0,MOD_CODE_8850[x]]));
+      seq.push([0,0,codeVal(c.code)]);
+    }
+    if(seq.length>18) throw new Error('macro sequence is too long');
+    m.push(0,seq.length); seq.forEach(e=>m.push(...e));
+  } else if(macro.type==='Media'){
+    const v=MEDIA_VALUES[macro.mediaCode]; m.push(0,2,0,0,v&0xff,0,0,(v>>8)&0xff);
+  } else {
+    const a=macro.action, d=new Array(17).fill(0); d[0]=1; d[1]=4;
+    d[4]=macro.modifier ? MOD_CODE_8850[macro.modifier] : 0;
+    if(a.type==='Move'){ d[10]=s2u(a.x); d[13]=s2u(a.y); }
+    else if(a.type==='Drag') throw new Error('Mouse Drag action is not supported by this keyboard');
+    else if(a.type==='Click') d[7]=btnVal(a.buttons);
+    else d[16]=s2u(a.delta);
+    m.push(...d);
+  }
+  return [m,[0xfd,0xfe,0xff]];
+}
+// 12-key/4-knob pad, 514c:8850 (family '884x-514c'). Ported from the fork daifukusensei/ch57x-keyboard-tool-enhanced,
+// src/keyboard/k884x.rs (Keyboard884x::bind_key), which differs from the upstream 884x writer above:
+//  - the header always holds the chord count (upstream writes 0 for a single modifier-only chord);
+//  - every mouse action is sent as [5, modifier, button, x, y, wheel] (upstream uses 1/3/5 as the first byte);
+//  - a click carries no modifier, wheel moves one step only, and there is no drag;
+//  - the delay packet is a full copy of the macro packet with kind=5 and the delay in bytes 4-5.
+// The leading 0x03 of its messages is the HID report ID, which WebHID's sendReport adds itself, so it is not part of the data here.
+function bind884xFork(layer,kid,macro){
+  if(layer>15) throw new Error('invalid layer index '+layer);
+  const m=[0xfe,kid,layer+1,MACRO_KIND[macro.type],0,0,0,0,0];
+  const delay = macro.type==='Keyboard' ? macro.options.delay : 0;
+  if(macro.type==='Keyboard'){
+    const p=macro.keyChords;
+    if(p.length+(delay>0?1:0)>18) throw new Error('macro sequence too long (max 18 entries, a delay counts as one)');
+    m.push(p.length);
+    for(const c of p) m.push(modsValue(c.modifiers),codeVal(c.code));
+  } else if(macro.type==='Media'){
+    const v=MEDIA_VALUES[macro.mediaCode]; m.push(0,v&0xff,(v>>8)&0xff,0,0,0,0);
+  } else {
+    const a=macro.action, mv=MOUSE_MOD[macro.modifier]||0;
+    m.push(5);
+    if(a.type==='Click') m.push(0,btnVal(a.buttons),0,0,0);
+    else if(a.type==='Move') m.push(mv,0,a.x&0xff,a.y&0xff,0);
+    else if(a.type==='Wheel'){
+      if(a.delta!==1 && a.delta!==-1) throw new Error('this keyboard supports wheel up/down by one step only (wheelup, wheeldown)');
+      m.push(mv,0,0,0,a.delta>0?1:255);
+    }
+    else throw new Error('Mouse Drag action is not supported by this keyboard');
+  }
+  const out=[m];
+  if(delay>0){
+    if(delay>6000) throw new Error('maximum supported delay is 6000 ms');
+    const d=m.slice(); d[3]=5; d[4]=delay&0xff; d[5]=(delay>>8)&0xff;
+    out.push(d);
+  }
+  out.push([0xaa,0xaa,0,0,0,0,0,0],[0xfd,0xfe,0xff],[0xaa,0xaa,0,0,0,0,0,0]);
+  return out;
+}
+function bindPackets(family,layer,key,macro){
+  const kid=keyIdFor(family,key);
+  return family==='884x' ? bind884x(layer,kid,macro) : family==='884x-514c' ? bind884xFork(layer,kid,macro)
+    : family==='8850' ? bind8850(layer,kid,macro) : bind8890(layer,kid,macro);
+}
+// Things the keyboard will do differently from what the YAML says, without being an error.
+function familyWarnings(family,macro){
+  const w=[];
+  if(family==='884x-514c' && macro.type==='Mouse' && macro.action.type==='Click' && macro.modifier)
+    w.push('this keyboard ignores the "'+macro.modifier.toLowerCase()+'" modifier on a click and sends a plain click');
+  return w;
+}
+// Devices WebHID upload knows about. `model` is the value of the YAML `model:` key in the original tool.
+const DEVICES=[
+  {vid:0x1189,pid:0x8840,family:'884x',model:'ch57x-1'},
+  {vid:0x1189,pid:0x8842,family:'884x',model:'ch57x-1'},
+  {vid:0x1189,pid:0x8890,family:'8890',model:'ch57x-2'},
+  {vid:0x514c,pid:0x8850,family:'8850',model:'ch57x-3'}];
+const deviceInfo=(vid,pid)=>DEVICES.find(d=>d.vid===vid&&d.pid===pid)||null;
+function familyFromProductId(pid,vid=0x1189){ const d=deviceInfo(vid,pid); return d?d.family:null; }
+// 514c:8850 is shared by two different keyboards: the 4x4 pad (ch57x-3, 16 keys, upstream k8850_4x4 protocol) and the
+// 12-key/4-knob pad, which speaks the modified 884x protocol above. The USB ids cannot tell them apart, so the layout does.
+function resolveFamily(vid,pid,st){
+  const d=deviceInfo(vid,pid); if(!d) return null;
+  if(d.family==='8850' && st.rows*st.columns!==16) return '884x-514c';
+  return d.family;
+}
+const FAMILY_LABEL={'884x':'884x','8890':'8890','8850':'4×4 pad','884x-514c':'12-key/4-knob'};
+function makeReport(data){
+  const b=new Uint8Array(64);
+  for(let i=0;i<64&&i<data.length;i++){
+    const v=data[i];
+    if(v===undefined||!Number.isInteger(v)) continue;
+    if(v>=0&&v<0x100) b[i]=v;
+    if(v<0&&v>-127) b[i]=0x100+v;
+  }
+  return b;
+}
+// Maps a grid cell (as laid out in the YAML for the chosen orientation) to the keyboard's 0-based button index.
+function buttonIndex(st,r,c){
+  const R=st.rows, C=st.columns;
+  switch(st.orientation){
+    case 'upsidedown': return R*C-1-(r*C+c);
+    case 'clockwise': return (R-1-c)*C+r;
+    case 'counterclockwise': return c*C+(C-1-r);
+    default: return r*C+c;
+  }
+}
+// which: 'all' or a 0-based layer index
+function planUpload(st,family,which){
+  const plan={packets:[],items:0,skipped:0,errors:[],warnings:[]};
+  const layers = which==='all' ? st.layers.map((l,i)=>[l,i]) : [[st.layers[which],which]];
+  const reverseKnobs = st.orientation==='upsidedown'||st.orientation==='clockwise';   // as reorient_row() in the original tool
+  for(const [l,li] of layers){
+    const add=(label,val,key)=>{
+      try{
+        const macro=parseActionToMacro(val);
+        if(!macro){ plan.skipped++; return; }
+        const pk=bindPackets(family,li,key,macro);
+        familyWarnings(family,macro).forEach(w=>plan.warnings.push('Layer '+(li+1)+' '+label+': '+w));
+        pk.forEach((bytes,i)=>plan.packets.push({desc:i===0?('Layer '+(li+1)+' '+label+' <- '+val):'',bytes}));
+        plan.items++;
+      }catch(e){ plan.errors.push('Layer '+(li+1)+' '+label+': '+e.message); }
+    };
+    l.buttons.forEach((row,r)=>row.forEach((v,c)=>add('R'+(r+1)+' C'+(c+1),v,buttonIndex(st,r,c))));
+    const n=l.knobs.length;
+    l.knobs.forEach((k,i)=>['ccw','press','cw'].forEach(p=>add('knob '+(i+1)+' '+p,k[p],[reverseKnobs?n-1-i:i,p])));
+  }
+  return plan;
+}
+
+const EXAMPLE = `model: ch57x-2
+orientation: normal
+rows: 3
+columns: 4
+knobs: 2
+layers:
+  - buttons:
+      - ["a", "ctrl-a", "alt-shift", "alt-ctrl,ctrl-b"]
+      - ["e", "f", "g", "h"]
+      - ["<100>", "j", "k", "l"]
+    knobs:
+      - ccw: "wheelup"
+        press: "click"
+        cw: "wheeldown"
+      - ccw: "shift-wheelup"
+        press: "shift-click"
+        cw: "shift-wheeldown"
+  - buttons:
+      - ["click", "click(middle)", "click+rclick", "ctrl-mclick"]
+      - ["move(0,10)", "alt-drag(right,10,0)", "ctrl-move(5,5)", "ctrl-wheelup"]
+      - ["alt-wheel(1)", "ctrl-click", "wheelup", "wheelup"]
+    knobs:
+      - ccw: "left"
+        press: "enter"
+        cw: "right"
+      - ccw: "ctrl-left"
+        press: "ctrl-enter"
+        cw: "ctrl-right"
+  - buttons:
+      - ["play", "prev", "next", "mute"]
+      - ["2", "3", "4", "5"]
+      - ["6", "7", "8", "9"]
+    knobs:
+      - ccw: "volumedown"
+        press: "mute"
+        cw: "volumeup"
+      - ccw: "d"
+        press: "e"
+        cw: "f"
+`;
+</script>
+<script id="ui">
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+const STORE = 'ch57x-editor-v1';
+const MOD_ORDER = ['ctrl','shift','alt','win','rctrl','rshift','ralt','rwin'];
+const chips = new Set();
+let state, layerIdx = 0, sel = {t:'b',r:0,c:0};
+
+function h(tag, props = {}, ...kids){
+  const e = document.createElement(tag);
+  for(const [k,v] of Object.entries(props)){
+    if(k==='class') e.className=v;
+    else if(k==='text') e.textContent=v;
+    else if(k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  kids.forEach(x => e.append(x));
+  return e;
+}
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800);
+}
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify({state,layerIdx})); }catch(e){} }
+function loadSaved(){
+  try{
+    const raw=localStorage.getItem(STORE); if(!raw) return null;
+    const o=JSON.parse(raw); const st=normalizeState(o.state);
+    layerIdx=Math.min(o.layerIdx||0, st.layers.length-1); return st;
+  }catch(e){ return null; }
+}
+const dims = () => dimsOf(state);
+const layer = () => state.layers[layerIdx];
+const getVal = t => t.t==='b' ? layer().buttons[t.r][t.c] : layer().knobs[t.k][t.p];
+function setVal(t,v){ if(t.t==='b') layer().buttons[t.r][t.c]=v; else layer().knobs[t.k][t.p]=v; }
+const same = (a,b) => a.t===b.t && (a.t==='b' ? a.r===b.r&&a.c===b.c : a.k===b.k&&a.p===b.p);
+function clampSel(){
+  const {R,C}=dims();
+  if(sel.t==='b'){ if(sel.r>=R||sel.c>=C) sel={t:'b',r:0,c:0}; }
+  else if(sel.k>=state.knobs) sel = {t:'b',r:0,c:0};
+}
+function selLabel(t){
+  return t.t==='b' ? 'Button row '+(t.r+1)+', column '+(t.c+1)
+    : 'Knob '+(t.k+1)+' — '+({ccw:'rotate counter-clockwise',press:'press',cw:'rotate clockwise'})[t.p];
+}
+
+// ----- rendering -----
+function renderSettings(){
+  $('orientation').value=state.orientation;
+  $('rows').value=state.rows; $('columns').value=state.columns; $('knobs').value=state.knobs;
+}
+function renderTabs(){
+  const box=$('tabs'); box.replaceChildren();
+  state.layers.forEach((_,i)=>box.append(h('button',{type:'button',class:'tab'+(i===layerIdx?' active':''),title:'Layer '+(i+1),
+    'aria-label':'Layer '+(i+1),'aria-pressed':String(i===layerIdx),text:String(i+1),
+    onclick:()=>{layerIdx=i;clampSel();renderAll();save();}})));
+  const tools=h('div',{class:'layertools'});
+  tools.append(h('button',{type:'button',class:'tool',title:'Add layer (most boards have 3)','aria-label':'Add layer',text:'+',onclick:()=>{
+    state.layers.push(blankLayer(state)); layerIdx=state.layers.length-1; renderAll(); save();}}));
+  tools.append(h('button',{type:'button',class:'tool',title:'Duplicate this layer','aria-label':'Duplicate layer',text:'⧉',onclick:()=>{
+    state.layers.splice(layerIdx+1,0,JSON.parse(JSON.stringify(layer()))); layerIdx++; renderAll(); save();}}));
+  const rm=h('button',{type:'button',class:'tool',title:'Remove this layer','aria-label':'Remove layer',text:'−',onclick:()=>{
+    if(state.layers.length<2) return; state.layers.splice(layerIdx,1); layerIdx=Math.max(0,layerIdx-1); renderAll(); save();}});
+  rm.disabled = state.layers.length<2;
+  tools.append(rm);
+  box.append(tools);
+}
+function cellEl(t,val,label,extra){
+  const v=validateAction(val);
+  const cls=['cell']; if(extra) cls.push(extra);
+  if(v.kind!=='empty'){ if(v.level==='error') cls.push('err'); else if(v.level==='warn') cls.push('warn'); }
+  const on=same(t,sel); if(on) cls.push('sel');
+  return h('button',{type:'button',class:cls.join(' '),title:label+': '+(val||'(empty)'),'aria-pressed':String(on),
+    onclick:()=>select(t)},
+    h('span',{class:'lbl',text:label}), h('span',{class:'val'+(val?'':' empty'),text:val||'—'}));
+}
+function renderDevice(){
+  const dev=$('device'); dev.className='device '+state.orientation; dev.replaceChildren();
+  const {R,C}=dims();
+  const grid=h('div',{class:'grid'}); grid.style.gridTemplateColumns='repeat('+C+',70px)';
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) grid.append(cellEl({t:'b',r,c},layer().buttons[r][c],'R'+(r+1)+' C'+(c+1)));
+  dev.append(grid);
+  if(state.knobs){
+    const vertical = state.orientation==='clockwise'||state.orientation==='counterclockwise';
+    const kb=h('div',{class:'knobs'+(vertical?'':' vert')});
+    layer().knobs.forEach((k,n)=>{
+      kb.append(h('div',{class:'knob'}, h('h3',{text:'Knob '+(n+1)}),
+        h('div',{class:'dial'},
+          cellEl({t:'k',k:n,p:'ccw'},k.ccw,'↺ ccw','small'),
+          cellEl({t:'k',k:n,p:'press'},k.press,'● press','round'),
+          cellEl({t:'k',k:n,p:'cw'},k.cw,'↻ cw','small'))));
+    });
+    dev.append(kb);
+  }
+}
+function renderEditor(focus){
+  $('editTitle').textContent='Layer '+(layerIdx+1)+' · '+selLabel(sel);
+  $('action').value=getVal(sel);
+  renderMsg(); if(focus) $('action').focus();
+}
+function renderMsg(){
+  syncDelayUi();
+  const v=validateAction(getVal(sel)); const box=$('actionMsg'); box.replaceChildren();
+  if(v.kind==='empty'){ box.append(h('span',{class:'hint',text:'Empty — pick or type an action.'})); return; }
+  if(v.level==='ok') box.append(h('span',{class:'ok',text:'✓ Valid '+v.kind+' action'}));
+  v.msgs.forEach(m=>box.append(h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m})));
+  // The 1189:8890 firmware has no delay feature (the original tool refuses it too), so flag it while editing, not only at upload.
+  if(hidDev && hidFamily()==='8890' && DELAY_RE.test(getVal(sel)))
+    box.append(h('div',{class:'warn',text:'⚠ The connected keyboard (1189:8890) has no delay feature, so this action cannot be uploaded. Remove the delay option to upload it.'}));
+}
+function collectIssues(){
+  const issues=[]; let empty=0;
+  state.layers.forEach((l,li)=>{
+    const chk=(val,label)=>{ const v=validateAction(val);
+      if(v.kind==='empty'){empty++;return;}
+      if(v.level!=='ok') v.msgs.forEach(m=>issues.push({level:v.level,text:'Layer '+(li+1)+', '+label+': '+m})); };
+    l.buttons.forEach((row,r)=>row.forEach((val,c)=>chk(val,'R'+(r+1)+' C'+(c+1))));
+    l.knobs.forEach((k,n)=>['ccw','press','cw'].forEach(p=>chk(k[p],'knob '+(n+1)+' '+p)));
+  });
+  return {issues,empty};
+}
+function renderYaml(){
+  $('yamlOut').value=toYaml(state);
+  const {issues,empty}=collectIssues();
+  const box=$('summary'); box.replaceChildren();
+  const errs=issues.filter(i=>i.level==='error').length, warns=issues.length-errs;
+  box.append(h('span',{class:errs?'err':warns?'warn':'ok',
+    text:errs?errs+' error'+(errs>1?'s':'')+(warns?', '+warns+' warning'+(warns>1?'s':''):''):
+         warns?warns+' warning'+(warns>1?'s':''):'No problems found'}));
+  if(empty) box.append(h('span',{class:'hint',text:' · '+empty+' empty action'+(empty>1?'s':'')}));
+  if(issues.length){
+    const ul=h('ul',{class:'issues'}); issues.slice(0,40).forEach(i=>ul.append(h('li',{class:i.level,text:i.text})));
+    if(issues.length>40) ul.append(h('li',{text:'…and '+(issues.length-40)+' more'}));
+    box.append(ul);
+  }
+}
+function renderAll(){ renderSettings(); renderTabs(); renderDevice(); renderEditor(false); renderYaml(); hidSync(); }   // hidSync: the protocol for 514c:8850 depends on the layout
+function select(t){ sel=t; renderDevice(); renderEditor(false); }
+function onActionChanged(){ renderDevice(); renderMsg(); renderYaml(); save(); }
+
+// ----- keycode palette -----
+const PANES = ['basic','media','mouse','advanced'];
+const MODLABEL = {ctrl:'Ctrl',shift:'Shift',alt:'Alt',win:'Win',rctrl:'R-Ctrl',rshift:'R-Shift',ralt:'R-Alt',rwin:'R-Win'};
+const KEYLABEL = {escape:'Esc',backspace:'⌫',delete:'Del',enter:'Enter',space:'Space',tab:'Tab',capslock:'Caps',insert:'Ins',
+  printscreen:'PrtSc',scrolllock:'ScrLk',pause:'Pause',numlock:'NumLk',application:'Menu',up:'↑',down:'↓',left:'←',right:'→',
+  home:'Home',end:'End',pageup:'PgUp',pagedown:'PgDn',minus:'-',equal:'=',leftbracket:'[',rightbracket:']',backslash:'\\',
+  semicolon:';',quote:"'",grave:'`',comma:',',dot:'.',slash:'/',nonushash:'#',nonusbackslash:'\\|',
+  numpadslash:'/',numpadasterisk:'*',numpadminus:'−',numpadplus:'+',numpadenter:'Ent',numpaddot:'.',numpadequal:'='};
+for(let i=0;i<10;i++) KEYLABEL['numpad'+i]=String(i);
+const KEYGROUPS = [
+  ['Letters','abcdefghijklmnopqrstuvwxyz'.split('')],
+  ['Numbers','0123456789'.split('')],
+  ['Function',Array.from({length:24},(_,i)=>'f'+(i+1))],
+  ['Controls',['escape','tab','capslock','enter','space','backspace','delete','insert','application','printscreen','scrolllock','pause','numlock']],
+  ['Navigation',['up','down','left','right','home','end','pageup','pagedown']],
+  ['Symbols',['minus','equal','leftbracket','rightbracket','backslash','semicolon','quote','grave','comma','dot','slash','nonushash','nonusbackslash']],
+  ['Numpad',Array.from({length:10},(_,i)=>'numpad'+i).concat(['numpadslash','numpadasterisk','numpadminus','numpadplus','numpadenter','numpaddot','numpadequal'])],
+];
+const MEDIALABEL = {screenbrightnessup:'Bright +',screenbrightnessdown:'Bright −',next:'Next',previous:'Prev',stop:'Stop',play:'Play',
+  mute:'Mute',volumeup:'Vol +',volumedown:'Vol −',favorites:'Favorites',calculator:'Calc',screenlock:'Lock',
+  webpagehome:'Web home',webpageback:'Web back',webpageforward:'Web fwd'};
+
+function pcap(label,title,onclick,extra,data){
+  const props={type:'button',class:'pcap'+(extra?' '+extra:''),title,'aria-label':title,text:label,onclick};
+  if(data) props['data-key']=data;
+  return h('button',props);
+}
+function group(title,caps){ const g=h('div',{class:'pgroup'},h('h4',{text:title}),h('div',{class:'caps'})); caps.forEach(c=>g.lastChild.append(c)); return g; }
+function buildControls(){
+  const mc=$('modChips');
+  MOD_ORDER.forEach(m=>{
+    if(m==='rctrl') mc.append(h('span',{class:'modsep'}));
+    const b=h('button',{type:'button',class:'pcap mod','data-mod':m,'aria-pressed':'false',
+      title:m+' — applies to the next keycode you click',text:MODLABEL[m]});
+    b.addEventListener('click',()=>{ chips.has(m)?chips.delete(m):chips.add(m); syncMods(); });
+    mc.append(b);
+  });
+  const basic=$('pane-basic');
+  KEYGROUPS.forEach(([title,keys])=>basic.append(group(title,keys.map(k=>
+    pcap(k.length===1?k.toUpperCase():(KEYLABEL[k]||k.toUpperCase()),k,()=>assignKey(k),k.length>3?'wide':'',k)))));
+  $('pane-media').append(group('Media keys',MEDIA.filter(m=>m!=='prev').map(m=>
+    pcap(MEDIALABEL[m]||m,m,()=>assignKey(m),'wide',m))));
+  const mouseCaps=(id,items)=>items.forEach(([label,core])=>$(id).append(pcap(label,core,()=>assignMouse(core),'wide')));
+  mouseCaps('mouseClicks',[['Left click','click(left)'],['Right click','click(right)'],['Middle click','click(middle)']]);
+  mouseCaps('mouseWheels',[['Wheel ▲','wheelup'],['Wheel ▼','wheeldown']]);
+  setPane('basic');
+}
+function setPane(n){
+  PANES.forEach(p=>{
+    const on=p===n; $('pane-'+p).hidden=!on;
+    const t=$('ptab-'+p); t.classList.toggle('active',on); t.setAttribute('aria-selected',String(on));
+  });
+  $('modRow').hidden = !(n==='basic'||n==='mouse');
+}
+function syncMods(){
+  $('modChips').querySelectorAll('button[data-mod]').forEach(b=>b.setAttribute('aria-pressed',String(chips.has(b.dataset.mod))));
+}
+const orderedMods = allowed => MOD_ORDER.filter(m=>chips.has(m) && (!allowed||allowed[m]));
+const appendMode = () => $('seqMode').checked;
+function consumeMods(){ chips.clear(); syncMods(); }   // modifiers are one-shot: they apply to the next keycode only
+function assignKey(key){
+  const media=MEDIA.includes(key);
+  applyAction(media ? key : orderedMods().concat(key).join('-'), appendMode());
+  if(!media) consumeMods();
+}
+function assignMouse(core){
+  const dropped=MOD_ORDER.filter(m=>chips.has(m)&&!MODS_MOUSE[m]);
+  if(dropped.length) toast('Mouse actions only take ctrl, shift and alt — left out: '+dropped.join(', '));
+  applyAction(orderedMods(MODS_MOUSE).concat(core).join('-'), appendMode());
+  consumeMods();
+}
+const clampMove = v => Math.max(-127,Math.min(127,parseInt(v,10)||0));
+function applyAction(str, append){
+  if(str==null) return;
+  const cur=getVal(sel).trim();
+  setVal(sel, append && cur ? cur+','+str : str);
+  $('action').value=getVal(sel); onActionChanged();
+}
+function wirePalette(){
+  document.querySelectorAll('.ptab').forEach(b=>b.addEventListener('click',()=>setPane(b.dataset.pane)));
+  $('msMove').addEventListener('click',()=>assignMouse('move('+clampMove($('mx').value)+','+clampMove($('my').value)+')'));
+  $('msDrag').addEventListener('click',()=>assignMouse('drag('+$('mbtn').value+','+clampMove($('mx').value)+','+clampMove($('my').value)+')'));
+  $('msWheel').addEventListener('click',()=>assignMouse('wheel('+clampMove($('mn').value)+')'));
+  $('hidCodeSet').addEventListener('click',()=>{
+    const v=$('bhid').value.trim();
+    if(!/^\d+$/.test(v)||+v>255){ toast('Enter a code from 0 to 255'); return; }
+    assignKey('<'+parseInt(v,10)+'>');
+  });
+  document.querySelectorAll('#helpLink,.helpjump').forEach(a=>a.addEventListener('click',()=>{ $('help').open=true; }));
+}
+
+// ----- events -----
+function rebuildFromSettings(){
+  state.orientation=$('orientation').value;
+  state.rows=$('rows').value; state.columns=$('columns').value; state.knobs=$('knobs').value;
+  normalizeState(state); clampSel(); renderAll(); save();
+}
+['orientation','rows','columns','knobs'].forEach(id=>$(id).addEventListener('change',rebuildFromSettings));
+$('action').addEventListener('input',e=>{ setVal(sel,e.target.value); onActionChanged(); });
+$('btnClear').addEventListener('click',()=>{
+  if(getVal(sel).trim()!=='' && !confirm('Clear this action?')) return;
+  setVal(sel,''); $('action').value=''; onActionChanged(); $('action').focus();
+});
+wirePalette();
+// The delay button toggles between "Apply delay option" and "Remove delay option" depending on the selected action.
+const DELAY_RE=/^\s*\{\s*delay\(\s*(\d+)\s*\)\s*\}\s*/;
+function syncDelayUi(){
+  const m=getVal(sel).match(DELAY_RE), btn=$('btnDelay'), inp=$('delay');
+  if(m){ btn.textContent='Remove delay option'; inp.value=m[1]; inp.disabled=true; }
+  else { btn.textContent='Apply delay option'; inp.disabled=false; }
+}
+$('btnDelay').addEventListener('click',()=>{
+  const cur=getVal(sel);
+  if(DELAY_RE.test(cur)){
+    setVal(sel,cur.replace(DELAY_RE,''));
+  } else {
+    const ms=$('delay').value.trim();
+    if(cur.trim()===''){ toast('Enter an action first'); return; }
+    if(!/^\d+$/.test(ms)){ toast('Enter a delay in milliseconds first'); $('delay').focus(); return; }
+    setVal(sel,'{delay('+parseInt(ms,10)+')}'+cur.trim());
+  }
+  $('action').value=getVal(sel); onActionChanged();
+});
+$('btnExample').addEventListener('click',()=>{
+  if(!confirm('Discard the current mapping and load the repo example?')) return;
+  loadText(EXAMPLE,'Loaded repo example');
+});
+$('btnBlank').addEventListener('click',()=>{
+  if(!confirm('Discard the current mapping and start blank?')) return;
+  state=normalizeState({model:'ch57x-2',orientation:'normal',rows:3,columns:4,knobs:2,layers:[]});
+  layerIdx=0; sel={t:'b',r:0,c:0}; renderAll(); save();
+});
+function loadText(text, okMsg){
+  try{
+    state=fromObj(parseYaml(text)); layerIdx=0; sel={t:'b',r:0,c:0};
+    renderAll(); save(); toast(okMsg||'Loaded');
+  }catch(e){ toast('Import failed: '+e.message); }
+}
+$('btnImport').addEventListener('click',()=>{ const t=$('yamlIn').value; if(t.trim()) loadText(t,'Imported YAML'); else toast('Paste some YAML first'); });
+$('fileIn').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader(); rd.onload=()=>loadText(String(rd.result),'Loaded '+f.name); rd.readAsText(f);
+  e.target.value='';
+});
+$('btnCopy').addEventListener('click',async()=>{
+  const text=$('yamlOut').value;
+  try{ await navigator.clipboard.writeText(text); toast('YAML copied'); }
+  catch(e){ $('yamlOut').select(); try{ document.execCommand('copy'); toast('YAML copied'); }catch(_){ toast('Select and copy manually'); } }
+});
+$('btnDownload').addEventListener('click',()=>{
+  const blob=new Blob([$('yamlOut').value],{type:'text/yaml'});
+  const a=h('a',{href:URL.createObjectURL(blob),download:'mapping.yaml'});
+  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
+});
+
+// ----- direct upload (WebHID) -----
+const HID_FILTERS = DEVICES.map(d=>({vendorId:d.vid,productId:d.pid}));
+let hidDev = null, hidDeviceInfo = null, hidBusy = false;
+const isCfgDev = d => d.collections.some(c=>c.outputReports && c.outputReports.some(r=>r.reportId===3));
+const hex = bytes => bytes.map(b=>(b&0xff).toString(16).padStart(2,'0')).join(' ');
+function hidSay(kind,text){ const b=$('hidStatus'); b.replaceChildren(h('span',{class:kind,text})); }
+// Follows the current layout: 514c:8850 is the 4x4 pad for a 16-button layout and the 12-key/4-knob pad otherwise.
+function hidFamily(){ return hidDev ? resolveFamily(hidDev.vendorId,hidDev.productId,state) : null; }
+const famName = f => f+(FAMILY_LABEL[f]&&FAMILY_LABEL[f]!==f ? ' ('+FAMILY_LABEL[f]+')' : '');
+function hidSync(){
+  const on=!!hidDev && !hidBusy;
+  $('hidInfo').disabled = !on || !['884x','884x-514c'].includes(hidFamily());
+  $('hidUpload').disabled = !on;
+  $('hidConnect').disabled = hidBusy;
+}
+function hidWhich(){ return $('hidLayers').value==='all' ? 'all' : layerIdx; }
+// First blocking problem, spelled out, so the status line says what to fix rather than just that something is wrong.
+const planErrorText = plan => plan.errors[0]+(plan.errors.length>1 ? ' (+'+(plan.errors.length-1)+' more, see list)' : '');
+function showPlan(plan){
+  const ta=$('hidPlan'); ta.hidden=false;
+  const lines=[];
+  plan.errors.forEach(e=>lines.push('ERROR  '+e));
+  plan.warnings.forEach(w=>lines.push('WARN   '+w));
+  plan.packets.forEach(p=>{ if(p.desc) lines.push('# '+p.desc); lines.push('  '+hex(p.bytes)); });
+  ta.value=lines.join('\n') || '(nothing to send)';
+}
+function readDeviceInfo(dev){
+  return new Promise((resolve,reject)=>{
+    const to=setTimeout(()=>{ dev.removeEventListener('inputreport',on); reject(new Error('The keyboard did not answer')); },1500);
+    const on=e=>{
+      const d=new Uint8Array(e.data.buffer,e.data.byteOffset,e.data.byteLength);
+      if(d[0]===0xfb){ clearTimeout(to); dev.removeEventListener('inputreport',on); resolve({buttons:d[1],encoders:d[2]}); }
+    };
+    dev.addEventListener('inputreport',on);
+    dev.sendReport(3,makeReport([0xfb,0xfb,0xfb])).catch(err=>{ clearTimeout(to); dev.removeEventListener('inputreport',on); reject(err); });
+  });
+}
+async function hidConnect(){
+  if(!navigator.hid){ hidSay('err','WebHID is not available in this browser. Use Chrome or Edge on desktop, or the CLI script below.'); return; }
+  try{
+    let devs=(await navigator.hid.getDevices()).filter(d=>HID_FILTERS.some(f=>f.vendorId===d.vendorId&&f.productId===d.productId)&&isCfgDev(d));
+    if(!devs.length) devs=(await navigator.hid.requestDevice({filters:HID_FILTERS})).filter(isCfgDev);
+    if(!devs.length){
+      hidSay('err','No configuration interface found. In the chooser, pick the keyboard entry that exposes it (try each), and on Linux make sure a udev rule grants your user access to the hidraw device.');
+      return;
+    }
+    hidDev=devs[0]; hidDeviceInfo=null;
+    if(!hidDev.opened) await hidDev.open();
+    const fam=hidFamily();
+    const di=deviceInfo(hidDev.vendorId,hidDev.productId);
+    if(di){ // keep the exported YAML's `model:` consistent with the connected device (same table as the original CLI)
+      state.model=di.model; renderYaml(); save();
+    }
+    hidSay('ok','Connected: '+hidDev.vendorId.toString(16)+':'+hidDev.productId.toString(16)+' '+(hidDev.productName||'')+' · '+(di?di.model+' · protocol '+famName(fam)+(di.pid===0x8850&&di.vid===0x514c?' — chosen from your layout':''):'unknown'));
+    if(!fam){ hidSay('err','Product 0x'+hidDev.productId.toString(16)+' is not a known family; upload is disabled.'); hidDev=null; }
+  }catch(e){ hidSay('err','Could not connect: '+e.message); hidDev=null; }
+  hidSync(); renderMsg();
+}
+$('hidConnect').addEventListener('click',hidConnect);
+if(navigator.hid){
+  navigator.hid.addEventListener('disconnect',e=>{
+    if(e.device===hidDev){ hidDev=null; hidDeviceInfo=null; hidSync(); renderMsg(); hidSay('warn','Keyboard disconnected.'); }
+  });
+}else{ hidSay('warn','WebHID is not available in this browser — use Chrome or Edge on desktop, or the CLI script below.'); }
+$('hidInfo').addEventListener('click',async()=>{
+  if(!hidDev) return; hidBusy=true; hidSync();
+  try{
+    hidDeviceInfo=await readDeviceInfo(hidDev);
+    const want=state.rows*state.columns;
+    const mismatch=(hidDeviceInfo.buttons&&hidDeviceInfo.buttons!==want)||hidDeviceInfo.encoders!==state.knobs;
+    hidSay(mismatch?'warn':'ok','Device reports '+hidDeviceInfo.buttons+' buttons and '+hidDeviceInfo.encoders+' knobs'+
+      (mismatch?' — your layout is '+want+' buttons and '+state.knobs+' knobs.':'.'));
+  }catch(e){ hidSay('err','Could not read device info: '+e.message); }
+  hidBusy=false; hidSync();
+});
+$('hidPreview').addEventListener('click',()=>{
+  const fam=hidFamily()||'884x';
+  const plan=planUpload(state,fam,hidWhich());
+  showPlan(plan);
+  hidSay(plan.errors.length?'err':plan.warnings.length?'warn':'ok',
+    plan.errors.length ? 'Cannot upload — '+planErrorText(plan)
+      : plan.items+' binding(s), '+plan.packets.length+' packet(s)'+(plan.skipped?', '+plan.skipped+' empty skipped':'')+
+        (plan.warnings.length?', '+plan.warnings.length+' warning(s) (see list)':'')+' — protocol '+famName(fam)+(hidDev?'':' (no keyboard connected; showing 884x)'));
+});
+$('hidUpload').addEventListener('click',async()=>{
+  if(!hidDev||hidBusy) return;
+  const plan=planUpload(state,hidFamily(),hidWhich());
+  showPlan(plan);
+  if(plan.errors.length){ hidSay('err','Cannot upload — '+planErrorText(plan)+'. Fix '+(plan.errors.length>1?'these':'this')+' first.'); return; }
+  if(!plan.items){ hidSay('warn','Nothing to upload: every action is empty.'); return; }
+  const warns=plan.warnings.slice();
+  if(hidDeviceInfo &&((hidDeviceInfo.buttons&&hidDeviceInfo.buttons!==state.rows*state.columns)||hidDeviceInfo.encoders!==state.knobs))
+    warns.push('Your layout ('+state.rows*state.columns+' buttons, '+state.knobs+' knobs) differs from what the keyboard reports ('+hidDeviceInfo.buttons+' buttons, '+hidDeviceInfo.encoders+' knobs).');
+  const msg='Write '+plan.items+' binding(s) ('+plan.packets.length+' packets, protocol '+famName(hidFamily())+') to the keyboard, replacing those keys on '+
+    ($('hidLayers').value==='all'?'all '+state.layers.length+' layer(s)':'layer '+(layerIdx+1))+'?'+(warns.length?'\n\n'+warns.join('\n\n'):'');
+  if(!confirm(msg)) return;
+  hidBusy=true; hidSync();
+  try{
+    for(let i=0;i<plan.packets.length;i++){
+      await hidDev.sendReport(3,makeReport(plan.packets[i].bytes));
+      if(i%5===0||i===plan.packets.length-1) hidSay('ok','Sending… '+(i+1)+' / '+plan.packets.length);
+    }
+    hidSay('ok','Uploaded '+plan.items+' binding(s). If a key still behaves oddly, replug the keyboard and test again.');
+    toast('Uploaded to keyboard');
+  }catch(e){ hidSay('err','Upload failed after partial write: '+e.message+'. Reconnect and try again.'); }
+  hidBusy=false; hidSync();
+});
+hidSync();
+
+// ----- upload script -----
+function upDefaults(){
+  const win = $('upOs').value==='ps1';
+  $('upTool').value = win ? '.\\ch57x-keyboard-tool.exe' : './ch57x-keyboard-tool';
+  $('upSudoWrap').style.display = win ? 'none' : '';
+}
+$('upOs').value = /win/i.test(navigator.platform||'') ? 'ps1' : 'sh';
+$('upOs').addEventListener('change',upDefaults); upDefaults();
+function buildScript(){
+  const {issues}=collectIssues();
+  const errs=issues.filter(i=>i.level==='error').length;
+  if(errs && !confirm(errs+' action(s) are invalid. Generate the script anyway? (validate will stop the upload if the tool rejects them.)')) return null;
+  try{ return makeUploadScript(toYaml(state), $('upOs').value, $('upTool').value.trim()||'ch57x-keyboard-tool', $('upSudo').checked); }
+  catch(e){ toast(e.message); return null; }
+}
+$('btnUpScript').addEventListener('click',()=>{
+  const s=buildScript(); if(s==null) return;
+  const ext=$('upOs').value, blob=new Blob([s],{type:'text/plain'});
+  const a=h('a',{href:URL.createObjectURL(blob),download:'upload-ch57x.'+ext});
+  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
+});
+$('btnUpCopy').addEventListener('click',async()=>{
+  const s=buildScript(); if(s==null) return;
+  try{ await navigator.clipboard.writeText(s); toast('Script copied'); } catch(e){ toast('Copy failed — use Download'); }
+});
+
+// ----- init -----
+buildControls();
+state = loadSaved() || fromObj(parseYaml(EXAMPLE));
+clampSel(); renderAll();
+</script>
+<script id="theme-ui">
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  var mq=window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function effective(){ var t=root.getAttribute('data-theme'); return t || (mq && mq.matches ? 'dark' : 'light'); }
+  function paint(){
+    var dark=effective()==='dark';
+    btn.textContent = dark ? '☀ Light' : '☾ Dark';
+    btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+  btn.addEventListener('click',function(){
+    var next=effective()==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme',next);
+    try{ localStorage.setItem('ch57x-theme',next); }catch(e){}
+    paint();
+  });
+  if(mq){ if(mq.addEventListener) mq.addEventListener('change',paint); else if(mq.addListener) mq.addListener(paint); }
+  paint();
+})();
+</script>
+</body>
+</html>

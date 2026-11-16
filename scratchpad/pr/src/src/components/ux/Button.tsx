@@ -1,0 +1,75 @@
+import { cva, type VariantProps } from "class-variance-authority";
+import React, { useMemo } from "react";
+import { twMerge } from "tailwind-merge";
+
+import { Tooltip } from "./Tooltip";
+
+const button = cva(
+  "box-border focus:ring-1 rounded-lg focus:outline-none select-none",
+  {
+    variants: {
+      size: {
+        sm: "px-2 py-1",
+        md: "px-3 py-1.5",
+        lg: "px-4 py-2.5",
+      },
+      variant: {
+        default: [
+          "border text-secondary bg-neutral-100 border-neutral-400 hover:bg-neutral-200 hover:text-default focus:ring-1 focus:ring-neutral-400 shadow-xs",
+          "dark:text-white dark:bg-neutral-800 dark:border-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-white dark:focus:ring-1 focus:ring-neutral-500",
+        ],
+        primary: [
+          "border text-white bg-indigo-500 hover:bg-indigo-600 border-transparent focus:ring-1 focus:ring-indigo-500 shadow-xs",
+        ],
+        invisible: [
+          "border text-secondary border-transparent hover:text-default focus:ring-1 focus:ring-neutral-400",
+          "dark:text-white dark:hover:text-white dark:focus:ring-neutral-500",
+        ],
+        none: null,
+      },
+      disabled: {
+        false: "cursor-pointer",
+        true: "opacity-50 pointer-events-none",
+      },
+    },
+  }
+);
+
+/**
+ * Properties for a button.
+ *
+ * Note this explicitly doesn't use the {@link React.ButtonHTMLAttributes<T>} because too many of them are problematic
+ */
+export type ButtonProps = {
+  description?: React.ReactNode;
+} & VariantProps<typeof button> &
+  React.HTMLAttributes<HTMLButtonElement>;
+
+export function Button({
+  size = "md",
+  variant = "default",
+  description = null,
+  disabled = false,
+  className,
+  children,
+  ...other
+}: React.PropsWithChildren<ButtonProps>) {
+  const core = useMemo(
+    () => (
+      <button
+        className={twMerge(button({ size, variant, disabled, className }))}
+        disabled={disabled ?? undefined}
+        type="button"
+        {...other}
+      >
+        {children}
+      </button>
+    ),
+    [children, className, disabled, other, size, variant]
+  );
+
+  if (description) {
+    return <Tooltip content={description}>{core}</Tooltip>;
+  }
+  return core;
+}

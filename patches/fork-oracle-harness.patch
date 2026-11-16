@@ -1,0 +1,150 @@
+diff --git a/src/keyboard/k884x.rs b/src/keyboard/k884x.rs
+index a8e2727..6fe35da 100644
+--- a/src/keyboard/k884x.rs
++++ b/src/keyboard/k884x.rs
+@@ -137,3 +137,104 @@ impl Keyboard884x {
+         Ok(keyboard)
+     }
+ }
++
++
++#[cfg(test)]
++pub mod oracle {
++    use super::*;
++    pub fn bind(layer: u8, key: Key, expansion: &Macro, out: &mut Vec<Vec<u8>>) -> Result<()> {
++        ensure!(layer <= 15, "invalid layer index");
++
++        debug!("bind {} on layer {} to {}", key, layer, expansion);
++
++        let mut msg = vec![
++            0x03,
++            0xfe,
++            key.to_key_id(15)?,
++            layer + 1,
++            expansion.kind(),
++            0,
++            0,
++            0,
++            0,
++            0,
++        ];
++
++        match expansion {
++            Macro::Keyboard(presses) => {
++                ensure!(presses.len() <= 18, "macro sequence is too long");
++
++                // Count only key parts when putting header length
++                let key_count = presses.iter().filter(|p| matches!(p, crate::keyboard::KeyboardPart::Key(_))).count();
++
++                // Use actual key count. Using 0 for single-key breaks cases with a leading delay.
++                msg.push(key_count as u8);
++
++                for part in presses.iter() {
++                    match part {
++                        crate::keyboard::KeyboardPart::Key(Accord { modifiers, code }) => {
++                            msg.extend_from_slice(&[modifiers.as_u8(), code.map_or(0, |c| c.value())]);
++                        }
++                        crate::keyboard::KeyboardPart::Delay(_) => {
++                            // Delay entries are not part of the header payload for key programming.
++                        }
++                    }
++                }
++            }
++            Macro::Media(code) => {
++                let [low, high] = (*code as u16).to_le_bytes();
++                msg.extend_from_slice(&[0, low, high, 0, 0, 0, 0]);
++            }
++            Macro::Mouse(MouseEvent(MouseAction::Click(buttons), _)) => {
++                ensure!(!buttons.is_empty(), "buttons must be given for click macro");
++                // Python encoding: [modifier, button, x, y, wheel]
++                msg.push(5);
++                msg.extend_from_slice(&[0, buttons.as_u8(), 0, 0, 0]);
++            }
++            Macro::Mouse(MouseEvent(MouseAction::WheelUp, modifier)) => {
++                msg.push(5);
++                msg.extend_from_slice(&[modifier.map_or(0, |m| m as u8), 0, 0, 0, 1]);
++            }
++            Macro::Mouse(MouseEvent(MouseAction::WheelDown, modifier)) => {
++                msg.push(5);
++                msg.extend_from_slice(&[modifier.map_or(0, |m| m as u8), 0, 0, 0, 255]);
++            }
++            // ...existing code...
++            Macro::Mouse(MouseEvent(MouseAction::Move { dx, dy }, modifier)) => {
++                // Encode dx/dy as low bytes (two's complement via cast) into Python-style positions:
++                // [modifier, button/flag, x, y, wheel]
++                let x_b = ((*dx as i32) & 0xff) as u8;
++                let y_b = ((*dy as i32) & 0xff) as u8;
++                msg.push(5);
++                msg.extend_from_slice(&[modifier.map_or(0, |m| m as u8), 0, x_b, y_b, 0]);
++            }
++        };
++
++        // Send main programming message (keys/media/mouse)
++        out.push((&msg).to_vec());
++
++        // If macro has a leading delay part (we validated earlier that any delay must be leading),
++        // send a single delay message with the specified ms after programming the macro.
++        if let Macro::Keyboard(parts) = expansion {
++            if let Some(crate::keyboard::KeyboardPart::Delay(ms)) = parts.first() {
++                if *ms > 6000 {
++                    return Err(anyhow::anyhow!("delay value {ms}ms exceeds maximum supported 6000ms"));
++                }
++                let mut delay_msg = msg.clone();
++                delay_msg[4] = 0x05;
++                let [low, high] = ms.to_le_bytes();
++                delay_msg[5] = low;
++                delay_msg[6] = high;
++                out.push((&delay_msg).to_vec());
++            }
++        }
++
++        // Finish key binding
++        out.push((&[0x03, 0xaa, 0xaa, 0, 0, 0, 0, 0, 0]).to_vec());
++        out.push((&[0x03, 0xfd, 0xfe, 0xff]).to_vec());
++        out.push((&[0x03, 0xaa, 0xaa, 0, 0, 0, 0, 0, 0]).to_vec());
++
++        Ok(())
++    
++    }
++}
+diff --git a/src/keyboard/mod.rs b/src/keyboard/mod.rs
+index fa9d6c7..77384c8 100644
+--- a/src/keyboard/mod.rs
++++ b/src/keyboard/mod.rs
+@@ -467,3 +467,36 @@ impl<'de> serde::Deserialize<'de> for Macro {
+         }
+     }
+ }
++
++
++#[cfg(test)]
++mod fork_oracle {
++    use super::*;
++    use std::io::BufRead;
++    fn hexs(v: &[u8]) -> String { v.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ") }
++    #[test]
++    fn dump() {
++        let path = match std::env::var("ORACLE_ACTIONS") { Ok(p) => p, Err(_) => return };
++        let f = std::io::BufReader::new(std::fs::File::open(path).unwrap());
++        let keys: Vec<(&str, Key)> = vec![
++            ("b0", Key::Button(0)), ("b5", Key::Button(5)), ("b11", Key::Button(11)), ("b14", Key::Button(14)), ("b15", Key::Button(15)),
++            ("k0ccw", Key::Knob(0, KnobAction::RotateCCW)), ("k0press", Key::Knob(0, KnobAction::Press)), ("k1cw", Key::Knob(1, KnobAction::RotateCW)),
++            ("k2press", Key::Knob(2, KnobAction::Press)), ("k3ccw", Key::Knob(3, KnobAction::RotateCCW)), ("k3press", Key::Knob(3, KnobAction::Press)),
++            ("k3cw", Key::Knob(3, KnobAction::RotateCW)), ("k4press", Key::Knob(4, KnobAction::Press)),
++        ];
++        for line in f.lines() {
++            let action = line.unwrap();
++            if action.is_empty() { continue; }
++            let m = match action.parse::<Macro>() { Ok(m) => m, Err(_) => { println!("FORK|{}|-|-|ERRPARSE", action); continue; } };
++            for layer in [0u8, 1u8, 2u8] {
++                for (kn, k) in keys.iter() {
++                    let mut out: Vec<Vec<u8>> = vec![];
++                    match k884x::oracle::bind(layer, *k, &m, &mut out) {
++                        Ok(()) => println!("FORK|{}|{}|{}|OK|{}", action, layer, kn, out.iter().map(|p| hexs(p)).collect::<Vec<_>>().join(" ; ")),
++                        Err(e) => println!("FORK|{}|{}|{}|ERR|{}", action, layer, kn, e),
++                    }
++                }
++            }
++        }
++    }
++}
