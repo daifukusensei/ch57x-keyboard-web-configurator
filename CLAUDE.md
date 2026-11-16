@@ -38,8 +38,11 @@ Edit `src/`, then `npm run build && npm test` before committing.
 - Test fixtures are CRLF: split with `/\r?\n/`.
 - In tall pages the sticky upload bar overlaps Playwright screenshots; use a taller viewport.
 
+## Session start
+- Until they are resolved, ask the user the questions in HANDOFF.md §7 "Awaiting the user" early in the session, all together in one short message. Record the answers in §7, and remove each item once it is resolved.
+
 ## Housekeeping
 - Commit as the repo's existing author, `daifukusensei`. Git has no global identity here, so pass `-c user.name=... -c user.email=...` (the email is in `git log`).
-- `gh` isn't installed and the repo is private, so CI status can't be checked from here. Ask the user.
-- Open questions for the user are in HANDOFF.md §7 ("Awaiting the user").
+- `gh` is installed and logged in. Use it to check CI after a push (`gh run list`, `gh run watch`, `gh run view --log-failed`) and for PRs.
 - Keep the docs current **in the same commit** as each change: this file (commands, invariants, pitfalls), HANDOFF.md (§3 architecture, §4 protocol, §6 tests, §7 open items, §9 history, §10 pitfalls), README.md (layout).
+- Keep all project notes and instructions in these committed files, **not** in Claude Code's private memory directory (`~/.claude/projects/…/memory`). The user wants every Claude note versioned in the repo.
