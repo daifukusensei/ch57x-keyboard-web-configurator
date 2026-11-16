@@ -41,3 +41,4 @@ Edit `src/`, then `npm run build && npm test` before committing.
 - Commit as the repo's existing author, `daifukusensei`. Git has no global identity here, so pass `-c user.name=... -c user.email=...` (the email is in `git log`).
 - `gh` isn't installed and the repo is private, so CI status can't be checked from here. Ask the user.
 - Open questions for the user are in HANDOFF.md §7 ("Awaiting the user").
+- Keep the docs current **in the same commit** as each change: this file (commands, invariants, pitfalls), HANDOFF.md (§3 architecture, §4 protocol, §6 tests, §7 open items, §9 history, §10 pitfalls), README.md (layout).

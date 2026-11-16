@@ -210,7 +210,8 @@ See the layout in `README.md`. The old scratchpad bundle was reorganised as foll
 5. **Support for the user's 514c:8850 12-key/4-knob pads** by porting their fork's protocol.
 6. Mouse range **-127..127**; the **8890 delay** error explained and made explicit; confirmed mouse is supported on 8890.
 7. **QMK-style interface redesign.**
-8. **Per-key comments** (§5) — latest, completed and delivered.
+8. **Per-key comments** (§5), completed and delivered.
+9. Moved to this git repo (2026-11-15): tests made path-independent; split into `src/` + `build.mjs`; tests moved to `test/`; reference repos fetched instead of vendored; CI added (tests + oracle reproducibility); 4×4 514c:8850 delay warning; `CLAUDE.md` added.
 
 ---
 
