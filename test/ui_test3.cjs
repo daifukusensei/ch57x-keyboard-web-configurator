@@ -73,6 +73,20 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('confirm names 4x4 protocol: '+(w.__confirm||'').split('\n')[0],/protocol 8850 \(4×4 pad\)/.test(w.__confirm||''));
   const f2=sent.length?sent[0].data.slice(0,12).map(x=>x.toString(16).padStart(2,'0')).join(' '):'';
   ok('first packet = upstream 4x4 bind: '+f2,f2==='fd 01 01 01 00 01 00 00 04 00 00 00');
+  // a delay on the 4x4 pad is dropped by the protocol: amber warning while editing, WARN in preview + confirm, upload proceeds
+  const msg=()=>d.getElementById('actionMsg').textContent;
+  ok('no 4x4 delay warning without a delay',!/ignores the delay option/.test(msg()));
+  d.querySelector('.cell').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  { const inp=d.getElementById('action'); inp.value='{delay(100)}a,b'; inp.dispatchEvent(new w.Event('input',{bubbles:true})); }
+  ok('editor warns about delay on 4x4: '+msg(),/514c:8850, 4×4 pad\) ignores the delay option/.test(msg()) && d.querySelector('#actionMsg .warn')!==null);
+  click('hidPreview'); await sleep(20);
+  ok('preview shows WARN for 4x4 delay',/WARN\s+Layer 1 R1 C1: the delay option is ignored on this keyboard \(4×4 pad\)/.test(d.getElementById('hidPlan').value) && !/ERROR/.test(d.getElementById('hidPlan').value));
+  sent.length=0; w.__confirm='';
+  click('hidUpload'); await sleep(250);
+  ok('confirm repeats the 4x4 delay warning, upload proceeds',/delay option is ignored/.test(w.__confirm)&&sent.length>0);
+  { const r=d.getElementById('rows'); r.value='3'; r.dispatchEvent(new w.Event('change',{bubbles:true})); } await sleep(30);
+  d.querySelector('.cell').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  ok('12-key layout: no 4x4 delay warning (delay is supported there): '+msg(),!/ignores the delay option/.test(msg()));
   // script generator still works
   ok('script button present',!!d.getElementById('btnUpScript'));
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);

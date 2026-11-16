@@ -506,6 +506,10 @@ function familyWarnings(family,macro){
   const w=[];
   if(family==='884x-514c' && macro.type==='Mouse' && macro.action.type==='Click' && macro.modifier)
     w.push('this keyboard ignores the "'+macro.modifier.toLowerCase()+'" modifier on a click and sends a plain click');
+  // The 4x4 protocol (upstream k8850_4x4) has no delay field, so the delay is dropped. The pad itself may support
+  // delays (via its vendor software), but how they are encoded is unknown, so nothing better can be sent yet.
+  if(family==='8850' && macro.type==='Keyboard' && macro.options.delay>0)
+    w.push('the delay option is ignored on this keyboard (4×4 pad); the keys are sent without the pause');
   return w;
 }
 // Devices WebHID upload knows about. `model` is the value of the YAML `model:` key in the original tool.

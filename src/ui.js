@@ -123,6 +123,9 @@ function renderMsg(){
   // The 1189:8890 firmware has no delay feature (the original tool refuses it too), so flag it while editing, not only at upload.
   if(hidDev && hidFamily()==='8890' && DELAY_RE.test(getVal(sel)))
     box.append(h('div',{class:'warn',text:'⚠ The connected keyboard (1189:8890) has no delay feature, so this action cannot be uploaded. Remove the delay option to upload it.'}));
+  // The 4x4 514c:8850 protocol has no delay field: the action uploads, but without the pause.
+  if(hidDev && hidFamily()==='8850' && DELAY_RE.test(getVal(sel)))
+    box.append(h('div',{class:'warn',text:'⚠ The connected keyboard (514c:8850, 4×4 pad) ignores the delay option: this action uploads, but the keys are sent without the pause.'}));
 }
 function collectIssues(){
   const issues=[]; let empty=0;
