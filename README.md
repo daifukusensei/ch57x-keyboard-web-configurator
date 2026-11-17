@@ -18,6 +18,7 @@ src/ui.js                 DOM, palette, WebHID
 src/theme-ui.js           theme toggle
 build.mjs                 inlines src/ into ch57x-keyboard-web-configurator.html (zero dependencies)
 test/                     suites (*.cjs) + run.mjs; they load the *built* HTML
+test/lib/                 shared test helpers (autoconfirm.cjs answers the in-page confirmation dialog)
 test/fixtures/            user YAML, Rust oracle outputs + their action lists, pre-comments HTML, stub tool
 test/reference/           ch57x-programmer TS reference bundled to ref.cjs (committed)
 scripts/fetch-refs.sh     clones the reference repos into refs/ at pinned revisions + applies patches/

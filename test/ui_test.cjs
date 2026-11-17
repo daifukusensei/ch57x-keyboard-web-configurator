@@ -1,3 +1,4 @@
+const autoConfirm=require('./lib/autoconfirm.cjs');
 const {JSDOM}=require('jsdom'); const fs=require('fs');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const sent=[]; const listeners={};
@@ -10,10 +11,10 @@ const dev={vendorId:0x1189,productId:0x8840,productName:'Mock Macropad',opened:f
 const errors=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
   w.navigator.hid={getDevices:async()=>[],requestDevice:async()=>[dev],addEventListener(){}};
-  w.confirm=(m)=>{w.__confirm=m;return true;}; w.alert=()=>{};
+  w.alert=()=>{};
   w.addEventListener('error',e=>errors.push(e.message));
 }});
-const w=dom.window,d=w.document; const click=id=>d.getElementById(id).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+const w=dom.window,d=w.document; const c=autoConfirm(w); const click=id=>d.getElementById(id).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };
 (async()=>{
@@ -32,7 +33,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   sent.length=0;
   d.getElementById('hidLayers').value='current';
   click('hidUpload'); await sleep(200);
-  ok('confirm shown',/Write 18 binding/.test(w.__confirm||''));
+  ok('confirm shown',/Write 18 binding/.test(c.last));
   // layer 1: 12 buttons + 6 knob actions = 18 bindings, each 4-5 packets
   ok('all reports id 3, 64 bytes',sent.length>0&&sent.every(s=>s.id===3&&s.data.length===64));
   const first=sent[0].data.slice(0,12).map(x=>x.toString(16).padStart(2,'0')).join(' ');

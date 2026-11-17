@@ -1,3 +1,4 @@
+const autoConfirm=require('./lib/autoconfirm.cjs');
 // Basic-tab keyboard: ANSI/ISO from the browser language, manual override (saved), board modifiers, nothing lost.
 const {JSDOM}=require('jsdom'); const fs=require('fs');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
@@ -6,11 +7,11 @@ function open(langs,store){
   const errors=[];
   const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
     Object.defineProperty(w.navigator,'languages',{get:()=>langs}); Object.defineProperty(w.navigator,'language',{get:()=>langs[0]});
-    w.confirm=()=>true; w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
+    w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
     for(const [k,v] of Object.entries(store||{})) w.localStorage.setItem(k,v);
   }});
-  const w=dom.window,d=w.document;
-  return {w,d,errors,click:el=>(typeof el==='string'?d.querySelector(el):el).dispatchEvent(new w.MouseEvent('click',{bubbles:true})),
+  const w=dom.window,d=w.document; const c=autoConfirm(w);
+  return {w,d,errors,c,click:el=>(typeof el==='string'?d.querySelector(el):el).dispatchEvent(new w.MouseEvent('click',{bubbles:true})),
     board:k=>d.querySelector('#kbBoard [data-key="'+k+'"]'), extra:k=>d.querySelector('#kbExtra [data-key="'+k+'"]'),
     act:()=>d.getElementById('action').value};
 }
@@ -29,7 +30,7 @@ const ALL=['backslash','nonushash','nonusbackslash'];
   const npList=[...p.d.querySelectorAll('#kbNumpad [data-key]')].map(b=>b.dataset.key), npBoard=[...p.d.querySelectorAll('#kbBoard .np [data-key]')].map(b=>b.dataset.key);
   ok('phone numpad list offers exactly the board numpad keys',npList.length===17&&npBoard.every(k=>npList.includes(k)));
   // modifier keys on the board toggle the shared one-shot chips
-  p.click('#btnBlank');
+  p.click('#btnBlank'); await p.c.tick();
   p.click('#kbBoard [data-mod="rshift"]'); p.click('#kbBoard [data-mod="ctrl"]');
   ok('board modifiers pressed',p.d.querySelector('#kbBoard [data-mod="ctrl"]').getAttribute('aria-pressed')==='true'&&p.d.querySelector('#modChips [data-mod="ctrl"]').getAttribute('aria-pressed')==='true');
   p.click(p.board('a')); ok('ctrl + rshift + A -> ctrl-rshift-a: '+p.act(),p.act()==='ctrl-rshift-a');
@@ -57,7 +58,7 @@ const ALL=['backslash','nonushash','nonusbackslash'];
     &&p.board('quote').textContent.includes('@')&&p.board('nonushash').textContent.includes('~')&&p.board('grave').textContent.includes('¬')
     &&p.d.querySelector('#kbBoard [data-mod="ralt"]').textContent.includes('AltGr'));
   ok('full size: 105 keys on the ISO board',p.d.querySelectorAll('#kbBoard .kcap').length===105);
-  p.click('#btnBlank'); p.click(p.board('nonushash')); ok('UK # key -> nonushash (positional name)',p.act()==='nonushash');
+  p.click('#btnBlank'); await p.c.tick(); p.click(p.board('nonushash')); ok('UK # key -> nonushash (positional name)',p.act()==='nonushash');
   ok('en-IE also gets ISO',open(['en-IE']).d.getElementById('kbBoard').classList.contains('iso'));
 
   // ---- manual override, saved ----

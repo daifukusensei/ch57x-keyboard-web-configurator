@@ -8,7 +8,7 @@
   :root{
     --bg:#e9edf2; --panel:#ffffff; --fg:#1b222b; --muted:#5d6978; --line:#d0d7e1; --input:#f5f7fa;
     --nav:#20242b; --nav-fg:#eef1f5; --nav-line:#363c47;
-    --case:#c6cdd7; --case-line:#a3adbb; --case-fg:#4f5a69; --case-inset:rgba(0,0,0,.12);
+    --case:#c6cdd7; --case-line:#a3adbb; --case-fg:#4f5a69; --case-inset:rgba(0,0,0,.12); --scrim:rgba(24,30,40,.45);
     --cap:#d5dae2; --cap-top:#eceff4; --cap-fg:#1b222b; --cap-edge:#98a2b2;
     --accent:#2f6df6; --accent-hi:#5b8dff; --accent-edge:#1c47b0; --accent-fg:#ffffff;
     --go:#2a9d62; --go-edge:#1c7746; --go-fg:#ffffff;
@@ -21,7 +21,7 @@
     :root:not([data-theme="light"]){
       --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
       --nav:#0f1216; --nav-line:#262b33;
-      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35);
+      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35); --scrim:rgba(0,0,0,.62);
       --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
       --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
       --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
@@ -31,7 +31,7 @@
   :root[data-theme="dark"]{
     --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
     --nav:#0f1216; --nav-line:#262b33;
-    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35);
+    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35); --scrim:rgba(0,0,0,.62);
     --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
     --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
     --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
@@ -39,6 +39,8 @@
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
+  /* keep the scrollbar's space reserved, so locking the scroll behind the dialog doesn't shift the page sideways */
+  html{scrollbar-gutter:stable}
   body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
   a{color:var(--accent)}
   input,select,textarea,button{font:inherit;color:inherit}
@@ -219,6 +221,23 @@
   #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);
     padding:8px 14px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
   #toast.show{opacity:.95}
+
+  /* ---- confirmation dialog ---- */
+  .modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:var(--scrim);animation:fade .12s ease-out}
+  .modal[hidden]{display:none}
+  .modal-box{width:100%;max-width:460px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35);animation:pop .14s ease-out}
+  #confirmTitle{margin:0 0 6px;font-size:17px;font-weight:600}
+  #confirmMsg{margin:0 0 18px;white-space:pre-line;color:var(--muted);max-height:60vh;overflow:auto}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  button.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-weight:600}
+  button.primary:hover{background:var(--accent-hi);border-color:transparent}
+  button.danger{background:var(--err);color:var(--panel);border-color:transparent;font-weight:600}
+  button.danger:hover{filter:brightness(1.08);border-color:transparent}
+  body.modal-open{overflow:hidden}
+  @keyframes fade{from{opacity:0}}
+  @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}}
+  @media (prefers-reduced-motion:reduce){ .modal,.modal-box{animation:none} }
 
   @media (max-width:700px){
     .keymap{grid-template-columns:minmax(0,1fr)}
@@ -465,6 +484,17 @@ knobs:
   </details>
 </main>
 <div id="toast" role="status" aria-live="polite"></div>
+<!-- confirmation dialog (askConfirm in ui.js): Esc / click outside = cancel, Enter = OK -->
+<div id="confirmDlg" class="modal" hidden>
+  <div class="modal-box" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMsg">
+    <h2 id="confirmTitle"></h2>
+    <p id="confirmMsg"></p>
+    <div class="modal-actions">
+      <button type="button" id="confirmCancel">Cancel</button>
+      <button type="button" id="confirmOk" class="primary">OK</button>
+    </div>
+  </div>
+</div>
 
 <script id="core">
 // ---------- Core logic (no DOM) ----------
@@ -1408,6 +1438,36 @@ function wirePalette(){
   document.querySelectorAll('#helpLink,.helpjump').forEach(a=>a.addEventListener('click',()=>{ $('help').open=true; }));
 }
 
+// ----- confirmation dialog: replaces window.confirm (themed; Esc or a click outside = cancel, Enter = OK) -----
+let confirmDone=null, confirmDownOutside=null;
+function askConfirm(message,{title='Are you sure?',ok='OK',danger=false}={}){
+  if(confirmDone) confirmDone(false);
+  confirmDownOutside=null;
+  const dlg=$('confirmDlg'), okb=$('confirmOk'), back=document.activeElement;
+  $('confirmTitle').textContent=title; $('confirmMsg').textContent=message;
+  okb.textContent=ok; okb.className=danger?'danger':'primary';
+  dlg.hidden=false; document.body.classList.add('modal-open'); okb.focus();
+  return new Promise(res=>{ confirmDone=v=>{
+    confirmDone=null; dlg.hidden=true; document.body.classList.remove('modal-open');
+    if(back&&back.focus&&document.contains(back)) back.focus();
+    res(v);
+  }; });
+}
+$('confirmOk').addEventListener('click',()=>confirmDone&&confirmDone(true));
+$('confirmCancel').addEventListener('click',()=>confirmDone&&confirmDone(false));
+// outside = the faded backdrop; a drag that starts inside the box and ends outside does not cancel
+$('confirmDlg').addEventListener('mousedown',e=>{ confirmDownOutside = e.target===$('confirmDlg'); });
+$('confirmDlg').addEventListener('click',e=>{ if(e.target===$('confirmDlg')&&confirmDownOutside!==false&&confirmDone) confirmDone(false); confirmDownOutside=null; });
+document.addEventListener('keydown',e=>{
+  if(!confirmDone) return;
+  if(e.key==='Escape'){ e.preventDefault(); confirmDone(false); }
+  else if(e.key==='Enter'){ e.preventDefault(); confirmDone(document.activeElement!==$('confirmCancel')); }   // Enter on a focused Cancel still cancels
+  else if(e.key==='Tab'){   // keep focus inside the dialog
+    const btns=[$('confirmCancel'),$('confirmOk')], i=btns.indexOf(document.activeElement);
+    e.preventDefault(); btns[(i+(e.shiftKey?btns.length-1:1))%btns.length].focus();
+  }
+},true);
+
 // ----- events -----
 function rebuildFromSettings(){
   state.orientation=$('orientation').value;
@@ -1418,8 +1478,9 @@ function rebuildFromSettings(){
 $('action').addEventListener('input',e=>{ setVal(sel,e.target.value); onActionChanged(); });
 $('note').addEventListener('input',e=>{ setNote(sel,e.target.value); renderDevice(); renderYaml(); save(); });
 $('showNotes').addEventListener('change',e=>{ showNotes=e.target.checked; saveNotesPref(); renderDevice(); });
-$('btnClear').addEventListener('click',()=>{
-  if(getVal(sel).trim()!=='' && !confirm('Clear this action?')) return;
+$('btnClear').addEventListener('click',async()=>{
+  if(getVal(sel).trim()!=='' && !await askConfirm('Layer '+(layerIdx+1)+' · '+selLabel(sel)+': "'+getVal(sel).trim()+'" is removed.'+(getNote(sel).trim()?' Its comment is kept.':''),
+    {title:'Clear this action?',ok:'Clear',danger:true})) return;
   setVal(sel,''); $('action').value=''; onActionChanged(); $('action').focus();
 });
 wirePalette();
@@ -1442,12 +1503,13 @@ $('btnDelay').addEventListener('click',()=>{
   }
   $('action').value=getVal(sel); onActionChanged();
 });
-$('btnExample').addEventListener('click',()=>{
-  if(!confirm('Discard the current mapping and load the repo example?')) return;
+const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Download the YAML first if you want to keep it.';
+$('btnExample').addEventListener('click',async()=>{
+  if(!await askConfirm(DISCARD_MSG,{title:'Load the repo example?',ok:'Load example',danger:true})) return;
   loadText(EXAMPLE,'Loaded repo example');
 });
-$('btnBlank').addEventListener('click',()=>{
-  if(!confirm('Discard the current mapping and start blank?')) return;
+$('btnBlank').addEventListener('click',async()=>{
+  if(!await askConfirm(DISCARD_MSG,{title:'Start with a blank mapping?',ok:'Start blank',danger:true})) return;
   state=normalizeState({model:'ch57x-2',orientation:'normal',rows:3,columns:4,knobs:2,layers:[]});
   layerIdx=0; sel={t:'b',r:0,c:0}; renderAll(); save();
 });
@@ -1572,8 +1634,9 @@ $('hidUpload').addEventListener('click',async()=>{
   if(hidDeviceInfo &&((hidDeviceInfo.buttons&&hidDeviceInfo.buttons!==state.rows*state.columns)||hidDeviceInfo.encoders!==state.knobs))
     warns.push('Your layout ('+state.rows*state.columns+' buttons, '+state.knobs+' knobs) differs from what the keyboard reports ('+hidDeviceInfo.buttons+' buttons, '+hidDeviceInfo.encoders+' knobs).');
   const msg='Write '+plan.items+' binding(s) ('+plan.packets.length+' packets, protocol '+famName(hidFamily())+') to the keyboard, replacing those keys on '+
-    ($('hidLayers').value==='all'?'all '+state.layers.length+' layer(s)':'layer '+(layerIdx+1))+'?'+(warns.length?'\n\n'+warns.join('\n\n'):'');
-  if(!confirm(msg)) return;
+    ($('hidLayers').value==='all'?'all '+state.layers.length+' layer(s)':'layer '+(layerIdx+1))+'.'+(warns.length?'\n\n'+warns.join('\n\n'):'');
+  if(!await askConfirm(msg,{title:'Upload to the keyboard?',ok:'Upload'})) return;
+  if(!hidDev||hidBusy) return;   // unplugged or another upload started while the dialog was open
   hidBusy=true; hidSync();
   try{
     for(let i=0;i<plan.packets.length;i++){
@@ -1595,21 +1658,22 @@ function upDefaults(){
 }
 $('upOs').value = /win/i.test(navigator.platform||'') ? 'ps1' : 'sh';
 $('upOs').addEventListener('change',upDefaults); upDefaults();
-function buildScript(){
+async function buildScript(){
   const {issues}=collectIssues();
   const errs=issues.filter(i=>i.level==='error').length;
-  if(errs && !confirm(errs+' action(s) are invalid. Generate the script anyway? (validate will stop the upload if the tool rejects them.)')) return null;
+  if(errs && !await askConfirm(errs+' action(s) are invalid. The script runs the tool\'s validate step first, so the upload stops if the tool rejects them.',
+    {title:'Generate the script anyway?',ok:'Generate anyway'})) return null;
   try{ return makeUploadScript(toYaml(state), $('upOs').value, $('upTool').value.trim()||'ch57x-keyboard-tool', $('upSudo').checked); }
   catch(e){ toast(e.message); return null; }
 }
-$('btnUpScript').addEventListener('click',()=>{
-  const s=buildScript(); if(s==null) return;
+$('btnUpScript').addEventListener('click',async()=>{
+  const s=await buildScript(); if(s==null) return;
   const ext=$('upOs').value, blob=new Blob([s],{type:'text/plain'});
   const a=h('a',{href:URL.createObjectURL(blob),download:'upload-ch57x.'+ext});
   document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
 });
 $('btnUpCopy').addEventListener('click',async()=>{
-  const s=buildScript(); if(s==null) return;
+  const s=await buildScript(); if(s==null) return;
   try{ await navigator.clipboard.writeText(s); toast('Script copied'); } catch(e){ toast('Copy failed — use Download'); }
 });
 

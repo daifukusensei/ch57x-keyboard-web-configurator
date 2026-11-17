@@ -1,10 +1,11 @@
+const autoConfirm=require('./lib/autoconfirm.cjs');
 const {JSDOM}=require('jsdom'); const fs=require('fs');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const errors=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
-  w.confirm=()=>true; w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
+  w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
 }});
-const w=dom.window,d=w.document;
+const w=dom.window,d=w.document; const c=autoConfirm(w);
 const click=el=>(typeof el==='string'?d.querySelector(el):el).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
 const key=k=>d.querySelector('#pane-basic [data-key="'+k+'"]');
 let mod=m=>d.querySelector('#kbBoard [data-mod="'+m+'"]');   // Basic tab: the keyboard's own modifier keys
@@ -83,7 +84,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('import of 4 layers keeps the first 3 and says so: '+d.getElementById('toast').textContent,tabs().length===3&&/only the first 3 layers kept/.test(d.getElementById('toast').textContent));
   d.getElementById('yamlIn').value='orientation: normal\nrows: 1\ncolumns: 2\nknobs: 0\nlayers:\n  - buttons:\n      - ["a", "b"]\n';
   click('#btnImport'); ok('import of 1 layer pads to 3',tabs().length===3&&!/only the first/.test(d.getElementById('toast').textContent));
-  click('#btnBlank');
+  click('#btnBlank'); await c.tick();
 
   // ---- knobs drawn as dials ----
   const k=d.getElementById('knobs'); k.value='4'; k.dispatchEvent(new w.Event('change',{bubbles:true}));

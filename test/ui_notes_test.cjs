@@ -1,3 +1,4 @@
+const autoConfirm=require('./lib/autoconfirm.cjs');
 // Per-key comments in the UI, driven with the user's own (CRLF) file.
 const {JSDOM}=require('jsdom'); const fs=require('fs'), path=require('path');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
@@ -8,10 +9,10 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
 function boot(seed){
   const errors=[];
   const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
-    w.confirm=()=>true; w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
+    w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
     if(seed) for(const [k,v] of Object.entries(seed)) w.localStorage.setItem(k,v);
   }});
-  const w=dom.window,d=w.document;
+  const w=dom.window,d=w.document; autoConfirm(w);
   return {w,d,errors,
     click:el=>(typeof el==='string'?d.querySelector(el):el).dispatchEvent(new w.MouseEvent('click',{bubbles:true})),
     type:(id,v)=>{ const e=d.getElementById(id); e.value=v; e.dispatchEvent(new w.Event('input',{bubbles:true})); },
@@ -68,7 +69,7 @@ function boot(seed){
   A.click(A.cells()[15]); A.type('note','');
 
   // Clear only clears the action
-  A.click(A.cells()[3]); A.click('#btnClear');
+  A.click(A.cells()[3]); A.click('#btnClear'); await sleep(0);
   ok('Clear removes the action, not the comment',d.getElementById('action').value===''&&d.getElementById('note').value==='IntelliJ split'&&noteOf(A.cells()[3])==='IntelliJ split'&&A.cells()[3].querySelector('.val').textContent==='—');
   A.type('action','shift-f4');
 
@@ -111,7 +112,7 @@ function boot(seed){
   ok('file import: '+D.toast(),/Loaded daise_514C-8850\.yaml · 30 comments on keys/.test(D.toast())&&D.cells().length===24);
   D.click('#btnExample'); await sleep(10);
   ok('repo example has no comments: no dots, no count in the toast, view stays as the user left it',!D.cells().some(c=>c.classList.contains('hasnote'))&&D.toast()==='Loaded repo example'&&D.d.getElementById('showNotes').checked);
-  D.click('#btnBlank');
+  D.click('#btnBlank'); await sleep(0);
   ok('new blank: comments gone',D.cells().every(c=>c.querySelector('.note').textContent===''));
 
   // ---- 1-line examples in the help ----

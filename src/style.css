@@ -1,7 +1,7 @@
   :root{
     --bg:#e9edf2; --panel:#ffffff; --fg:#1b222b; --muted:#5d6978; --line:#d0d7e1; --input:#f5f7fa;
     --nav:#20242b; --nav-fg:#eef1f5; --nav-line:#363c47;
-    --case:#c6cdd7; --case-line:#a3adbb; --case-fg:#4f5a69; --case-inset:rgba(0,0,0,.12);
+    --case:#c6cdd7; --case-line:#a3adbb; --case-fg:#4f5a69; --case-inset:rgba(0,0,0,.12); --scrim:rgba(24,30,40,.45);
     --cap:#d5dae2; --cap-top:#eceff4; --cap-fg:#1b222b; --cap-edge:#98a2b2;
     --accent:#2f6df6; --accent-hi:#5b8dff; --accent-edge:#1c47b0; --accent-fg:#ffffff;
     --go:#2a9d62; --go-edge:#1c7746; --go-fg:#ffffff;
@@ -14,7 +14,7 @@
     :root:not([data-theme="light"]){
       --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
       --nav:#0f1216; --nav-line:#262b33;
-      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35);
+      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35); --scrim:rgba(0,0,0,.62);
       --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
       --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
       --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
@@ -24,7 +24,7 @@
   :root[data-theme="dark"]{
     --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
     --nav:#0f1216; --nav-line:#262b33;
-    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35);
+    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35); --scrim:rgba(0,0,0,.62);
     --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
     --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
     --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
@@ -32,6 +32,8 @@
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
+  /* keep the scrollbar's space reserved, so locking the scroll behind the dialog doesn't shift the page sideways */
+  html{scrollbar-gutter:stable}
   body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
   a{color:var(--accent)}
   input,select,textarea,button{font:inherit;color:inherit}
@@ -212,6 +214,23 @@
   #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);
     padding:8px 14px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
   #toast.show{opacity:.95}
+
+  /* ---- confirmation dialog ---- */
+  .modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:var(--scrim);animation:fade .12s ease-out}
+  .modal[hidden]{display:none}
+  .modal-box{width:100%;max-width:460px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35);animation:pop .14s ease-out}
+  #confirmTitle{margin:0 0 6px;font-size:17px;font-weight:600}
+  #confirmMsg{margin:0 0 18px;white-space:pre-line;color:var(--muted);max-height:60vh;overflow:auto}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  button.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-weight:600}
+  button.primary:hover{background:var(--accent-hi);border-color:transparent}
+  button.danger{background:var(--err);color:var(--panel);border-color:transparent;font-weight:600}
+  button.danger:hover{filter:brightness(1.08);border-color:transparent}
+  body.modal-open{overflow:hidden}
+  @keyframes fade{from{opacity:0}}
+  @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}}
+  @media (prefers-reduced-motion:reduce){ .modal,.modal-box{animation:none} }
 
   @media (max-width:700px){
     .keymap{grid-template-columns:minmax(0,1fr)}

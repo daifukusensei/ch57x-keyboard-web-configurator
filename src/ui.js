@@ -322,6 +322,36 @@ function wirePalette(){
   document.querySelectorAll('#helpLink,.helpjump').forEach(a=>a.addEventListener('click',()=>{ $('help').open=true; }));
 }
 
+// ----- confirmation dialog: replaces window.confirm (themed; Esc or a click outside = cancel, Enter = OK) -----
+let confirmDone=null, confirmDownOutside=null;
+function askConfirm(message,{title='Are you sure?',ok='OK',danger=false}={}){
+  if(confirmDone) confirmDone(false);
+  confirmDownOutside=null;
+  const dlg=$('confirmDlg'), okb=$('confirmOk'), back=document.activeElement;
+  $('confirmTitle').textContent=title; $('confirmMsg').textContent=message;
+  okb.textContent=ok; okb.className=danger?'danger':'primary';
+  dlg.hidden=false; document.body.classList.add('modal-open'); okb.focus();
+  return new Promise(res=>{ confirmDone=v=>{
+    confirmDone=null; dlg.hidden=true; document.body.classList.remove('modal-open');
+    if(back&&back.focus&&document.contains(back)) back.focus();
+    res(v);
+  }; });
+}
+$('confirmOk').addEventListener('click',()=>confirmDone&&confirmDone(true));
+$('confirmCancel').addEventListener('click',()=>confirmDone&&confirmDone(false));
+// outside = the faded backdrop; a drag that starts inside the box and ends outside does not cancel
+$('confirmDlg').addEventListener('mousedown',e=>{ confirmDownOutside = e.target===$('confirmDlg'); });
+$('confirmDlg').addEventListener('click',e=>{ if(e.target===$('confirmDlg')&&confirmDownOutside!==false&&confirmDone) confirmDone(false); confirmDownOutside=null; });
+document.addEventListener('keydown',e=>{
+  if(!confirmDone) return;
+  if(e.key==='Escape'){ e.preventDefault(); confirmDone(false); }
+  else if(e.key==='Enter'){ e.preventDefault(); confirmDone(document.activeElement!==$('confirmCancel')); }   // Enter on a focused Cancel still cancels
+  else if(e.key==='Tab'){   // keep focus inside the dialog
+    const btns=[$('confirmCancel'),$('confirmOk')], i=btns.indexOf(document.activeElement);
+    e.preventDefault(); btns[(i+(e.shiftKey?btns.length-1:1))%btns.length].focus();
+  }
+},true);
+
 // ----- events -----
 function rebuildFromSettings(){
   state.orientation=$('orientation').value;
@@ -332,8 +362,9 @@ function rebuildFromSettings(){
 $('action').addEventListener('input',e=>{ setVal(sel,e.target.value); onActionChanged(); });
 $('note').addEventListener('input',e=>{ setNote(sel,e.target.value); renderDevice(); renderYaml(); save(); });
 $('showNotes').addEventListener('change',e=>{ showNotes=e.target.checked; saveNotesPref(); renderDevice(); });
-$('btnClear').addEventListener('click',()=>{
-  if(getVal(sel).trim()!=='' && !confirm('Clear this action?')) return;
+$('btnClear').addEventListener('click',async()=>{
+  if(getVal(sel).trim()!=='' && !await askConfirm('Layer '+(layerIdx+1)+' · '+selLabel(sel)+': "'+getVal(sel).trim()+'" is removed.'+(getNote(sel).trim()?' Its comment is kept.':''),
+    {title:'Clear this action?',ok:'Clear',danger:true})) return;
   setVal(sel,''); $('action').value=''; onActionChanged(); $('action').focus();
 });
 wirePalette();
@@ -356,12 +387,13 @@ $('btnDelay').addEventListener('click',()=>{
   }
   $('action').value=getVal(sel); onActionChanged();
 });
-$('btnExample').addEventListener('click',()=>{
-  if(!confirm('Discard the current mapping and load the repo example?')) return;
+const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Download the YAML first if you want to keep it.';
+$('btnExample').addEventListener('click',async()=>{
+  if(!await askConfirm(DISCARD_MSG,{title:'Load the repo example?',ok:'Load example',danger:true})) return;
   loadText(EXAMPLE,'Loaded repo example');
 });
-$('btnBlank').addEventListener('click',()=>{
-  if(!confirm('Discard the current mapping and start blank?')) return;
+$('btnBlank').addEventListener('click',async()=>{
+  if(!await askConfirm(DISCARD_MSG,{title:'Start with a blank mapping?',ok:'Start blank',danger:true})) return;
   state=normalizeState({model:'ch57x-2',orientation:'normal',rows:3,columns:4,knobs:2,layers:[]});
   layerIdx=0; sel={t:'b',r:0,c:0}; renderAll(); save();
 });
@@ -486,8 +518,9 @@ $('hidUpload').addEventListener('click',async()=>{
   if(hidDeviceInfo &&((hidDeviceInfo.buttons&&hidDeviceInfo.buttons!==state.rows*state.columns)||hidDeviceInfo.encoders!==state.knobs))
     warns.push('Your layout ('+state.rows*state.columns+' buttons, '+state.knobs+' knobs) differs from what the keyboard reports ('+hidDeviceInfo.buttons+' buttons, '+hidDeviceInfo.encoders+' knobs).');
   const msg='Write '+plan.items+' binding(s) ('+plan.packets.length+' packets, protocol '+famName(hidFamily())+') to the keyboard, replacing those keys on '+
-    ($('hidLayers').value==='all'?'all '+state.layers.length+' layer(s)':'layer '+(layerIdx+1))+'?'+(warns.length?'\n\n'+warns.join('\n\n'):'');
-  if(!confirm(msg)) return;
+    ($('hidLayers').value==='all'?'all '+state.layers.length+' layer(s)':'layer '+(layerIdx+1))+'.'+(warns.length?'\n\n'+warns.join('\n\n'):'');
+  if(!await askConfirm(msg,{title:'Upload to the keyboard?',ok:'Upload'})) return;
+  if(!hidDev||hidBusy) return;   // unplugged or another upload started while the dialog was open
   hidBusy=true; hidSync();
   try{
     for(let i=0;i<plan.packets.length;i++){
@@ -509,21 +542,22 @@ function upDefaults(){
 }
 $('upOs').value = /win/i.test(navigator.platform||'') ? 'ps1' : 'sh';
 $('upOs').addEventListener('change',upDefaults); upDefaults();
-function buildScript(){
+async function buildScript(){
   const {issues}=collectIssues();
   const errs=issues.filter(i=>i.level==='error').length;
-  if(errs && !confirm(errs+' action(s) are invalid. Generate the script anyway? (validate will stop the upload if the tool rejects them.)')) return null;
+  if(errs && !await askConfirm(errs+' action(s) are invalid. The script runs the tool\'s validate step first, so the upload stops if the tool rejects them.',
+    {title:'Generate the script anyway?',ok:'Generate anyway'})) return null;
   try{ return makeUploadScript(toYaml(state), $('upOs').value, $('upTool').value.trim()||'ch57x-keyboard-tool', $('upSudo').checked); }
   catch(e){ toast(e.message); return null; }
 }
-$('btnUpScript').addEventListener('click',()=>{
-  const s=buildScript(); if(s==null) return;
+$('btnUpScript').addEventListener('click',async()=>{
+  const s=await buildScript(); if(s==null) return;
   const ext=$('upOs').value, blob=new Blob([s],{type:'text/plain'});
   const a=h('a',{href:URL.createObjectURL(blob),download:'upload-ch57x.'+ext});
   document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
 });
 $('btnUpCopy').addEventListener('click',async()=>{
-  const s=buildScript(); if(s==null) return;
+  const s=await buildScript(); if(s==null) return;
   try{ await navigator.clipboard.writeText(s); toast('Script copied'); } catch(e){ toast('Copy failed — use Download'); }
 });
 

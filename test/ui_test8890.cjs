@@ -1,3 +1,4 @@
+const autoConfirm=require('./lib/autoconfirm.cjs');
 const {JSDOM}=require('jsdom'); const fs=require('fs');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 const sent=[];
@@ -7,10 +8,10 @@ const dev={vendorId:0x1189,productId:0x8890,productName:'Mock 8890',opened:false
 const errors=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
   w.navigator.hid={getDevices:async()=>[],requestDevice:async()=>[dev],addEventListener(){}};
-  w.confirm=(m)=>{w.__confirm=m;return true;}; w.alert=()=>{};
+  w.alert=()=>{};
   w.addEventListener('error',e=>errors.push(e.message));
 }});
-const w=dom.window,d=w.document; const click=id=>d.getElementById(id).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+const w=dom.window,d=w.document; const c=autoConfirm(w); const click=id=>d.getElementById(id).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const setAction=v=>{ const i=d.getElementById('action'); i.value=v; i.dispatchEvent(new w.Event('input',{bubbles:true})); };
 let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };
@@ -27,9 +28,9 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   d.getElementById('hidLayers').value='current';
   click('hidPreview'); await sleep(20);
   ok('preview status names the reason: '+d.getElementById('hidStatus').textContent,/^Cannot upload — Layer 1 R1 C1: delay is not supported by this keyboard model$/.test(d.getElementById('hidStatus').textContent.trim()));
-  sent.length=0; w.__confirm='';
+  sent.length=0; c.asked.length=0;
   click('hidUpload'); await sleep(100);
-  ok('upload blocked, reason shown: '+d.getElementById('hidStatus').textContent,sent.length===0&&!w.__confirm&&/^Cannot upload — Layer 1 R1 C1: delay is not supported by this keyboard model\. Fix this first\.$/.test(d.getElementById('hidStatus').textContent.trim()));
+  ok('upload blocked, reason shown: '+d.getElementById('hidStatus').textContent,sent.length===0&&!c.last&&/^Cannot upload — Layer 1 R1 C1: delay is not supported by this keyboard model\. Fix this first\.$/.test(d.getElementById('hidStatus').textContent.trim()));
   // a second bad action -> count of the rest
   d.querySelectorAll('.cell')[1].dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
   setAction('{delay(50)}b'); click('hidUpload'); await sleep(50);

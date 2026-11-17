@@ -6,7 +6,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const boot=seed=>{ const errors=[]; const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
   for(const [k,v] of Object.entries(seed)) w.localStorage.setItem(k,v);
-  w.matchMedia=()=>({matches:false,addEventListener(){}}); w.confirm=()=>true; w.alert=()=>{};
+  w.matchMedia=()=>({matches:false,addEventListener(){}}); w.alert=()=>{};
   w.addEventListener('error',e=>errors.push(e.message)); }}); return {w:dom.window,d:dom.window.document,errors}; };
 
 (async()=>{
