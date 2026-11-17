@@ -6,6 +6,7 @@
     --accent:#2f6df6; --accent-hi:#5b8dff; --accent-edge:#1c47b0; --accent-fg:#ffffff;
     --go:#2a9d62; --go-edge:#1c7746; --go-fg:#ffffff;
     --ok:#1a7f4b; --warn:#b26b00; --err:#c0352b; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --ui-font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   }
   :root{color-scheme:light dark}
   :root[data-theme="light"]{color-scheme:light}
@@ -34,7 +35,7 @@
   [hidden]{display:none !important}
   /* keep the scrollbar's space reserved, so locking the scroll behind the dialog doesn't shift the page sideways */
   html{scrollbar-gutter:stable}
-  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--ui-font)}
   a{color:var(--accent)}
   input,select,textarea,button{font:inherit;color:inherit}
   input[type=text],input[type=number],select,textarea{
@@ -91,45 +92,54 @@
   #tabs .tab.active{background:var(--accent);color:var(--accent-fg);border-color:transparent}
   .case{background:var(--case);border:1px solid var(--case-line);border-radius:14px;padding:18px;display:grid;place-items:center;min-width:0;
     box-shadow:inset 0 2px 10px var(--case-inset)}
-  .device{display:flex;gap:26px;align-items:center;justify-content:center;max-width:100%;overflow-x:auto;padding:6px}
+  .device{display:flex;gap:26px;align-items:safe center;justify-content:safe center;max-width:100%;overflow-x:auto;padding:6px}
   .device.normal{flex-direction:row}
-  .device.upsidedown{flex-direction:row-reverse}
+  .device.upsidedown{flex-direction:row}
   .device.clockwise{flex-direction:column}
-  .device.counterclockwise{flex-direction:column-reverse}
-  .grid{display:grid;gap:10px}
-  .knobs{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .device.counterclockwise{flex-direction:column}
+  /* knobs first via order, not *-reverse: overflow then always runs right/down, where .device can scroll to it */
+  .device.upsidedown .knobs,.device.counterclockwise .knobs{order:-1}
+  /* canvas zoom: CSS zoom scales layout too, so .device scrolls when zoomed past the case width */
+  .device>*{zoom:var(--zoom,1)}
+  .zoombar{justify-self:end;margin:-10px -10px 6px 0;display:flex;gap:2px;align-items:center;padding:2px;border-radius:99px;
+    background:var(--panel);border:1px solid var(--case-line);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+  .zoombar button{border:0;border-radius:99px;background:transparent;padding:2px 9px;font-size:13px;line-height:1.4;min-width:28px}
+  .zoombar button:hover{background:var(--input)}
+  .zoombar #zoomReset{font-variant-numeric:tabular-nums;min-width:50px;color:var(--muted)}
+  .grid{display:grid;gap:12px}
+  .knobs{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
   .knobs.vert{flex-direction:column}
   .knob{display:grid;gap:5px;justify-items:center}
   .knob h3{margin:0;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--case-fg);font-weight:600}
   .dial{display:flex;align-items:center;gap:7px;padding:9px 11px;border:2px dashed var(--case-line);border-radius:999px}
 
   /* keycaps */
-  .cell{position:relative;width:var(--cw,70px);height:var(--ch,64px);padding:13px 4px 7px;border:0;border-radius:9px;
+  .cell{position:relative;width:var(--cw,86px);height:var(--ch,76px);padding:15px 5px 8px;border:0;border-radius:9px;
     display:grid;place-items:center;text-align:center;min-width:0;cursor:pointer;
     background:linear-gradient(var(--cap-top),var(--cap));color:var(--cap-fg);
     box-shadow:0 3px 0 var(--cap-edge),0 5px 7px rgba(0,0,0,.35);transition:transform .05s,box-shadow .05s}
   .cell:hover{filter:brightness(1.06)}
   .cell:active{transform:translateY(2px);box-shadow:0 1px 0 var(--cap-edge),0 2px 4px rgba(0,0,0,.35)}
-  .cell .lbl{position:absolute;top:3px;left:0;right:0;font-size:9px;line-height:1;opacity:.6;letter-spacing:.02em}
-  .cell .val{font:600 11px/1.15 var(--mono);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere;max-width:100%}
+  .cell .lbl{position:absolute;top:4px;left:0;right:0;font-size:10px;line-height:1;opacity:.6;letter-spacing:.02em}
+  .cell .val{font:600 12.5px/1.15 var(--ui-font);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere;max-width:100%}
   .cell .val.empty{opacity:.4;font-weight:400}
   /* per-key comments: a dot on the key, or (with "Show comments on keys") the comment as the keycap text */
-  .cell .note{display:none;font:600 11.5px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden;
+  .cell .note{display:none;font:600 12.5px/1.2 var(--ui-font);overflow:hidden;
     -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere;max-width:100%}
   .cell.hasnote::after{content:"";position:absolute;top:4px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--accent-hi)}
   .cell.sel.hasnote::after{background:var(--accent-fg)}
-  .device.notes{--cw:116px;--ch:84px}
+  .device.notes{--cw:132px;--ch:96px}
   .device.notes .cell{align-content:center;row-gap:3px}
   .device.notes .cell .note{display:-webkit-box}
   .device.notes .cell.hasnote::after{display:none}
-  .device.notes .cell.hasnote .val{font-size:9.5px;font-weight:500;opacity:.65;-webkit-line-clamp:1}
+  .device.notes .cell.hasnote .val{font-size:10.5px;font-weight:500;opacity:.65;-webkit-line-clamp:1}
   .device.notes .dial{border-radius:24px}
-  .device.notes .dial .cell.small,.device.notes .dial .cell.round{width:100px;height:78px;border-radius:9px;padding:13px 4px 5px}
-  .device.notes .dial .cell.small .note,.device.notes .dial .cell.round .note{font-size:11px;-webkit-line-clamp:3}
-  .device.notes .dial .cell.hasnote .val{font-size:9px}
-  .dial .cell.small{width:64px;height:56px;padding:12px 2px 5px}
-  .dial .cell.small .val{font-size:9.5px;-webkit-line-clamp:2}
-  .dial .cell.round{width:66px;height:66px;border-radius:50%;padding:13px 3px 6px}
+  .device.notes .dial .cell.small,.device.notes .dial .cell.round{width:112px;height:88px;border-radius:9px;padding:15px 5px 6px}
+  .device.notes .dial .cell.small .note,.device.notes .dial .cell.round .note{font-size:12px;-webkit-line-clamp:3}
+  .device.notes .dial .cell.hasnote .val{font-size:10.5px}
+  .dial .cell.small{width:84px;height:66px;padding:14px 3px 6px}
+  .dial .cell.small .val{font-size:11.5px;-webkit-line-clamp:2}
+  .dial .cell.round{width:80px;height:80px;border-radius:50%;padding:15px 4px 7px}
   .cell.sel{background:linear-gradient(var(--accent-hi),var(--accent));color:var(--accent-fg);
     box-shadow:0 3px 0 var(--accent-edge),0 0 0 2px var(--accent-hi),0 5px 9px rgba(0,0,0,.4)}
   .cell.warn{outline:2px solid var(--warn);outline-offset:2px}
@@ -147,7 +157,7 @@
   .strip-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
   #action{flex:1 1 260px;font:15px var(--mono)}
   #actionMsg{margin-top:6px}
-  #note{flex:1 1 260px;font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  #note{flex:1 1 260px;font:14px var(--ui-font)}
   .noterow{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
   .noterow>label{font-size:12px;color:var(--muted);min-width:64px}
   .legendrow{display:flex;gap:6px 14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
@@ -181,7 +191,7 @@
   #kbNumpad .pgroup h4,#kbExtra .pgroup h4,#kbGroups .pgroup h4{margin-top:14px}
   @media (max-width:700px){ .kb{--kbw:18.25} .kb .np{display:none} #kbNumpad{display:block} }
   .kcap{position:relative;display:block;width:100%;height:100%;padding:.35cqw .5cqw;border:0;border-radius:.6cqw;overflow:hidden;
-    font:600 clamp(7px,1.1cqw,12.5px)/1.1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:left;color:var(--cap-fg);
+    font:600 clamp(7px,1.1cqw,12.5px)/1.1 var(--ui-font);text-align:left;color:var(--cap-fg);
     background:linear-gradient(var(--cap-top),var(--cap));box-shadow:0 .25cqw 0 var(--cap-edge)}
   .kcap:hover{filter:brightness(1.08);border:0}
   .kcap:active{transform:translateY(.15cqw);box-shadow:0 .1cqw 0 var(--cap-edge)}
@@ -238,7 +248,10 @@
     #tabs{flex-direction:row;flex-wrap:wrap}
     .case{padding:12px 8px}
     .device.normal,.device.upsidedown{flex-direction:column}
-    .device.notes{--cw:92px;--ch:84px}
+    .device.upsidedown .knobs{order:0}
+    .device.notes{--cw:96px;--ch:88px}
+    .zoombar{margin:-6px -2px 6px 0}
+    .device.notes .dial .cell.small,.device.notes .dial .cell.round{width:90px}
     .brand h1{font-size:15px;line-height:1.15;white-space:normal}
     .brand svg{width:24px;height:24px}
     .nav-in{gap:10px}
