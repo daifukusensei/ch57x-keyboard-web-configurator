@@ -41,7 +41,7 @@ const dims = () => dimsOf(state);
 const layer = () => state.layers[layerIdx];
 const getVal = t => t.t==='b' ? layer().buttons[t.r][t.c] : layer().knobs[t.k][t.p];
 function setVal(t,v){ if(t.t==='b') layer().buttons[t.r][t.c]=v; else layer().knobs[t.k][t.p]=v; }
-// per-key comments (written to the YAML as "# ..." comments, which the tool ignores)
+// per-key comments (written at the top of the YAML as "#@ L1 R1 C1: ..." lines, which the tool ignores)
 const getNote = t => (t.t==='b' ? (layer().bnotes[t.r]||[])[t.c] : (layer().knotes[t.k]||{})[t.p]) || '';
 function setNote(t,v){
   v=String(v).replace(/[\r\n]+/g,' ');
@@ -425,7 +425,9 @@ function loadText(text, okMsg){
     state=fromObj(obj); layerIdx=0; sel={t:'b',r:0,c:0};
     // A file that documents its keys is more useful with the comments showing, so turn that view on.
     const n=countNotes(state); if(n && !showNotes){ showNotes=true; saveNotesPref(); }
+    const u=state.unmatchedNotes||0;
     renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':'')
+      +(u?' · '+u+' comment line'+(u>1?'s':'')+' matched no key (skipped)':'')
       +(extra>0?' · only the first '+LAYER_COUNT+' layers kept':''));
   }catch(e){ toast('Import failed: '+e.message); }
 }

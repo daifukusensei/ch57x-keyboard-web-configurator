@@ -2,7 +2,8 @@ const autoConfirm=require('./lib/autoconfirm.cjs');
 // Per-key comments in the UI, driven with the user's own (CRLF) file.
 const {JSDOM}=require('jsdom'); const fs=require('fs'), path=require('path');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
-const userYaml=fs.readFileSync(path.join(__dirname,'fixtures/user.yaml'),'utf8');   // CRLF, as attached
+const userYaml=fs.readFileSync(path.join(__dirname,'fixtures/user-notes.yaml'),'utf8').replace(/\r?\n/g,'\r\n');   // the user's file with "#@" comment lines, as CRLF
+const inlineYaml=fs.readFileSync(path.join(__dirname,'fixtures/user.yaml'),'utf8');   // same file, old same-line comments
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };
 
@@ -53,19 +54,20 @@ function boot(seed){
   A.type('note','zen mode; fullscreen');
   ok('typing updates the keycap live',noteOf(A.cells()[4])==='zen mode; fullscreen'&&A.cells()[4].classList.contains('sel'));
   ok('focus-safe: the box keeps what was typed',d.getElementById('note').value==='zen mode; fullscreen');
-  ok('YAML row comment: ";" inside a note is saved as "\\;"',/\["shift-f4", "ctrl-grave,4,2", "alt-4"\]\s+# IntelliJ split; zen mode\\; fullscreen; IntelliJ hide tools/.test(A.yaml()));
+  ok('YAML: one "#@" line per key, ";" written as typed',/\n#@ L1 R2 C2: zen mode; fullscreen\n/.test(A.yaml()));
+  ok('YAML: key lines carry no comment',/\["shift-f4", "ctrl-grave,4,2", "alt-4"\]\n/.test(A.yaml()));
   A.click(A.cells()[0]); A.type('note','launcher');
-  ok('a comment on a key in a previously uncommented row',/\["f", "click", "shift-n"\]\s+# launcher\n/.test(A.yaml()));
+  ok('a comment on a key in a previously uncommented row',/\n#@ L1 R1 C1: launcher\n/.test(A.yaml()));
   A.click(A.cells()[1]); A.type('note','mouse click');
-  ok('second key of the row: first one stays empty',/\["f", "click", "shift-n"\]\s+# launcher; mouse click\n/.test(A.yaml()));
+  ok('second key of the row gets its own line',/\n#@ L1 R1 C1: launcher\n#@ L1 R1 C2: mouse click\n/.test(A.yaml()));
   A.click(A.cells()[2]); A.type('note','new');
   A.click(A.cells()[0]); A.type('note','');
-  ok('clearing the first note keeps the others in position',/\["f", "click", "shift-n"\]\s+# ; mouse click; new\n/.test(A.yaml()));
+  ok('clearing a note removes only its line',!/#@ L1 R1 C1:/.test(A.yaml())&&/\n#@ L1 R1 C2: mouse click\n#@ L1 R1 C3: new\n/.test(A.yaml()));
   A.click(A.cells()[1]); A.type('note',''); A.click(A.cells()[2]); A.type('note','');
-  ok('row with all notes cleared has no comment at all',/\["f", "click", "shift-n"\]\n/.test(A.yaml()));
+  ok('row with all notes cleared has no lines at all',!/#@ L1 R1 /.test(A.yaml()));
   A.click(A.cells()[16]); A.type('note','play / pause');
-  ok('knob comment on the press line',/press: "play"\s+# play \/ pause\n/.test(A.yaml()));
-  ok('knob notes with ";" are kept as typed',(A.click(A.cells()[15]),A.type('note','back; rewind'),/ccw: "left"\s+# back; rewind\n/.test(A.yaml())));
+  ok('knob comment line',/\n#@ L1 K2 press: play \/ pause\n/.test(A.yaml()));
+  ok('odd characters are kept as typed',(A.click(A.cells()[15]),A.type('note','back; rewind # "x" \\ C:\\dir\\'),/\n#@ L1 K2 ccw: back; rewind # "x" \\ C:\\dir\\\n/.test(A.yaml())));
   A.click(A.cells()[15]); A.type('note','');
 
   // Clear only clears the action
@@ -110,13 +112,15 @@ function boot(seed){
   const fi=D.d.getElementById('fileIn'); Object.defineProperty(fi,'files',{value:[new D.w.File([userYaml],'daise_514C-8850.yaml')]});
   fi.dispatchEvent(new D.w.Event('change',{bubbles:true})); await sleep(60);
   ok('file import: '+D.toast(),/Loaded daise_514C-8850\.yaml · 30 comments on keys/.test(D.toast())&&D.cells().length===24);
+  D.d.getElementById('yamlIn').value=inlineYaml+'\n#@ L9 R1 C1: nowhere\n'; D.click('#btnImport'); await sleep(10);
+  ok('same-line comments are not read; unmatched lines reported: '+D.toast(),D.toast()==='Imported YAML · 1 comment line matched no key (skipped)'&&!D.cells().some(c=>c.classList.contains('hasnote')));
   D.click('#btnExample'); await sleep(10);
   ok('repo example has no comments: no dots, no count in the toast, view stays as the user left it',!D.cells().some(c=>c.classList.contains('hasnote'))&&D.toast()==='Loaded repo example'&&D.d.getElementById('showNotes').checked);
   D.click('#btnBlank'); await sleep(0);
   ok('new blank: comments gone',D.cells().every(c=>c.querySelector('.note').textContent===''));
 
   // ---- 1-line examples in the help ----
-  ok('help and drawer mention comments',/Comments on keys/.test(d.getElementById('help').textContent)&&/Per-key comments are kept/.test(d.getElementById('yamlDrawer').textContent));
+  ok('help and drawer mention comments',/Comments on keys/.test(d.getElementById('help').textContent)&&/#@ lines/.test(d.getElementById('yamlDrawer').textContent));
   ok('legend mentions the dot',/small dot/.test(d.querySelector('details.legend').textContent));
   ok('no script errors at the end',A.errors.length===0&&B.errors.length===0&&D.errors.length===0);
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);

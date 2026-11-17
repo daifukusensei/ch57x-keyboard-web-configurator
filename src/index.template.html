@@ -92,7 +92,7 @@
     <div class="msg" id="actionMsg"></div>
     <div class="noterow">
       <label for="note">Comment</label>
-      <input type="text" id="note" autocomplete="off" placeholder="What does this key do?  (saved as a # comment in the YAML; the tool ignores it)">
+      <input type="text" id="note" autocomplete="off" placeholder="What does this key do?  (saved as a #@ comment line in the YAML; the tool ignores it)">
     </div>
   </section>
 
@@ -192,7 +192,7 @@
         <button id="btnImport" type="button">Load pasted YAML</button>
         <label class="f">…or choose a file<input type="file" id="fileIn" accept=".yaml,.yml,.txt,text/yaml"></label>
       </div>
-      <p class="hint">The importer reads the mapping format used by the tool (model, orientation, rows, columns, knobs, layers). Per-key comments are kept: a <code>#</code> comment after a button row (one note per key, separated by <code>;</code>) or after a knob line. Other comments, such as the header at the top of a file, are dropped when the file is re-exported.</p>
+      <p class="hint">The importer reads the mapping format used by the tool (model, orientation, rows, columns, knobs, layers). Per-key comments are read from <code>#@</code> lines (see Help). Other comments, including ones at the end of a key line, are ignored and dropped when the file is re-exported.</p>
     </div>
   </details>
 
@@ -227,13 +227,13 @@
     <div class="body">
       <p>Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. Build a layout, then upload straight from this page, or copy or download the YAML and use the CLI.</p>
       <h3>Comments on keys</h3>
-      <p>Type a note in the <em>Comment</em> box under the action to remember what a key does. It is saved in the YAML as a <code>#</code> comment, which the tool ignores, so the file still validates and uploads exactly as before; comments are never sent to the keyboard. A button row carries one comment after the row, with one note per key in column order, separated by <code>;</code>. Each knob line (<code>ccw</code>, <code>press</code>, <code>cw</code>) carries its own. Files written that way are read back onto the right keys when you import them, and turn on <em>Show comments on keys</em> so you can read them on the keycaps.</p>
-      <pre class="cli">- ["ctrl-b", "ctrl-shift-v", "ctrl-k,v"]   # side bar; markdown view; markdown side-by-side
-...
-knobs:
-  - ccw: "ctrl-minus"       # zoom out
-    press: "ctrl-numpad0"   # reset zoom</pre>
-      <p class="hint">Because <code>;</code> separates the notes in a row, a <code>;</code> typed inside a button note is saved as <code>\;</code> and read back as <code>;</code> (a backslash right before it is doubled). Knob notes are saved as typed. If a row has more notes than keys, the extras are joined onto the last key.</p>
+      <p>Type a note in the <em>Comment</em> box under the action to remember what a key does. Comments are saved at the top of the YAML, one line per key, starting with <code>#@</code>. The tool treats these lines as ordinary comments, so the file still validates and uploads exactly as before; comments are never sent to the keyboard. Importing a file reads them back onto their keys and turns on <em>Show comments on keys</em> so you can read them on the keycaps.</p>
+      <pre class="cli">#@ L1 R2 C3: split; "zen" view
+#@ L1 K1 ccw: zoom out
+#@ L1 K1 press: reset zoom
+model: ch57x-2
+...</pre>
+      <p class="hint"><code>L</code> is the layer, <code>R</code> and <code>C</code> the button row and column, and <code>K</code> the knob followed by <code>ccw</code>, <code>press</code> or <code>cw</code>, all counted from 1 in the order the file lists them (the same numbers the editor shows). The text runs to the end of the line exactly as typed, so <code>;</code>, <code>#</code>, quotes and backslashes need no escaping. Lines that name a key the pad doesn't have are skipped, and the import message says how many. A comment written at the end of a key line (<code>- ["a", "b"]  # note</code>) is not read.</p>
       <h3>Direct upload (WebHID)</h3>
       <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
       <h3>Actions</h3>

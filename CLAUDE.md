@@ -35,7 +35,7 @@ Edit `src/`, then `npm run build && npm test` before committing.
 
 ## Pitfalls
 - Assertions placed after `process.exit()` never run.
-- Test fixtures are CRLF: split with `/\r?\n/`.
+- `.gitattributes` (`text=auto`) stores text files with LF, so a fresh checkout has LF fixtures even when the working copy has CRLF. To test the user's CRLF files, convert in the test (`.replace(/\r?\n/g,'\r\n')`), and always split with `/\r?\n/`.
 - In tall pages the sticky upload bar overlaps Playwright screenshots; use a taller viewport.
 
 ## Session start

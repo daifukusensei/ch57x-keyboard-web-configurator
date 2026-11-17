@@ -126,12 +126,13 @@ function parseScalar(s){
   return s;
 }
 function parseYaml(src){
-  const lines=[];
+  const lines=[], keyNotes=[];
   for(const raw of String(src).split(/\r?\n/)){
+    if(/^\s*#@/.test(raw)){ keyNotes.push(parseNoteLine(raw)); continue; }   // per-key comment (null if malformed)
     const t=stripComment(raw);
     if(!t.trim()||t.trim()==='---'||t.trim()==='...') continue;
     if(/^\t/.test(t)) throw new Error('Tabs are not allowed for indentation');
-    lines.push({indent:t.match(/^ */)[0].length,text:t.trim(),comment:raw.slice(t.length).replace(/^\s*#\s?/,'').trim()});
+    lines.push({indent:t.match(/^ */)[0].length,text:t.trim()});
   }
   let i=0;
   const isSeq=t=>t==='-'||t.startsWith('- ');
@@ -144,12 +145,10 @@ function parseYaml(src){
       if(!rest){ i++; arr.push(i<lines.length&&lines[i].indent>indent?parseBlock():null); continue; }
       if(isKV(rest)){
         const off=lines[i].text.length-rest.length;
-        lines[i]={indent:indent+off,text:rest,comment:lines[i].comment};
+        lines[i]={indent:indent+off,text:rest};
         arr.push(parseMap(indent+off));
       } else {
-        const v=parseScalar(rest);
-        if(Array.isArray(v)&&lines[i].comment) v.comment=lines[i].comment;   // a button row's trailing comment
-        arr.push(v); i++;
+        arr.push(parseScalar(rest)); i++;
       }
     }
     return arr;
@@ -157,13 +156,10 @@ function parseYaml(src){
   function parseMap(indent){
     const obj={};
     while(i<lines.length&&lines[i].indent===indent&&isKV(lines[i].text)){
-      const t=lines[i].text, idx=t.indexOf(':'), cm=lines[i].comment;
+      const t=lines[i].text, idx=t.indexOf(':');
       const key=t.slice(0,idx).trim(), rest=t.slice(idx+1).trim();
       i++;
-      if(rest){
-        obj[key]=parseScalar(rest);
-        if(cm){ if(!obj.__notes) Object.defineProperty(obj,'__notes',{value:{}}); obj.__notes[key]=cm; }   // e.g. a knob's "ccw: ...  # comment"
-      }
+      if(rest) obj[key]=parseScalar(rest);
       else if(i<lines.length&&lines[i].indent>indent) obj[key]=parseBlock();
       else if(i<lines.length&&lines[i].indent===indent&&isSeq(lines[i].text)) obj[key]=parseSeq(indent);
       else obj[key]=null;
@@ -173,6 +169,7 @@ function parseYaml(src){
   if(!lines.length) throw new Error('File is empty');
   const root=parseBlock();
   if(i<lines.length) throw new Error('Could not parse near: '+lines[i].text.slice(0,40));
+  if(root&&typeof root==='object') Object.defineProperty(root,'__keyNotes',{value:keyNotes});   // read by fromObj
   return root;
 }
 
@@ -187,38 +184,26 @@ function blankLayer(st){
           bnotes:Array.from({length:R},()=>Array(C).fill('')),             // per-key comments, same shape as buttons / knobs
           knotes:Array.from({length:st.knobs},()=>({ccw:'',press:'',cw:''}))};
 }
-// A button row's comment lists one note per key, separated by ";" ("# vscode split; vscode zen; vscode toggle output").
-// A ";" that belongs to a note is written "\;". Before a ";", backslashes come in pairs ("\\" = one "\"), so a note
-// may end in "\"; anywhere else a backslash is literal ("C:\dir" stays as typed).
-// Extra pieces beyond the last key stay with that key, so nothing is lost on re-export.
-function splitNoteText(text){
-  const parts=[]; let cur='';
-  const s=String(text);
-  for(let i=0;i<s.length;i++){
-    if(s[i]==='\\'){
-      let j=i; while(s[j]==='\\') j++;
-      const run=j-i;
-      if(s[j]===';'){ cur+='\\'.repeat(run>>1); if(run&1) cur+=';'; else { parts.push(cur); cur=''; } i=j; }
-      else { cur+=s.slice(i,j); i=j-1; }
-    } else if(s[i]===';'){ parts.push(cur); cur=''; }
-    else cur+=s[i];
-  }
-  parts.push(cur);
-  return parts;
+// Per-key comments live in a block of "#@" lines at the top of the file, one per key, which the tool ignores:
+//   #@ L1 R2 C3: text          button: layer, row, column (1-based, in the file's buttons order)
+//   #@ L1 K1 ccw: text         knob: layer, knob, ccw | press | cw
+// The text runs to the end of the line and is taken as written, so it needs no escaping.
+const NOTE_LINE = /^\s*#@\s*L(\d+)\s+(?:R(\d+)\s+C(\d+)|K(\d+)\s+(ccw|press|cw))\s*:[ \t]?(.*)$/i;
+function parseNoteLine(line){
+  const m=NOTE_LINE.exec(line);
+  if(!m) return null;
+  const text=m[6].trim();
+  return m[2] ? {layer:+m[1]-1,r:+m[2]-1,c:+m[3]-1,text}
+              : {layer:+m[1]-1,k:+m[4]-1,p:m[5].toLowerCase(),text};
 }
-function splitRowNotes(text,n){
-  const out=Array(Math.max(n,0)).fill('');
-  if(!text||n<1) return out;
-  splitNoteText(text).map(s=>s.trim()).forEach((p,i)=>{
-    if(i<n) out[i]=p; else if(p) out[n-1]=(out[n-1]?out[n-1]+'; ':'')+p;
+function noteLines(st){
+  const oneLine=s=>String(s||'').replace(/\s+/g,' ').trim();
+  const out=[];
+  st.layers.forEach((l,li)=>{
+    (l.bnotes||[]).forEach((row,r)=>row.forEach((t,c)=>{ t=oneLine(t); if(t) out.push('#@ L'+(li+1)+' R'+(r+1)+' C'+(c+1)+': '+t); }));
+    (l.knotes||[]).forEach((k,n)=>['ccw','press','cw'].forEach(p=>{ const t=oneLine(k[p]); if(t) out.push('#@ L'+(li+1)+' K'+(n+1)+' '+p+': '+t); }));
   });
   return out;
-}
-// Inverse of splitNoteText for one note: "\;" for a literal ";", and backslash runs before a ";" (or at the end of
-// a note that a separator follows) doubled.
-function escapeNote(t,last){
-  t=String(t).replace(/(\\*);/g,(m,b)=>b+b+'\\;');
-  return last ? t : t.replace(/(\\+)$/,(m,b)=>b+b);
 }
 function clampInt(v,lo,hi,def){ v=parseInt(v,10); if(isNaN(v)) v=def; return Math.max(lo,Math.min(hi,v)); }
 function normalizeState(st){
@@ -249,47 +234,38 @@ function fromObj(o){
     rows:o.rows,columns:o.columns,knobs:o.knobs==null?0:o.knobs,layers:[]};
   if(!Array.isArray(o.layers)||!o.layers.length) throw new Error('No "layers" found');
   o.layers.forEach(l=>{
-    const rows=(l&&l.buttons||[]).map(r=>Array.isArray(r)?r:[r]);
-    const knobs=(l&&l.knobs||[]).map(k=>k||{});
-    st.layers.push({
-      buttons:rows,
-      knobs,
-      bnotes:rows.map(r=>splitRowNotes(r.comment,r.length)),
-      knotes:knobs.map(k=>{ const n=k.__notes||{}; return {ccw:n.ccw||'',press:n.press||'',cw:n.cw||''}; })
-    });
+    st.layers.push({buttons:(l&&l.buttons||[]).map(r=>Array.isArray(r)?r:[r]), knobs:(l&&l.knobs||[]).map(k=>k||{})});
   });
-  return normalizeState(st);
+  normalizeState(st);
+  // "#@" comment lines collected by parseYaml; ones that name no key on this pad are counted, not applied.
+  // A later line for the same key wins.
+  let unmatched=0;
+  (o.__keyNotes||[]).forEach(n=>{
+    const l=n&&st.layers[n.layer];
+    if(!n||!l||n.layer<0) unmatched++;
+    else if(n.p){ if(l.knotes[n.k]) l.knotes[n.k][n.p]=n.text; else unmatched++; }
+    else if(l.bnotes[n.r]&&n.c>=0&&n.c<l.bnotes[n.r].length) l.bnotes[n.r][n.c]=n.text;
+    else unmatched++;
+  });
+  Object.defineProperty(st,'unmatchedNotes',{value:unmatched,configurable:true});   // not saved with the mapping
+  return st;
 }
 function toYaml(st){
   const q=s=>JSON.stringify(String(s));
-  const out=['# Generated by CH57x Keyboard Web Configurator','model: '+st.model,'orientation: '+st.orientation,
-    'rows: '+st.rows,'columns: '+st.columns,'knobs: '+st.knobs,'layers:'];
-  // Per-key comments are written as YAML "#" comments, which the tool ignores. Within a block the "#" column is aligned.
-  const flush=lines=>{
-    const w=Math.max(0,...lines.filter(x=>x.note).map(x=>x.text.length));
-    lines.forEach(x=>out.push(x.note ? x.text.padEnd(w)+'  # '+x.note : x.text));
-  };
-  const oneLine=s=>String(s||'').replace(/\s+/g,' ').trim();
-  const rowNote=notes=>{   // one note per key, in order, separated by ";" (a ";" inside a note is escaped as "\;", see splitNoteText)
-    const p=(notes||[]).map(oneLine);
-    while(p.length&&!p[p.length-1]) p.pop();
-    return p.map((t,i)=>escapeNote(t,i===p.length-1)).join('; ');
-  };
+  const out=['# Generated by CH57x Keyboard Web Configurator'];
+  const notes=noteLines(st);
+  if(notes.length) out.push('# Key comments (the tool ignores them): "#@ L<layer> R<row> C<column>: text" for a button,',
+    '# "#@ L<layer> K<knob> ccw|press|cw: text" for a knob.', ...notes);
+  out.push('model: '+st.model,'orientation: '+st.orientation,
+    'rows: '+st.rows,'columns: '+st.columns,'knobs: '+st.knobs,'layers:');
   st.layers.forEach((l,li)=>{
     if(li) out.push('');
     out.push('  - buttons:');
-    flush(l.buttons.map((r,ri)=>({text:'      - ['+r.map(q).join(', ')+']',note:rowNote(l.bnotes&&l.bnotes[ri])})));
+    l.buttons.forEach(r=>out.push('      - ['+r.map(q).join(', ')+']'));
     if(!l.knobs.length) out.push('    knobs: []');
     else{
       out.push('    knobs:');
-      const lines=[];
-      l.knobs.forEach((k,n)=>{
-        const kn=(l.knotes&&l.knotes[n])||{};
-        lines.push({text:'      - ccw: '+q(k.ccw),note:oneLine(kn.ccw)});
-        lines.push({text:'        press: '+q(k.press),note:oneLine(kn.press)});
-        lines.push({text:'        cw: '+q(k.cw),note:oneLine(kn.cw)});
-      });
-      flush(lines);
+      l.knobs.forEach(k=>out.push('      - ccw: '+q(k.ccw),'        press: '+q(k.press),'        cw: '+q(k.cw)));
     }
   });
   return out.join('\n')+'\n';
