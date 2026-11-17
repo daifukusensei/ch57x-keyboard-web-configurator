@@ -8,7 +8,7 @@
   :root{
     --bg:#e9edf2; --panel:#ffffff; --fg:#1b222b; --muted:#5d6978; --line:#d0d7e1; --input:#f5f7fa;
     --nav:#20242b; --nav-fg:#eef1f5; --nav-line:#363c47;
-    --case:#2b3038; --case-line:#4a525e; --case-fg:#aeb7c4;
+    --case:#c6cdd7; --case-line:#a3adbb; --case-fg:#4f5a69; --case-inset:rgba(0,0,0,.12);
     --cap:#d5dae2; --cap-top:#eceff4; --cap-fg:#1b222b; --cap-edge:#98a2b2;
     --accent:#2f6df6; --accent-hi:#5b8dff; --accent-edge:#1c47b0; --accent-fg:#ffffff;
     --go:#2a9d62; --go-edge:#1c7746; --go-fg:#ffffff;
@@ -21,7 +21,7 @@
     :root:not([data-theme="light"]){
       --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
       --nav:#0f1216; --nav-line:#262b33;
-      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6;
+      --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35);
       --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
       --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
       --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
@@ -31,7 +31,7 @@
   :root[data-theme="dark"]{
     --bg:#14171c; --panel:#1c2027; --fg:#e6e9ef; --muted:#97a0af; --line:#2f3541; --input:#14171c;
     --nav:#0f1216; --nav-line:#262b33;
-    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6;
+    --case:#0f1216; --case-line:#333a45; --case-fg:#8d97a6; --case-inset:rgba(0,0,0,.35);
     --cap:#3d434e; --cap-top:#4e5562; --cap-fg:#eef1f5; --cap-edge:#20242b;
     --accent:#6b97ff; --accent-hi:#8fb1ff; --accent-edge:#3b62c4; --accent-fg:#0d1320;
     --go:#3fb36d; --go-edge:#2a8650; --go-fg:#06140c;
@@ -64,7 +64,7 @@
 
   /* ---- top bar ---- */
   .nav{background:var(--nav);color:var(--nav-fg);border-bottom:1px solid var(--nav-line)}
-  .nav-in{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+  .nav-in{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
   .brand{display:flex;align-items:center;gap:10px;min-width:0}
   .brand svg{flex:none}
   .brand h1{margin:0;font-size:18px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -80,7 +80,7 @@
   #themeToggle.moon .ti{color:#a9b4ff}
   #themeToggle.moon:hover{border-color:#a9b4ff}
 
-  main{max-width:1100px;margin:0 auto;padding:14px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+  main{max-width:1240px;margin:0 auto;padding:14px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 
   /* ---- keyboard / layout selectors ---- */
@@ -95,7 +95,7 @@
   #tabs .tab{width:38px;height:38px;padding:0;font-weight:600}
   #tabs .tab.active{background:var(--accent);color:var(--accent-fg);border-color:transparent}
   .case{background:var(--case);border:1px solid var(--case-line);border-radius:14px;padding:18px;display:grid;place-items:center;min-width:0;
-    box-shadow:inset 0 2px 10px rgba(0,0,0,.35)}
+    box-shadow:inset 0 2px 10px var(--case-inset)}
   .device{display:flex;gap:26px;align-items:center;justify-content:center;max-width:100%;overflow-x:auto;padding:6px}
   .device.normal{flex-direction:row}
   .device.upsidedown{flex-direction:row-reverse}
@@ -176,6 +176,31 @@
   .pcap.mod{font-family:inherit;font-weight:600}
   .pcap.mod[aria-pressed="true"]{background:linear-gradient(var(--accent-hi),var(--accent));color:var(--accent-fg);box-shadow:0 2px 0 var(--accent-edge)}
   .pcap.wide{padding:0 14px}
+  /* full-size keyboard on the Basic tab: positioned in key units (u), shrinks with the card */
+  .kbhead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:flex-end;justify-content:space-between;margin-bottom:8px}
+  label.f.kbsel{display:flex;align-items:center;gap:8px}
+  .kb{--kbw:22.5;position:relative;width:100%;aspect-ratio:var(--kbw)/6.25;container-type:inline-size;margin:0 0 4px}
+  .kpos{position:absolute;padding:.25cqw;left:calc(var(--x)/var(--kbw)*100%);top:calc(var(--y)/6.25*100%);
+    width:calc(var(--w)/var(--kbw)*100%);height:calc(var(--h)/6.25*100%)}
+  #kbNumpad{display:none}
+  #kbNumpad .pgroup h4,#kbExtra .pgroup h4,#kbGroups .pgroup h4{margin-top:14px}
+  @media (max-width:700px){ .kb{--kbw:18.25} .kb .np{display:none} #kbNumpad{display:block} }
+  .kcap{position:relative;display:block;width:100%;height:100%;padding:.35cqw .5cqw;border:0;border-radius:.6cqw;overflow:hidden;
+    font:600 clamp(7px,1.1cqw,12.5px)/1.1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:left;color:var(--cap-fg);
+    background:linear-gradient(var(--cap-top),var(--cap));box-shadow:0 .25cqw 0 var(--cap-edge)}
+  .kcap:hover{filter:brightness(1.08);border:0}
+  .kcap:active{transform:translateY(.15cqw);box-shadow:0 .1cqw 0 var(--cap-edge)}
+  .kcap span{display:block;white-space:nowrap;overflow:hidden;text-overflow:clip}
+  .kcap .one{position:absolute;left:.5cqw;right:.3cqw;top:50%;transform:translateY(-50%)}
+  .kcap .top{position:absolute;left:.5cqw;top:.35cqw}
+  .kcap .bot{position:absolute;left:.5cqw;bottom:.45cqw}
+  .kcap .short{display:none}
+  @container (max-width:760px){ .kcap .long{display:none} .kcap .short{display:block} }
+  .kcap.mod[aria-pressed="true"]{background:linear-gradient(var(--accent-hi),var(--accent));color:var(--accent-fg);box-shadow:0 .25cqw 0 var(--accent-edge)}
+  /* ISO Enter: 1.5u wide on top, 1.25u below; the shadow is drawn on the wrapper because clip-path cuts box-shadow */
+  .kpos.isoenter{filter:drop-shadow(0 .25cqw 0 var(--cap-edge))}
+  .kpos.isoenter .kcap{box-shadow:none;clip-path:polygon(0 0,100% 0,100% 100%,16.7% 100%,16.7% 50%,0 50%)}
+  .kpos.isoenter .kcap .one{top:25%}
   .prow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px}
 
   /* ---- upload bar ---- */
@@ -303,7 +328,16 @@
       <span class="eyebrow">Modifiers</span>
       <span id="modChips" class="caps"></span>
     </div>
-    <div id="pane-basic"></div>
+    <div id="pane-basic">
+      <div class="kbhead">
+        <span class="eyebrow">Click a key · Shift, Ctrl, Alt and Win apply to the next key</span>
+        <label class="f kbsel">Keyboard layout<select id="kbLayout"></select></label>
+      </div>
+      <div id="kbBoard" class="kb" role="group"></div>
+      <div id="kbNumpad"></div>
+      <div id="kbExtra"></div>
+      <div id="kbGroups"></div>
+    </div>
     <div id="pane-media" hidden></div>
     <div id="pane-mouse" hidden>
       <div class="pgroup"><h4>Click</h4><div class="caps" id="mouseClicks"></div></div>
@@ -1202,21 +1236,101 @@ function onActionChanged(){ renderDevice(); renderMsg(); renderYaml(); save(); }
 // ----- keycode palette -----
 const PANES = ['basic','media','mouse','advanced'];
 const MODLABEL = {ctrl:'Ctrl',shift:'Shift',alt:'Alt',win:'Win',rctrl:'R-Ctrl',rshift:'R-Shift',ralt:'R-Alt',rwin:'R-Win'};
-const KEYLABEL = {escape:'Esc',backspace:'⌫',delete:'Del',enter:'Enter',space:'Space',tab:'Tab',capslock:'Caps',insert:'Ins',
-  printscreen:'PrtSc',scrolllock:'ScrLk',pause:'Pause',numlock:'NumLk',application:'Menu',up:'↑',down:'↓',left:'←',right:'→',
-  home:'Home',end:'End',pageup:'PgUp',pagedown:'PgDn',minus:'-',equal:'=',leftbracket:'[',rightbracket:']',backslash:'\\',
-  semicolon:';',quote:"'",grave:'`',comma:',',dot:'.',slash:'/',nonushash:'#',nonusbackslash:'\\|',
-  numpadslash:'/',numpadasterisk:'*',numpadminus:'−',numpadplus:'+',numpadenter:'Ent',numpaddot:'.',numpadequal:'='};
-for(let i=0;i<10;i++) KEYLABEL['numpad'+i]=String(i);
+// Keys that are not on the drawn full-size board (they keep the flat-list look).
 const KEYGROUPS = [
-  ['Letters','abcdefghijklmnopqrstuvwxyz'.split('')],
-  ['Numbers','0123456789'.split('')],
-  ['Function',Array.from({length:24},(_,i)=>'f'+(i+1))],
-  ['Controls',['escape','tab','capslock','enter','space','backspace','delete','insert','application','printscreen','scrolllock','pause','numlock']],
-  ['Navigation',['up','down','left','right','home','end','pageup','pagedown']],
-  ['Symbols',['minus','equal','leftbracket','rightbracket','backslash','semicolon','quote','grave','comma','dot','slash','nonushash','nonusbackslash']],
-  ['Numpad',Array.from({length:10},(_,i)=>'numpad'+i).concat(['numpadslash','numpadasterisk','numpadminus','numpadplus','numpadenter','numpaddot','numpadequal'])],
+  ['Function F13–F24',Array.from({length:12},(_,i)=>'f'+(i+13))],
 ];
+
+// ----- physical keyboard (full-size: main block, navigation cluster, numpad) for the Basic tab -----
+// Key names are positional HID usages, so the board geometry is shared; a layout only changes
+// the shape (ISO: tall Enter, extra key beside Left Shift) and the printed legends.
+// Each entry: [name, x, y, width=1, height=1] in key units (u). Names in MOD_ORDER toggle the modifier chips.
+const KB_NUMPAD_X = 18.5;   // keys from here right are the numpad (sizes live in style.css: --kbw, 6.25u high)
+function kbGeometry(iso){
+  const Y=[0,1.25,2.25,3.25,4.25,5.25];   // row tops: the F-row sits 0.25u above the main block
+  const row=(r,x,names,w=1)=>names.map((n,i)=>[n,x+i*w,Y[r],w]);
+  const k=[['escape',0,0]].concat(
+    row(0,2,['f1','f2','f3','f4']), row(0,6.5,['f5','f6','f7','f8']), row(0,11,['f9','f10','f11','f12']),
+    row(0,15.25,['printscreen','scrolllock','pause']),
+    row(1,0,['grave','1','2','3','4','5','6','7','8','9','0','minus','equal']), [['backspace',13,Y[1],2]],
+    row(1,15.25,['insert','home','pageup']),
+    [['tab',0,Y[2],1.5]], row(2,1.5,'qwertyuiop'.split('').concat(['leftbracket','rightbracket'])),
+    row(2,15.25,['delete','end','pagedown']),
+    [['capslock',0,Y[3],1.75]], row(3,1.75,'asdfghjkl'.split('').concat(['semicolon','quote'])),
+    row(4,2.25,'zxcvbnm'.split('').concat(['comma','dot','slash'])), [['rshift',12.25,Y[4],2.75],['up',16.25,Y[4]]],
+    [['ctrl',0,Y[5],1.25],['win',1.25,Y[5],1.25],['alt',2.5,Y[5],1.25],['space',3.75,Y[5],6.25],
+     ['ralt',10,Y[5],1.25],['rwin',11.25,Y[5],1.25],['application',12.5,Y[5],1.25],['rctrl',13.75,Y[5],1.25]],
+    row(5,15.25,['left','down','right']),
+    row(1,18.5,['numlock','numpadslash','numpadasterisk','numpadminus']),
+    row(2,18.5,['numpad7','numpad8','numpad9']), [['numpadplus',21.5,Y[2],1,2]],
+    row(3,18.5,['numpad4','numpad5','numpad6']),
+    row(4,18.5,['numpad1','numpad2','numpad3']), [['numpadenter',21.5,Y[4],1,2]],
+    [['numpad0',18.5,Y[5],2],['numpaddot',20.5,Y[5]]]);
+  if(iso) k.push(['enter',13.5,Y[2],1.5,2],['nonushash',12.75,Y[3]],['shift',0,Y[4],1.25],['nonusbackslash',1.25,Y[4]]);
+  else k.push(['backslash',13.5,Y[2],1.5],['enter',12.75,Y[3],2.25],['shift',0,Y[4],2.25]);
+  return k;
+}
+// Legends: a string, or [shifted, unshifted] for a two-legend cap. Letters default to their capital.
+const KB_LEGEND_US = {escape:'Esc',printscreen:'PrtSc',scrolllock:'ScrLk',pause:'Pause',insert:'Ins',home:'Home',pageup:'PgUp',
+  delete:'Del',end:'End',pagedown:'PgDn',backspace:'Backspace',tab:'Tab',capslock:'Caps Lock',enter:'Enter',space:'',
+  ctrl:'Ctrl',shift:'Shift',alt:'Alt',win:'Win',rctrl:'Ctrl',rshift:'Shift',ralt:'Alt',rwin:'Win',application:'Menu',
+  up:'↑',down:'↓',left:'←',right:'→',
+  grave:['~','`'],1:['!','1'],2:['@','2'],3:['#','3'],4:['$','4'],5:['%','5'],6:['^','6'],7:['&','7'],8:['*','8'],9:['(','9'],0:[')','0'],
+  minus:['_','-'],equal:['+','='],leftbracket:['{','['],rightbracket:['}',']'],backslash:['|','\\'],
+  semicolon:[':',';'],quote:['"',"'"],comma:['<',','],dot:['>','.'],slash:['?','/'],nonushash:['~','#'],nonusbackslash:['|','\\']};
+for(let i=1;i<=12;i++) KB_LEGEND_US['f'+i]='F'+i;
+for(let i=0;i<10;i++) KB_LEGEND_US['numpad'+i]=String(i);
+Object.assign(KB_LEGEND_US,{numlock:'Num',numpadslash:'/',numpadasterisk:'*',numpadminus:'−',numpadplus:'+',numpadenter:'Enter',numpaddot:'.'});
+// Shorter legends used when the board is drawn narrow (phones).
+const KB_SHORT = {printscreen:'PS',scrolllock:'SL',pause:'Pa',insert:'In',home:'Hm',pageup:'PU',delete:'De',end:'En',pagedown:'PD',
+  backspace:'⌫',tab:'⇥',capslock:'Cap',enter:'⏎',numpadenter:'⏎',numlock:'NL',shift:'⇧',rshift:'⇧',ctrl:'Ct',rctrl:'Ct',alt:'Al',ralt:'Al',win:'Wi',rwin:'Wi',application:'☰'};
+// Add a layout here (e.g. de / fr) with its own legend overrides; `match` tests the browser language.
+const KB_LAYOUTS = {
+  us:{name:'US (ANSI)', iso:false, match:null, legend:{}},
+  uk:{name:'UK (ISO)', iso:true, match:/^en-(gb|uk|ie)\b/i,
+    legend:{grave:['¬','`'],2:['"','2'],3:['£','3'],quote:['@',"'"],nonushash:['~','#'],nonusbackslash:['|','\\'],ralt:'AltGr'}},
+};
+const KB_PREF = 'ch57x-configurator-kblayout';   // 'auto' (default) | a KB_LAYOUTS id
+function detectKbLayout(){
+  const langs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']);
+  const lang=String(langs[0]||'');
+  return Object.keys(KB_LAYOUTS).find(id=>KB_LAYOUTS[id].match&&KB_LAYOUTS[id].match.test(lang))||'us';
+}
+let kbPref='auto';
+try{ const v=localStorage.getItem(KB_PREF); if(v==='auto'||KB_LAYOUTS[v]) kbPref=v; }catch(e){}
+const kbLayoutId = () => kbPref==='auto' ? detectKbLayout() : kbPref;
+function kbLegend(name,lay){ const l=lay.legend[name]!==undefined?lay.legend[name]:KB_LEGEND_US[name]; return l!==undefined?l:name.toUpperCase(); }
+function buildBoard(){
+  const lay=KB_LAYOUTS[kbLayoutId()];
+  const board=$('kbBoard'); board.replaceChildren(); board.className='kb'+(lay.iso?' iso':' ansi');
+  board.setAttribute('aria-label','Keyboard, '+lay.name+' layout');
+  const geo=kbGeometry(lay.iso), onBoard=new Set();
+  geo.forEach(([name,x,y,w=1,hgt=1])=>{
+    const isMod=MOD_ORDER.includes(name), leg=kbLegend(name,lay);
+    const legs=Array.isArray(leg)?[h('span',{class:'top',text:leg[0]}),h('span',{class:'bot',text:leg[1]})]
+      : KB_SHORT[name]&&leg ? [h('span',{class:'one long',text:leg}),h('span',{class:'one short',text:name==='ralt'&&leg==='AltGr'?'AG':KB_SHORT[name]})]
+      : [h('span',{class:'one',text:leg})];
+    const props={type:'button',class:'kcap'+(isMod?' mod':'')+(w>=1.5?' wide':''),title:name,'aria-label':name};
+    if(isMod){ props['data-mod']=name; props['aria-pressed']=String(chips.has(name)); props.title=name+' — applies to the next keycode you click'; }
+    else { props['data-key']=name; onBoard.add(name); }
+    const b=h('button',props,...legs);
+    b.addEventListener('click',isMod?()=>toggleMod(name):()=>assignKey(name));
+    // position in key units; CSS turns them into percentages of --kbw (the board drops the numpad on phones)
+    const pos=h('div',{class:'kpos'+(name==='enter'&&lay.iso?' isoenter':'')+(x>=KB_NUMPAD_X?' np':''),
+      style:'--x:'+x+';--y:'+y+';--w:'+w+';--h:'+hgt},b);
+    board.append(pos);
+  });
+  // phones: the same numpad keycodes as a flat list (CSS shows it only when the board's numpad is hidden)
+  const np=$('kbNumpad'); np.replaceChildren(group('Numpad',['numlock','numpad0','numpad1','numpad2','numpad3','numpad4','numpad5','numpad6','numpad7','numpad8','numpad9','numpadslash','numpadasterisk','numpadminus','numpadplus','numpadenter','numpaddot'].map(n=>{
+    const l=kbLegend(n,lay); return pcap(n==='numlock'?'NumLk':l,n,()=>assignKey(n),n.length>8&&n!=='numpadminus'?'wide':'',n); })));
+  // keycodes this layout has no key for (e.g. ANSI backslash on ISO, the ISO keys on ANSI) stay reachable
+  const extra=$('kbExtra'); extra.replaceChildren();
+  const missing=['backslash','nonushash','nonusbackslash','numpadequal'].filter(n=>!onBoard.has(n));
+  const xlabel={backslash:'ANSI \\',nonushash:'ISO #',nonusbackslash:'ISO \\|',numpadequal:'Numpad ='};
+  if(missing.length) extra.append(group('Not on a '+lay.name+' keyboard',missing.map(n=>pcap(xlabel[n],n,()=>assignKey(n),'wide',n))));
+  $('kbLayout').querySelector('option[value="auto"]').textContent='Auto — '+KB_LAYOUTS[detectKbLayout()].name;
+  $('kbLayout').value=kbPref;
+}
 const MEDIALABEL = {screenbrightnessup:'Bright +',screenbrightnessdown:'Bright −',next:'Next',previous:'Prev',stop:'Stop',play:'Play',
   mute:'Mute',volumeup:'Vol +',volumedown:'Vol −',favorites:'Favorites',calculator:'Calc',screenlock:'Lock',
   webpagehome:'Web home',webpageback:'Web back',webpageforward:'Web fwd'};
@@ -1233,12 +1347,15 @@ function buildControls(){
     if(m==='rctrl') mc.append(h('span',{class:'modsep'}));
     const b=h('button',{type:'button',class:'pcap mod','data-mod':m,'aria-pressed':'false',
       title:m+' — applies to the next keycode you click',text:MODLABEL[m]});
-    b.addEventListener('click',()=>{ chips.has(m)?chips.delete(m):chips.add(m); syncMods(); });
+    b.addEventListener('click',()=>toggleMod(m));
     mc.append(b);
   });
-  const basic=$('pane-basic');
+  $('kbLayout').append(h('option',{value:'auto',text:'Auto'}),...Object.entries(KB_LAYOUTS).map(([id,l])=>h('option',{value:id,text:l.name})));
+  buildBoard();
+  $('kbLayout').addEventListener('change',()=>{ kbPref=$('kbLayout').value; try{ localStorage.setItem(KB_PREF,kbPref); }catch(e){} buildBoard(); });
+  const basic=$('kbGroups');
   KEYGROUPS.forEach(([title,keys])=>basic.append(group(title,keys.map(k=>
-    pcap(k.length===1?k.toUpperCase():(KEYLABEL[k]||k.toUpperCase()),k,()=>assignKey(k),k.length>3?'wide':'',k)))));
+    pcap(k.toUpperCase(),k,()=>assignKey(k),k.length>3?'wide':'',k)))));
   $('pane-media').append(group('Media keys',MEDIA.filter(m=>m!=='prev').map(m=>
     pcap(MEDIALABEL[m]||m,m,()=>assignKey(m),'wide',m))));
   const mouseCaps=(id,items)=>items.forEach(([label,core])=>$(id).append(pcap(label,core,()=>assignMouse(core),'wide')));
@@ -1251,10 +1368,11 @@ function setPane(n){
     const on=p===n; $('pane-'+p).hidden=!on;
     const t=$('ptab-'+p); t.classList.toggle('active',on); t.setAttribute('aria-selected',String(on));
   });
-  $('modRow').hidden = !(n==='basic'||n==='mouse');
+  $('modRow').hidden = n!=='mouse';   // the Basic tab's keyboard has its own modifier keys
 }
+function toggleMod(m){ chips.has(m)?chips.delete(m):chips.add(m); syncMods(); }
 function syncMods(){
-  $('modChips').querySelectorAll('button[data-mod]').forEach(b=>b.setAttribute('aria-pressed',String(chips.has(b.dataset.mod))));
+  document.querySelectorAll('button[data-mod]').forEach(b=>b.setAttribute('aria-pressed',String(chips.has(b.dataset.mod))));
 }
 const orderedMods = allowed => MOD_ORDER.filter(m=>chips.has(m) && (!allowed||allowed[m]));
 const appendMode = () => $('seqMode').checked;

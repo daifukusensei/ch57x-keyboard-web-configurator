@@ -7,7 +7,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'h
 const w=dom.window,d=w.document;
 const click=el=>(typeof el==='string'?d.querySelector(el):el).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
 const key=k=>d.querySelector('#pane-basic [data-key="'+k+'"]');
-const mod=m=>d.querySelector('#modChips [data-mod="'+m+'"]');
+let mod=m=>d.querySelector('#kbBoard [data-mod="'+m+'"]');   // Basic tab: the keyboard's own modifier keys
 const act=()=>d.getElementById('action').value;
 const cells=()=>d.querySelectorAll('.cell');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -20,7 +20,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('blank: R1C1 selected and empty',act()===''&&cells()[0].classList.contains('sel'));
 
   // ---- every keycap on the palette is a name the editor accepts without warnings ----
-  const names=[...d.querySelectorAll('#pane-basic [data-key], #pane-media [data-key]')].map(b=>b.dataset.key);
+  const names=[...d.querySelectorAll('#pane-basic [data-key]:not(#kbNumpad *), #pane-media [data-key]')].map(b=>b.dataset.key);
   const val=w.eval('validateAction');
   const bad=names.filter(n=>val(n).level!=='ok');
   ok('all '+names.length+' palette keycodes validate cleanly'+(bad.length?' — bad: '+bad.join(','):''),names.length>100&&bad.length===0);
@@ -50,7 +50,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('media keys offered: '+d.querySelectorAll('#pane-media [data-key]').length,d.querySelectorAll('#pane-media [data-key]').length===15);
 
   // ---- mouse ----
-  click('#ptab-mouse');
+  click('#ptab-mouse'); mod=m=>d.querySelector('#modChips [data-mod="'+m+'"]');
   ok('mouse pane shown with modifier row',!d.getElementById('pane-mouse').hidden&&!d.getElementById('modRow').hidden);
   click(d.querySelector('#mouseClicks [title="click(left)"]')); ok('Left click',act()==='click(left)');
   click(mod('ctrl')); click(d.querySelector('#mouseWheels [title="wheelup"]')); ok('ctrl + wheel up -> ctrl-wheelup',act()==='ctrl-wheelup');

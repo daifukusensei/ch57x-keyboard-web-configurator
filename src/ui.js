@@ -150,21 +150,101 @@ function onActionChanged(){ renderDevice(); renderMsg(); renderYaml(); save(); }
 // ----- keycode palette -----
 const PANES = ['basic','media','mouse','advanced'];
 const MODLABEL = {ctrl:'Ctrl',shift:'Shift',alt:'Alt',win:'Win',rctrl:'R-Ctrl',rshift:'R-Shift',ralt:'R-Alt',rwin:'R-Win'};
-const KEYLABEL = {escape:'Esc',backspace:'⌫',delete:'Del',enter:'Enter',space:'Space',tab:'Tab',capslock:'Caps',insert:'Ins',
-  printscreen:'PrtSc',scrolllock:'ScrLk',pause:'Pause',numlock:'NumLk',application:'Menu',up:'↑',down:'↓',left:'←',right:'→',
-  home:'Home',end:'End',pageup:'PgUp',pagedown:'PgDn',minus:'-',equal:'=',leftbracket:'[',rightbracket:']',backslash:'\\',
-  semicolon:';',quote:"'",grave:'`',comma:',',dot:'.',slash:'/',nonushash:'#',nonusbackslash:'\\|',
-  numpadslash:'/',numpadasterisk:'*',numpadminus:'−',numpadplus:'+',numpadenter:'Ent',numpaddot:'.',numpadequal:'='};
-for(let i=0;i<10;i++) KEYLABEL['numpad'+i]=String(i);
+// Keys that are not on the drawn full-size board (they keep the flat-list look).
 const KEYGROUPS = [
-  ['Letters','abcdefghijklmnopqrstuvwxyz'.split('')],
-  ['Numbers','0123456789'.split('')],
-  ['Function',Array.from({length:24},(_,i)=>'f'+(i+1))],
-  ['Controls',['escape','tab','capslock','enter','space','backspace','delete','insert','application','printscreen','scrolllock','pause','numlock']],
-  ['Navigation',['up','down','left','right','home','end','pageup','pagedown']],
-  ['Symbols',['minus','equal','leftbracket','rightbracket','backslash','semicolon','quote','grave','comma','dot','slash','nonushash','nonusbackslash']],
-  ['Numpad',Array.from({length:10},(_,i)=>'numpad'+i).concat(['numpadslash','numpadasterisk','numpadminus','numpadplus','numpadenter','numpaddot','numpadequal'])],
+  ['Function F13–F24',Array.from({length:12},(_,i)=>'f'+(i+13))],
 ];
+
+// ----- physical keyboard (full-size: main block, navigation cluster, numpad) for the Basic tab -----
+// Key names are positional HID usages, so the board geometry is shared; a layout only changes
+// the shape (ISO: tall Enter, extra key beside Left Shift) and the printed legends.
+// Each entry: [name, x, y, width=1, height=1] in key units (u). Names in MOD_ORDER toggle the modifier chips.
+const KB_NUMPAD_X = 18.5;   // keys from here right are the numpad (sizes live in style.css: --kbw, 6.25u high)
+function kbGeometry(iso){
+  const Y=[0,1.25,2.25,3.25,4.25,5.25];   // row tops: the F-row sits 0.25u above the main block
+  const row=(r,x,names,w=1)=>names.map((n,i)=>[n,x+i*w,Y[r],w]);
+  const k=[['escape',0,0]].concat(
+    row(0,2,['f1','f2','f3','f4']), row(0,6.5,['f5','f6','f7','f8']), row(0,11,['f9','f10','f11','f12']),
+    row(0,15.25,['printscreen','scrolllock','pause']),
+    row(1,0,['grave','1','2','3','4','5','6','7','8','9','0','minus','equal']), [['backspace',13,Y[1],2]],
+    row(1,15.25,['insert','home','pageup']),
+    [['tab',0,Y[2],1.5]], row(2,1.5,'qwertyuiop'.split('').concat(['leftbracket','rightbracket'])),
+    row(2,15.25,['delete','end','pagedown']),
+    [['capslock',0,Y[3],1.75]], row(3,1.75,'asdfghjkl'.split('').concat(['semicolon','quote'])),
+    row(4,2.25,'zxcvbnm'.split('').concat(['comma','dot','slash'])), [['rshift',12.25,Y[4],2.75],['up',16.25,Y[4]]],
+    [['ctrl',0,Y[5],1.25],['win',1.25,Y[5],1.25],['alt',2.5,Y[5],1.25],['space',3.75,Y[5],6.25],
+     ['ralt',10,Y[5],1.25],['rwin',11.25,Y[5],1.25],['application',12.5,Y[5],1.25],['rctrl',13.75,Y[5],1.25]],
+    row(5,15.25,['left','down','right']),
+    row(1,18.5,['numlock','numpadslash','numpadasterisk','numpadminus']),
+    row(2,18.5,['numpad7','numpad8','numpad9']), [['numpadplus',21.5,Y[2],1,2]],
+    row(3,18.5,['numpad4','numpad5','numpad6']),
+    row(4,18.5,['numpad1','numpad2','numpad3']), [['numpadenter',21.5,Y[4],1,2]],
+    [['numpad0',18.5,Y[5],2],['numpaddot',20.5,Y[5]]]);
+  if(iso) k.push(['enter',13.5,Y[2],1.5,2],['nonushash',12.75,Y[3]],['shift',0,Y[4],1.25],['nonusbackslash',1.25,Y[4]]);
+  else k.push(['backslash',13.5,Y[2],1.5],['enter',12.75,Y[3],2.25],['shift',0,Y[4],2.25]);
+  return k;
+}
+// Legends: a string, or [shifted, unshifted] for a two-legend cap. Letters default to their capital.
+const KB_LEGEND_US = {escape:'Esc',printscreen:'PrtSc',scrolllock:'ScrLk',pause:'Pause',insert:'Ins',home:'Home',pageup:'PgUp',
+  delete:'Del',end:'End',pagedown:'PgDn',backspace:'Backspace',tab:'Tab',capslock:'Caps Lock',enter:'Enter',space:'',
+  ctrl:'Ctrl',shift:'Shift',alt:'Alt',win:'Win',rctrl:'Ctrl',rshift:'Shift',ralt:'Alt',rwin:'Win',application:'Menu',
+  up:'↑',down:'↓',left:'←',right:'→',
+  grave:['~','`'],1:['!','1'],2:['@','2'],3:['#','3'],4:['$','4'],5:['%','5'],6:['^','6'],7:['&','7'],8:['*','8'],9:['(','9'],0:[')','0'],
+  minus:['_','-'],equal:['+','='],leftbracket:['{','['],rightbracket:['}',']'],backslash:['|','\\'],
+  semicolon:[':',';'],quote:['"',"'"],comma:['<',','],dot:['>','.'],slash:['?','/'],nonushash:['~','#'],nonusbackslash:['|','\\']};
+for(let i=1;i<=12;i++) KB_LEGEND_US['f'+i]='F'+i;
+for(let i=0;i<10;i++) KB_LEGEND_US['numpad'+i]=String(i);
+Object.assign(KB_LEGEND_US,{numlock:'Num',numpadslash:'/',numpadasterisk:'*',numpadminus:'−',numpadplus:'+',numpadenter:'Enter',numpaddot:'.'});
+// Shorter legends used when the board is drawn narrow (phones).
+const KB_SHORT = {printscreen:'PS',scrolllock:'SL',pause:'Pa',insert:'In',home:'Hm',pageup:'PU',delete:'De',end:'En',pagedown:'PD',
+  backspace:'⌫',tab:'⇥',capslock:'Cap',enter:'⏎',numpadenter:'⏎',numlock:'NL',shift:'⇧',rshift:'⇧',ctrl:'Ct',rctrl:'Ct',alt:'Al',ralt:'Al',win:'Wi',rwin:'Wi',application:'☰'};
+// Add a layout here (e.g. de / fr) with its own legend overrides; `match` tests the browser language.
+const KB_LAYOUTS = {
+  us:{name:'US (ANSI)', iso:false, match:null, legend:{}},
+  uk:{name:'UK (ISO)', iso:true, match:/^en-(gb|uk|ie)\b/i,
+    legend:{grave:['¬','`'],2:['"','2'],3:['£','3'],quote:['@',"'"],nonushash:['~','#'],nonusbackslash:['|','\\'],ralt:'AltGr'}},
+};
+const KB_PREF = 'ch57x-configurator-kblayout';   // 'auto' (default) | a KB_LAYOUTS id
+function detectKbLayout(){
+  const langs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']);
+  const lang=String(langs[0]||'');
+  return Object.keys(KB_LAYOUTS).find(id=>KB_LAYOUTS[id].match&&KB_LAYOUTS[id].match.test(lang))||'us';
+}
+let kbPref='auto';
+try{ const v=localStorage.getItem(KB_PREF); if(v==='auto'||KB_LAYOUTS[v]) kbPref=v; }catch(e){}
+const kbLayoutId = () => kbPref==='auto' ? detectKbLayout() : kbPref;
+function kbLegend(name,lay){ const l=lay.legend[name]!==undefined?lay.legend[name]:KB_LEGEND_US[name]; return l!==undefined?l:name.toUpperCase(); }
+function buildBoard(){
+  const lay=KB_LAYOUTS[kbLayoutId()];
+  const board=$('kbBoard'); board.replaceChildren(); board.className='kb'+(lay.iso?' iso':' ansi');
+  board.setAttribute('aria-label','Keyboard, '+lay.name+' layout');
+  const geo=kbGeometry(lay.iso), onBoard=new Set();
+  geo.forEach(([name,x,y,w=1,hgt=1])=>{
+    const isMod=MOD_ORDER.includes(name), leg=kbLegend(name,lay);
+    const legs=Array.isArray(leg)?[h('span',{class:'top',text:leg[0]}),h('span',{class:'bot',text:leg[1]})]
+      : KB_SHORT[name]&&leg ? [h('span',{class:'one long',text:leg}),h('span',{class:'one short',text:name==='ralt'&&leg==='AltGr'?'AG':KB_SHORT[name]})]
+      : [h('span',{class:'one',text:leg})];
+    const props={type:'button',class:'kcap'+(isMod?' mod':'')+(w>=1.5?' wide':''),title:name,'aria-label':name};
+    if(isMod){ props['data-mod']=name; props['aria-pressed']=String(chips.has(name)); props.title=name+' — applies to the next keycode you click'; }
+    else { props['data-key']=name; onBoard.add(name); }
+    const b=h('button',props,...legs);
+    b.addEventListener('click',isMod?()=>toggleMod(name):()=>assignKey(name));
+    // position in key units; CSS turns them into percentages of --kbw (the board drops the numpad on phones)
+    const pos=h('div',{class:'kpos'+(name==='enter'&&lay.iso?' isoenter':'')+(x>=KB_NUMPAD_X?' np':''),
+      style:'--x:'+x+';--y:'+y+';--w:'+w+';--h:'+hgt},b);
+    board.append(pos);
+  });
+  // phones: the same numpad keycodes as a flat list (CSS shows it only when the board's numpad is hidden)
+  const np=$('kbNumpad'); np.replaceChildren(group('Numpad',['numlock','numpad0','numpad1','numpad2','numpad3','numpad4','numpad5','numpad6','numpad7','numpad8','numpad9','numpadslash','numpadasterisk','numpadminus','numpadplus','numpadenter','numpaddot'].map(n=>{
+    const l=kbLegend(n,lay); return pcap(n==='numlock'?'NumLk':l,n,()=>assignKey(n),n.length>8&&n!=='numpadminus'?'wide':'',n); })));
+  // keycodes this layout has no key for (e.g. ANSI backslash on ISO, the ISO keys on ANSI) stay reachable
+  const extra=$('kbExtra'); extra.replaceChildren();
+  const missing=['backslash','nonushash','nonusbackslash','numpadequal'].filter(n=>!onBoard.has(n));
+  const xlabel={backslash:'ANSI \\',nonushash:'ISO #',nonusbackslash:'ISO \\|',numpadequal:'Numpad ='};
+  if(missing.length) extra.append(group('Not on a '+lay.name+' keyboard',missing.map(n=>pcap(xlabel[n],n,()=>assignKey(n),'wide',n))));
+  $('kbLayout').querySelector('option[value="auto"]').textContent='Auto — '+KB_LAYOUTS[detectKbLayout()].name;
+  $('kbLayout').value=kbPref;
+}
 const MEDIALABEL = {screenbrightnessup:'Bright +',screenbrightnessdown:'Bright −',next:'Next',previous:'Prev',stop:'Stop',play:'Play',
   mute:'Mute',volumeup:'Vol +',volumedown:'Vol −',favorites:'Favorites',calculator:'Calc',screenlock:'Lock',
   webpagehome:'Web home',webpageback:'Web back',webpageforward:'Web fwd'};
@@ -181,12 +261,15 @@ function buildControls(){
     if(m==='rctrl') mc.append(h('span',{class:'modsep'}));
     const b=h('button',{type:'button',class:'pcap mod','data-mod':m,'aria-pressed':'false',
       title:m+' — applies to the next keycode you click',text:MODLABEL[m]});
-    b.addEventListener('click',()=>{ chips.has(m)?chips.delete(m):chips.add(m); syncMods(); });
+    b.addEventListener('click',()=>toggleMod(m));
     mc.append(b);
   });
-  const basic=$('pane-basic');
+  $('kbLayout').append(h('option',{value:'auto',text:'Auto'}),...Object.entries(KB_LAYOUTS).map(([id,l])=>h('option',{value:id,text:l.name})));
+  buildBoard();
+  $('kbLayout').addEventListener('change',()=>{ kbPref=$('kbLayout').value; try{ localStorage.setItem(KB_PREF,kbPref); }catch(e){} buildBoard(); });
+  const basic=$('kbGroups');
   KEYGROUPS.forEach(([title,keys])=>basic.append(group(title,keys.map(k=>
-    pcap(k.length===1?k.toUpperCase():(KEYLABEL[k]||k.toUpperCase()),k,()=>assignKey(k),k.length>3?'wide':'',k)))));
+    pcap(k.toUpperCase(),k,()=>assignKey(k),k.length>3?'wide':'',k)))));
   $('pane-media').append(group('Media keys',MEDIA.filter(m=>m!=='prev').map(m=>
     pcap(MEDIALABEL[m]||m,m,()=>assignKey(m),'wide',m))));
   const mouseCaps=(id,items)=>items.forEach(([label,core])=>$(id).append(pcap(label,core,()=>assignMouse(core),'wide')));
@@ -199,10 +282,11 @@ function setPane(n){
     const on=p===n; $('pane-'+p).hidden=!on;
     const t=$('ptab-'+p); t.classList.toggle('active',on); t.setAttribute('aria-selected',String(on));
   });
-  $('modRow').hidden = !(n==='basic'||n==='mouse');
+  $('modRow').hidden = n!=='mouse';   // the Basic tab's keyboard has its own modifier keys
 }
+function toggleMod(m){ chips.has(m)?chips.delete(m):chips.add(m); syncMods(); }
 function syncMods(){
-  $('modChips').querySelectorAll('button[data-mod]').forEach(b=>b.setAttribute('aria-pressed',String(chips.has(b.dataset.mod))));
+  document.querySelectorAll('button[data-mod]').forEach(b=>b.setAttribute('aria-pressed',String(chips.has(b.dataset.mod))));
 }
 const orderedMods = allowed => MOD_ORDER.filter(m=>chips.has(m) && (!allowed||allowed[m]));
 const appendMode = () => $('seqMode').checked;
