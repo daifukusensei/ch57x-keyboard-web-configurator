@@ -86,6 +86,15 @@ eq('line breaks in a note become spaces',cur.toYaml(cur.normalizeState({model:'m
 // orientation: R/C follow the file's buttons order, also for vertical layouts
 const cw=read('#@ L1 R3 C2: bottom right\norientation: clockwise\nrows: 2\ncolumns: 3\nknobs: 0\nlayers:\n  - buttons:\n      - ["a", "b"]\n      - ["c", "d"]\n      - ["e", "f"]\n    knobs: []\n');
 eq('vertical layout: R/C index the file\'s buttons rows',[cw.layers[0].buttons[2][1],cw.layers[0].bnotes[2][1]],['f','bottom right']);
+// upstream's own example (fixtures/upstream-example.yaml = refs/ch57x-keyboard-tool/example-mapping.yaml, MIT): its plain
+// "#" comments must never become key comments or change the mapping, LF or CRLF
+const upY=fs.readFileSync(path.join(S,'upstream-example.yaml'),'utf8');
+const upStripped=upY.split(/\r?\n/).filter(l=>!/^\s*#/.test(l)).map(l=>l.replace(/\s+#.*$/,'')).join('\n');
+[['LF',upY.replace(/\r\n/g,'\n')],['CRLF',upY.replace(/\r?\n/g,'\r\n')]].forEach(([eol,t])=>{
+  const u=read(t), plainUp=read(upStripped);
+  eq('upstream example ('+eol+'): has "#" comments, none read as key comments',[upY.split('\n').filter(l=>l.includes('#')).length>20,count(u),u.unmatchedNotes],[true,0,0]);
+  eq('upstream example ('+eol+'): same mapping as with every comment removed',JSON.stringify([u.orientation,u.rows,u.columns,u.knobs,u.layers.map(l=>[l.buttons,l.knobs])]),JSON.stringify([plainUp.orientation,plainUp.rows,plainUp.columns,plainUp.knobs,plainUp.layers.map(l=>[l.buttons,l.knobs])]));
+});
 // resizing keeps notes aligned with their keys and pads new cells
 const rs=read(y1); rs.rows=5; rs.knobs=5; cur.normalizeState(rs);
 eq('grow: existing notes stay, new cells empty',[rs.layers[0].bnotes[1][0],rs.layers[0].bnotes[4],rs.layers[0].knotes[4]],['IntelliJ split',['','',''],{ccw:'',press:'',cw:''}]);
