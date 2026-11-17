@@ -5,6 +5,12 @@ const MODS_KB = {ctrl:1,rctrl:1,shift:1,rshift:1,alt:1,opt:1,ralt:1,ropt:1,win:1
 const MODS_MOUSE = {ctrl:1,shift:1,alt:1};
 const MEDIA = ['screenbrightnessup','screenbrightnessdown','next','previous','prev','stop','play','mute',
   'volumeup','volumedown','favorites','calculator','screenlock','webpagehome','webpageback','webpageforward'];
+// The tool only knows key *names*; a typed symbol gets a hint with the name to use instead (shifted ones as on a US layout).
+// "," and "-" are not listed: they separate chords and modifiers, so they never reach the key check on their own.
+const CHAR_KEYS = {';':'semicolon',"'":'quote','.':'dot','/':'slash','=':'equal','[':'leftbracket',']':'rightbracket',
+  '\\':'backslash','`':'grave',':':'shift-semicolon','"':'shift-quote','<':'shift-comma','>':'shift-dot','?':'shift-slash',
+  '+':'shift-equal','_':'shift-minus','{':'shift-leftbracket','}':'shift-rightbracket','|':'shift-backslash','~':'shift-grave',
+  '!':'shift-1','@':'shift-2','#':'shift-3','$':'shift-4','%':'shift-5','^':'shift-6','&':'shift-7','*':'shift-8','(':'shift-9',')':'shift-0'};
 const KNOWN_KEYS = new Set();   // filled below from the full key table (lowercase, as in the original tool)
 const BTN = '(?:left|right|middle)(?:\\+(?:left|right|middle))*';
 const NUM = '-?\\d+';
@@ -74,6 +80,7 @@ function validateAction(raw){
       mods.forEach(m=>{ if(!MODS_KB[m]) err('Unknown modifier "'+m+'"'); });
       if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) warn('HID code '+n+' is above 255'); }
       else if(MODS_KB[key]){ /* modifier-only chord, e.g. alt-shift */ }
+      else if(CHAR_KEYS[key]) err('"'+key+'" is not a key name; use "'+CHAR_KEYS[key]+'"'+(CHAR_KEYS[key].includes('-')?' (US layout)':''));
       else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not in the key list this editor knows — check ./ch57x-keyboard-tool show-keys');
     }
   }
@@ -181,14 +188,37 @@ function blankLayer(st){
           knotes:Array.from({length:st.knobs},()=>({ccw:'',press:'',cw:''}))};
 }
 // A button row's comment lists one note per key, separated by ";" ("# vscode split; vscode zen; vscode toggle output").
+// A ";" that belongs to a note is written "\;". Before a ";", backslashes come in pairs ("\\" = one "\"), so a note
+// may end in "\"; anywhere else a backslash is literal ("C:\dir" stays as typed).
 // Extra pieces beyond the last key stay with that key, so nothing is lost on re-export.
+function splitNoteText(text){
+  const parts=[]; let cur='';
+  const s=String(text);
+  for(let i=0;i<s.length;i++){
+    if(s[i]==='\\'){
+      let j=i; while(s[j]==='\\') j++;
+      const run=j-i;
+      if(s[j]===';'){ cur+='\\'.repeat(run>>1); if(run&1) cur+=';'; else { parts.push(cur); cur=''; } i=j; }
+      else { cur+=s.slice(i,j); i=j-1; }
+    } else if(s[i]===';'){ parts.push(cur); cur=''; }
+    else cur+=s[i];
+  }
+  parts.push(cur);
+  return parts;
+}
 function splitRowNotes(text,n){
   const out=Array(Math.max(n,0)).fill('');
   if(!text||n<1) return out;
-  String(text).split(';').map(s=>s.trim()).forEach((p,i)=>{
+  splitNoteText(text).map(s=>s.trim()).forEach((p,i)=>{
     if(i<n) out[i]=p; else if(p) out[n-1]=(out[n-1]?out[n-1]+'; ':'')+p;
   });
   return out;
+}
+// Inverse of splitNoteText for one note: "\;" for a literal ";", and backslash runs before a ";" (or at the end of
+// a note that a separator follows) doubled.
+function escapeNote(t,last){
+  t=String(t).replace(/(\\*);/g,(m,b)=>b+b+'\\;');
+  return last ? t : t.replace(/(\\+)$/,(m,b)=>b+b);
 }
 function clampInt(v,lo,hi,def){ v=parseInt(v,10); if(isNaN(v)) v=def; return Math.max(lo,Math.min(hi,v)); }
 function normalizeState(st){
@@ -240,10 +270,10 @@ function toYaml(st){
     lines.forEach(x=>out.push(x.note ? x.text.padEnd(w)+'  # '+x.note : x.text));
   };
   const oneLine=s=>String(s||'').replace(/\s+/g,' ').trim();
-  const rowNote=notes=>{   // one note per key, in order, separated by ";" (a ";" inside a note would shift the others, so it becomes ",")
-    const p=(notes||[]).map((s,i,a)=>{ const t=oneLine(s); return i<a.length-1?t.replace(/;/g,','):t; });
+  const rowNote=notes=>{   // one note per key, in order, separated by ";" (a ";" inside a note is escaped as "\;", see splitNoteText)
+    const p=(notes||[]).map(oneLine);
     while(p.length&&!p[p.length-1]) p.pop();
-    return p.join('; ');
+    return p.map((t,i)=>escapeNote(t,i===p.length-1)).join('; ');
   };
   st.layers.forEach((l,li)=>{
     if(li) out.push('');

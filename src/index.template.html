@@ -16,7 +16,10 @@
   <div class="nav-in">
     <div class="brand">
       <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="2" width="11" height="11" rx="3" fill="#6b97ff"/><rect x="15" y="2" width="11" height="11" rx="3" fill="#8fb1ff"/><rect x="2" y="15" width="11" height="11" rx="3" fill="#8fb1ff"/><circle cx="20.5" cy="20.5" r="5.5" fill="none" stroke="#6b97ff" stroke-width="2.5" stroke-dasharray="3 2.4"/></svg>
-      <h1>CH57x Keyboard Web Configurator</h1>
+      <div class="titles">
+        <h1>CH57x Keyboard Web Configurator</h1>
+        <p class="tagline" id="tagline">Tool to manage macropad mappings from <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener noreferrer">ch57x-keyboard-tool</a>. By daifuku.</p>
+      </div>
     </div>
     <span class="spacer"></span>
     <a class="navlink" href="#help" id="helpLink">Help</a>
@@ -230,7 +233,7 @@
 knobs:
   - ccw: "ctrl-minus"       # zoom out
     press: "ctrl-numpad0"   # reset zoom</pre>
-      <p class="hint">A <code>;</code> typed inside a button note is saved as <code>,</code>, because <code>;</code> separates the notes in a row. If a row has more notes than keys, the extras are joined onto the last key.</p>
+      <p class="hint">Because <code>;</code> separates the notes in a row, a <code>;</code> typed inside a button note is saved as <code>\;</code> and read back as <code>;</code> (a backslash right before it is doubled). Knob notes are saved as typed. If a row has more notes than keys, the extras are joined onto the last key.</p>
       <h3>Direct upload (WebHID)</h3>
       <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
       <h3>Actions</h3>

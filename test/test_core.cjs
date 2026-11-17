@@ -61,6 +61,10 @@ t('modifier-only ok',v('alt-shift').level==='ok');
   t('drag(left,-127,127) valid',lvl('drag(left,-127,127)')==='ok');
   t('wheel(-128) invalid',lvl('wheel(-128)')==='error');
   t('wheel(-127) valid',lvl('wheel(-127)')==='ok');
+  t('a typed ";" is an error that names "semicolon"',lvl(';')==='error'&&/use "semicolon"/.test(v(';').msgs.join(' ')));
+  t('…also as the key of a chord',lvl('ctrl-;')==='error');
+  t('shifted symbols suggest the US-layout chord',/shift-semicolon/.test(JSON.stringify(v(':')))&&/shift-3/.test(JSON.stringify(v('#'))));
+  t('key names stay valid',lvl('semicolon')==='ok'&&lvl('shift-semicolon')==='ok'&&lvl('backslash')==='ok');
   t('range message says -127 to 127',/-127 to 127/.test(JSON.stringify(api.validateAction('move(-128,0)'))));
   let threw=''; try{ api.parseActionToMacro('move(-128,0)'); }catch(e){ threw=e.message; }
   t('upload parser rejects -128: '+threw,/-127\.\.127/.test(threw));

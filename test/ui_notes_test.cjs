@@ -53,7 +53,7 @@ function boot(seed){
   A.type('note','zen mode; fullscreen');
   ok('typing updates the keycap live',noteOf(A.cells()[4])==='zen mode; fullscreen'&&A.cells()[4].classList.contains('sel'));
   ok('focus-safe: the box keeps what was typed',d.getElementById('note').value==='zen mode; fullscreen');
-  ok('YAML row comment: ";" inside a note is saved as ","',/\["shift-f4", "ctrl-grave,4,2", "alt-4"\]\s+# IntelliJ split; zen mode, fullscreen; IntelliJ hide tools/.test(A.yaml()));
+  ok('YAML row comment: ";" inside a note is saved as "\\;"',/\["shift-f4", "ctrl-grave,4,2", "alt-4"\]\s+# IntelliJ split; zen mode\\; fullscreen; IntelliJ hide tools/.test(A.yaml()));
   A.click(A.cells()[0]); A.type('note','launcher');
   ok('a comment on a key in a previously uncommented row',/\["f", "click", "shift-n"\]\s+# launcher\n/.test(A.yaml()));
   A.click(A.cells()[1]); A.type('note','mouse click');

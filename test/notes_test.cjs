@@ -57,7 +57,15 @@ eq('trailing ";" adds nothing',mk('# a; b;',3),['a','b','']);
 eq('quotes and # inside a comment survive',mk('# use "#1" & \'x\'',1),['use "#1" & \'x\'']);
 const ex=cur.normalizeState({model:'ch57x-2',orientation:'normal',rows:1,columns:3,knobs:1,layers:[{buttons:[['a','b','c']],knobs:[{ccw:'x',press:'y',cw:'z'}],bnotes:[['first; one','','third']],knotes:[{ccw:'turn; left',press:'',cw:''}]}]});
 const y3=cur.toYaml(ex);
-eq('";" typed inside a non-last key note becomes ","',/# first, one; ; third/.test(y3),true);
+eq('";" typed inside a key note is saved as "\\;"',/# first\\; one; ; third/.test(y3),true);
+eq('…and read back as ";"',cur.fromObj(cur.parseYaml(y3)).layers[0].bnotes[0],['first; one','','third']);
+// escaping edge cases: every note survives export + CRLF re-import exactly
+[['type ; key','C:\\dir\\','x # y; z'],['a\\','\\;','b\\\\;c'],[';',';;',''],['','','end\\'],['a\\b','','']].forEach(notes=>{
+  const s4=cur.normalizeState({model:'ch57x-2',orientation:'normal',rows:1,columns:3,knobs:0,layers:[{buttons:[['a','b','c']],knobs:[],bnotes:[notes],knotes:[]}]});
+  eq('round-trip '+JSON.stringify(notes),cur.fromObj(cur.parseYaml(cur.toYaml(s4).replace(/\n/g,'\r\n'))).layers[0].bnotes[0],notes);
+});
+eq('a note without ";" before a backslash is written as typed',/# a\\b\n/.test(cur.toYaml(cur.normalizeState({model:'ch57x-2',orientation:'normal',rows:1,columns:3,knobs:0,layers:[{buttons:[['a','b','c']],knobs:[],bnotes:[['a\\b','','']],knotes:[]}]}))),true);
+eq('a hand-written "\\;" in a file is one note',mk('# a\\; b; c',3),['a; b','c','']);
 eq('knob notes may contain ";"',/ccw: "x"\s+# turn; left/.test(y3),true);
 // a "#" inside a quoted action is not a comment
 eq('"#" inside quotes is not a comment',cur.fromObj(cur.parseYaml('orientation: normal\nrows: 1\ncolumns: 1\nknobs: 0\nlayers:\n  - buttons:\n      - ["a #b"]  # real\n    knobs: []\n')).layers[0].buttons[0][0],'a #b');
