@@ -52,7 +52,14 @@
       <div class="eyebrow">Layers</div>
       <div id="tabs"></div>
     </div>
-    <div class="case"><div class="device" id="device"></div></div>
+    <div class="case">
+      <div class="zoombar" role="group" aria-label="Zoom the keypad">
+        <button type="button" id="zoomOut" title="Zoom out (Ctrl + mouse wheel over the keypad)" aria-label="Zoom out">−</button>
+        <button type="button" id="zoomReset" title="Reset zoom to 100%">100%</button>
+        <button type="button" id="zoomIn" title="Zoom in (Ctrl + mouse wheel over the keypad)" aria-label="Zoom in">+</button>
+      </div>
+      <div class="device" id="device"></div>
+    </div>
   </section>
   <div class="status">
     <div class="msg" id="summary"></div>

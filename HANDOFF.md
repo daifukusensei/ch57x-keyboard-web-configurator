@@ -73,13 +73,14 @@ QMK-Configurator-style layout (the user asked for "simplified, looks like QMK's"
 - Main render functions: `renderAll` → `renderSettings`, `renderTabs`, `renderDevice` (uses `cellEl`), `renderEditor`, `renderMsg`, `renderYaml`, then `hidSync()` (**required**: the protocol for 514c:8850 depends on the layout, so the info/upload buttons must be re-synced after any layout change).
 - Palette: `buildControls`, `wirePalette`, `setPane`, `assignKey`, `assignMouse`, `applyAction`. Modifiers are one-shot chips; "Add as next chord" appends instead of replacing (palette caps a sequence at 5 chords; the validators allow more per family).
 - **Basic-tab keyboard** (2026-11-16; only the key *picker*, the macropad drawing is unchanged): `kbGeometry(iso)` gives each key `[name,x,y,w,h]` in key units for a full-size board (main block, navigation cluster, numpad from `KB_NUMPAD_X` = 18.5u). `buildBoard()` draws them as `.kcap`s inside `#kbBoard`, each wrapper carrying `--x --y --w --h`; CSS turns those into percentages of `--kbw` (22.5u, or 18.25u under 700 px where the numpad `.np` keys are hidden and the same keycodes appear as a list in `#kbNumpad`). The board shrinks with `aspect-ratio` + container-query units, and below 760 px board width swaps long legends for `KB_SHORT`. Key names are positional HID usages, so a layout only changes the shape and legends: `KB_LAYOUTS` = `us` (ANSI) and `uk` (ISO: tall Enter, `nonushash` beside Enter, `nonusbackslash` beside a 1.25u Left Shift, UK legends `" £ @ ~ ¬ AltGr`). `detectKbLayout()` picks the first `KB_LAYOUTS[id].match` hitting `navigator.languages[0]` (`en-GB`/`en-UK`/`en-IE` → UK), else US; the `#kbLayout` select (Auto / US / UK) overrides it. Add a locale by adding a `KB_LAYOUTS` entry with `match` and `legend` overrides. Keycodes with no key on the current layout (`backslash` on ISO; `nonushash`/`nonusbackslash` on ANSI; `numpadequal` always) are listed in `#kbExtra`; F13–F24 stay a flat group in `#kbGroups`. The board's modifier keys carry `data-mod` and toggle the same one-shot chips as `#modChips` (`toggleMod`/`syncMods`), so `#modRow` is shown only on the Mouse tab. Page width (`main`, `.nav-in`) is 1240 px max (was 1100) so the full-size board keeps ~50 px keys.
+- **Keypad canvas** (2026-11-17): keycap text uses the same font token as the Basic keyboard (`--ui-font`, system UI sans, 600 weight, 12.5 px; it was 11 px monospace before). Default sizes: buttons 86×76 (`--cw/--ch`; 132×96 with comments shown), knob caps 84×66 + round 80 px. **Zoom** 60–200 % in 10 % steps: the `#zoomOut #zoomReset #zoomIn` pill at the top right of `.case`, or Ctrl/⌘ + wheel over the case (page zoom is prevented only there). `applyZoom()`/`setZoom()` set `--zoom` on `#device`, and CSS applies `zoom:var(--zoom)` to `.device`'s children, so layout grows and `.device` scrolls horizontally. Upside-down / counter-clockwise put the knobs first with `order:-1` rather than `row-reverse`/`column-reverse`, because overflow on the start side of a reversed flexbox can't be scrolled to.
 - Delay: one button toggles **Apply delay option ↔ Remove delay option** (`syncDelayUi`, `DELAY_RE`).
 - Confirmations use the in-page dialog `askConfirm(message,{title,ok,danger})` → `Promise<boolean>` (markup `#confirmDlg` / `.modal-box` with `#confirmTitle #confirmMsg #confirmCancel #confirmOk`), never `window.confirm`/`alert`. Faded backdrop (`--scrim`, per theme); Esc, Cancel or a click on the backdrop = cancel (a drag that starts inside the box doesn't count); Enter = OK unless Cancel has focus; Tab is kept inside; focus returns to the opener. Used by Load repo example, New blank, Clear (only when the action is non-empty), Upload to keyboard, and generating the CLI script with invalid actions. Callers are `async` and `await` it; the upload handler re-checks `hidDev`/`hidBusy` after the dialog. While open, `body.modal-open` locks page scroll; `html{scrollbar-gutter:stable}` keeps the scrollbar's space reserved so the page doesn't shift sideways when the scrollbar disappears (checked with real scrollbars: Playwright hides them by default, launch with `ignoreDefaultArgs:['--hide-scrollbars']`).
 - Theme: light/dark toggle, saved in `localStorage['ch57x-configurator-theme']`, defaults to system.
 
 ### 3.3 Element IDs the tests rely on (don't rename casually)
 
-`orientation rows columns knobs btnExample btnBlank tabs device action actionMsg btnClear delay btnDelay yamlOut yamlIn btnImport fileIn btnCopy btnDownload hidConnect hidInfo hidLayers hidPreview hidUpload hidStatus hidPlan upOs upTool upSudo upSudoWrap btnUpScript btnUpCopy summary toast themeToggle editTitle seqMode modChips modRow ptab-* pane-* mx my mn mbtn msMove msDrag msWheel bhid hidCodeSet yamlDrawer cliDrawer help helpLink note showNotes showNotesWrap confirmDlg confirmTitle confirmMsg confirmOk confirmCancel kbLayout kbBoard kbNumpad kbExtra kbGroups` plus classes `.cell .dial .tab .note .hasnote .kcap .isoenter` and `.kb.ansi`/`.kb.iso` on `#kbBoard`.
+`orientation rows columns knobs btnExample btnBlank tabs device action actionMsg btnClear delay btnDelay yamlOut yamlIn btnImport fileIn btnCopy btnDownload hidConnect hidInfo hidLayers hidPreview hidUpload hidStatus hidPlan upOs upTool upSudo upSudoWrap btnUpScript btnUpCopy summary toast themeToggle editTitle seqMode modChips modRow ptab-* pane-* mx my mn mbtn msMove msDrag msWheel bhid hidCodeSet yamlDrawer cliDrawer help helpLink note showNotes showNotesWrap zoomIn zoomOut zoomReset confirmDlg confirmTitle confirmMsg confirmOk confirmCancel kbLayout kbBoard kbNumpad kbExtra kbGroups` plus classes `.cell .dial .tab .note .hasnote .kcap .isoenter` and `.kb.ansi`/`.kb.iso` on `#kbBoard`.
 
 ### 3.4 Persistence (localStorage, all wrapped in try/catch)
 
@@ -88,6 +89,7 @@ QMK-Configurator-style layout (the user asked for "simplified, looks like QMK's"
 | `ch57x-configurator-v1` | `{state, layerIdx}` — the whole mapping incl. comments |
 | `ch57x-configurator-notes` | `'1'`/`'0'` — "Show comments on keys" preference (a viewer preference, not part of the mapping) |
 | `ch57x-configurator-theme` | `'light'` / `'dark'` |
+| `ch57x-configurator-zoom` | `'60'`…`'200'` — keypad canvas zoom in %, a viewer preference; anything else falls back to 100 |
 | `ch57x-configurator-kblayout` | `'auto'` (default, from the browser language) / `'us'` / `'uk'` — Basic-tab keyboard layout; an unknown value falls back to auto |
 
 Until 2026-11-15 these were `ch57x-editor-v1`, `ch57x-editor-notes` and `ch57x-theme`. `src/theme-init.js` (the first script to run) copies an old value to its new key once, if the new key is empty. Old keys are kept so an older copy of the page still works. Renaming a key again needs the same kind of migration.
@@ -172,7 +174,8 @@ User request: *"Include the ability to add a comment to each key. Text prefaced 
 | `upload_script_test.cjs` | CLI-fallback `upload.sh` run end to end with the stub `fixtures/it's-tool` (quoting, validate-before-upload, failure stops upload); `upload.ps1` content | `ALL PASSED` |
 | `storage_migration_test.cjs` | values under the old localStorage keys are carried over to the renamed ones; existing new keys win; old keys kept | `ALL PASSED` |
 | `core_purity.cjs` | `src/core.js` uses no DOM/browser globals | `ALL PASSED` |
-| `scripts/shots/*.cjs` (Playwright, not in CI) | screenshots for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px), written to `scripts/shots/out/` | visual only; all 5 run and reviewed 2026-11-15, no horizontal scroll at 320–1100 px. `shot_kb.cjs` (US/UK × light/dark × 1300/1100/360 px) and `shot_confirm.cjs` (dialog, light/dark × desktop/phone) added and reviewed 2026-11-16 |
+| `ui_test_zoom.cjs` | keypad zoom buttons + Ctrl+wheel, clamping at 60/200 %, persistence, bad/blocked localStorage; keypad text uses the same font token and size as `.kcap` | `all passed` |
+| `scripts/shots/*.cjs` (Playwright, not in CI) | screenshots for visual QA (desktop/mobile, light/dark; no horizontal page scroll at 320/360 px), written to `scripts/shots/out/` | visual only; all 5 run and reviewed 2026-11-15, no horizontal scroll at 320–1100 px. `shot_kb.cjs` (US/UK × light/dark × 1300/1100/360 px) and `shot_confirm.cjs` (dialog, light/dark × desktop/phone) added and reviewed 2026-11-16. `shot_zoom.cjs` (60/100/150 %, comments and dots, phone) added and reviewed 2026-11-17 |
 
 Regenerating the Rust oracles: `npm run fetch-refs` clones upstream, the fork and ch57x-programmer into `refs/` at the pinned revisions and applies `patches/*-oracle-harness.patch` (a `#[cfg(test)] mod oracle` with `oracle::dump` in `src/keyboard/mod.rs`; the fork also gets `oracle::bind` in `k884x.rs`). Then `sh scripts/regen-oracles.sh` (needs cargo) runs those tests with `ORACLE_ACTIONS=test/fixtures/{upstream,fork}-actions.txt` and writes the `ORACLE|` / `FORK|` lines to `test/fixtures/{upstream,fork}-oracle.txt`. *Verified 2026-11-15: the patched clones are byte-identical to the copies used originally, and the user's local run of `regen-oracles.sh` reproduced both oracle files exactly. The CI job `oracles` repeats this on every push.*
 
@@ -182,7 +185,7 @@ Dependencies (root `package.json`, dev only): `jsdom`, `esbuild`, `zod` (zod onl
 
 ## 7. Remaining tasks / open items
 
-**Awaiting the user**
+**Awaiting the user** (asked again 2026-11-17: items 1–3a all still open; the user will answer item 1 later, has not yet tested 2 and 3 on hardware, and will capture 3a later)
 1. The user's message *"Two things: * mouse movement is only in the range of -127 to 127"* arrived with the **second bullet missing**. Ask what it was.
 2. Does `move(x,y)` go the wrong way on their **1189:8890**? If yes, switch that family to the fork's (y,x) order.
 3. **Hardware confirmation** that the 514c:8850 12-key upload (ported from their fork) behaves on their device.
@@ -226,6 +229,7 @@ See the layout in `README.md`. The old scratchpad bundle was reorganised as foll
 
 14. (2026-11-16, branch `feature/confirm-dialog`) Browser `confirm()` pop-ups replaced by an **in-page confirmation dialog** styled like the page (light/dark), with faded background, Esc = cancel, Enter = OK, click outside = cancel.
 15. (2026-11-16, branch `feature/write-layer-select`) **Write** dropdown lists All layers / Layer 1 / Layer 2 / Layer 3 instead of All layers / Current layer only.
+16. (2026-11-17) Keypad canvas text made the **same typeface and size as the Basic keyboard**, keys and knobs enlarged, and a **zoom** control (−/100 %/+, Ctrl+wheel) added.
 ---
 
 ## 10. Pitfalls already hit (so you don't repeat them)
@@ -233,7 +237,9 @@ See the layout in `README.md`. The old scratchpad bundle was reorganised as foll
 - New assertions placed **after `process.exit(...)`** silently never run.
 - After a layout change the Connect/Info buttons went stale → `renderAll()` must end with `hidSync()`.
 - Byte offsets in UI tests changed when the protocol started depending on layout (e.g. `slice(9,15)==='5,0,1,0,0,0'` for the 12-key click).
-- Small keycaps broke long names mid-word (`wheeldown`) — knob caps are 64×56 / round 66 px with a 9.5 px font.
+- Small keycaps broke long names mid-word (`wheeldown`) — knob caps are now 84×66 / round 80 px with an 11.5 px font (`volumedown` still fits on one line).
+- A reversed flexbox (`row-reverse`) that overflows puts the overflow on the start side, which can't be scrolled to; use `order` instead.
+- The grid column width in `renderDevice()` has a fallback `var(--cw,86px)` that must match the CSS default `.cell` width, or keys overlap.
 - Playwright screenshots: the sticky upload bar overlaps lower content in short-viewport screenshots — a screenshot artefact, not a layout bug (use a taller viewport).
 - A test that strips comments with `/\s+#.*$/` fails on CRLF input; use `split(/\r?\n/)`. The editor itself handles CRLF.
 - Numpad keycodes exist twice in `#pane-basic` (board + the phone list `#kbNumpad`); uniqueness checks must exclude `#kbNumpad *`.

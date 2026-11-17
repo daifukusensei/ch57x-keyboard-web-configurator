@@ -9,6 +9,10 @@ const NOTES_PREF = 'ch57x-configurator-notes';
 let showNotes = false;
 try{ showNotes = localStorage.getItem(NOTES_PREF)==='1'; }catch(e){}
 function saveNotesPref(){ try{ localStorage.setItem(NOTES_PREF, showNotes?'1':'0'); }catch(e){} }
+// Keypad canvas zoom, 60–200 % in 10 % steps; also a per-viewer preference.
+const ZOOM_PREF = 'ch57x-configurator-zoom', ZOOM_MIN = 60, ZOOM_MAX = 200, ZOOM_STEP = 10;
+let zoomPct = 100;
+try{ const z=parseInt(localStorage.getItem(ZOOM_PREF),10); if(z>=ZOOM_MIN && z<=ZOOM_MAX) zoomPct=Math.round(z/ZOOM_STEP)*ZOOM_STEP; }catch(e){}
 
 function h(tag, props = {}, ...kids){
   const e = document.createElement(tag);
@@ -82,7 +86,7 @@ function cellEl(t,val,label,extra){
 function renderDevice(){
   const dev=$('device'); dev.className='device '+state.orientation+(showNotes?' notes':''); dev.replaceChildren();
   const {R,C}=dims();
-  const grid=h('div',{class:'grid'}); grid.style.gridTemplateColumns='repeat('+C+',var(--cw,70px))';
+  const grid=h('div',{class:'grid'}); grid.style.gridTemplateColumns='repeat('+C+',var(--cw,86px))';
   for(let r=0;r<R;r++) for(let c=0;c<C;c++) grid.append(cellEl({t:'b',r,c},layer().buttons[r][c],'R'+(r+1)+' C'+(c+1)));
   dev.append(grid);
   if(state.knobs){
@@ -362,6 +366,24 @@ function rebuildFromSettings(){
 $('action').addEventListener('input',e=>{ setVal(sel,e.target.value); onActionChanged(); });
 $('note').addEventListener('input',e=>{ setNote(sel,e.target.value); renderDevice(); renderYaml(); save(); });
 $('showNotes').addEventListener('change',e=>{ showNotes=e.target.checked; saveNotesPref(); renderDevice(); });
+function applyZoom(){
+  $('device').style.setProperty('--zoom', zoomPct/100);
+  $('zoomReset').textContent=zoomPct+'%';
+  $('zoomOut').disabled=zoomPct<=ZOOM_MIN; $('zoomIn').disabled=zoomPct>=ZOOM_MAX;
+}
+function setZoom(pct){
+  zoomPct=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,pct)); applyZoom();
+  try{ localStorage.setItem(ZOOM_PREF, String(zoomPct)); }catch(e){}
+}
+$('zoomIn').addEventListener('click',()=>setZoom(zoomPct+ZOOM_STEP));
+$('zoomOut').addEventListener('click',()=>setZoom(zoomPct-ZOOM_STEP));
+$('zoomReset').addEventListener('click',()=>setZoom(100));
+// Ctrl/Cmd + wheel over the keypad zooms the keypad instead of the page
+document.querySelector('.case').addEventListener('wheel',e=>{
+  if(!(e.ctrlKey||e.metaKey) || !e.deltaY) return;
+  e.preventDefault(); setZoom(zoomPct+(e.deltaY<0?ZOOM_STEP:-ZOOM_STEP));
+},{passive:false});
+applyZoom();
 $('btnClear').addEventListener('click',async()=>{
   if(getVal(sel).trim()!=='' && !await askConfirm('Layer '+(layerIdx+1)+' · '+selLabel(sel)+': "'+getVal(sel).trim()+'" is removed.'+(getNote(sel).trim()?' Its comment is kept.':''),
     {title:'Clear this action?',ok:'Clear',danger:true})) return;
