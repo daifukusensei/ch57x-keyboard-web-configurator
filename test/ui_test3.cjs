@@ -28,7 +28,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('connected status names 12-key protocol: '+d.getElementById("hidStatus").textContent,/Connected: 514c:8850 .*ch57x-3 · protocol 884x-514c \(12-key\/4-knob\) — chosen from your layout/.test(d.getElementById("hidStatus").textContent));
   ok('upload and info buttons enabled for the 12-key pad',!d.getElementById('hidUpload').disabled && !d.getElementById('hidInfo').disabled);
   sent.length=0;
-  d.getElementById('hidLayers').value='current';
+  d.getElementById('hidLayers').value='0';
   click('hidUpload'); await sleep(200);
   ok('confirm shown, names protocol',/Write 18 binding/.test(c.last) && /protocol 884x-514c \(12-key\/4-knob\)/.test(c.last));
   // layer 1: 12 buttons + 6 knob actions = 18 bindings, each 4-5 packets

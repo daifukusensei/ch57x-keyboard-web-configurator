@@ -25,7 +25,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   click('hidConnect'); await sleep(50);
   ok('connected as 8890: '+d.getElementById('hidStatus').textContent,/Connected: 1189:8890 .*ch57x-2 · protocol 8890/.test(d.getElementById('hidStatus').textContent));
   ok('editor warns about delay once connected: '+d.getElementById('actionMsg').textContent,/connected keyboard \(1189:8890\) has no delay feature/.test(d.getElementById('actionMsg').textContent));
-  d.getElementById('hidLayers').value='current';
+  d.getElementById('hidLayers').value='0';
   click('hidPreview'); await sleep(20);
   ok('preview status names the reason: '+d.getElementById('hidStatus').textContent,/^Cannot upload — Layer 1 R1 C1: delay is not supported by this keyboard model$/.test(d.getElementById('hidStatus').textContent.trim()));
   sent.length=0; c.asked.length=0;

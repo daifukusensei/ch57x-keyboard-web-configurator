@@ -439,7 +439,7 @@ function hidSync(){
   $('hidUpload').disabled = !on;
   $('hidConnect').disabled = hidBusy;
 }
-function hidWhich(){ return $('hidLayers').value==='all' ? 'all' : layerIdx; }
+function hidWhich(){ const v=$('hidLayers').value; return v==='all' ? 'all' : Math.min(parseInt(v,10)||0, state.layers.length-1); }   // 'all' or a layer index
 // First blocking problem, spelled out, so the status line says what to fix rather than just that something is wrong.
 const planErrorText = plan => plan.errors[0]+(plan.errors.length>1 ? ' (+'+(plan.errors.length-1)+' more, see list)' : '');
 function showPlan(plan){
@@ -518,7 +518,7 @@ $('hidUpload').addEventListener('click',async()=>{
   if(hidDeviceInfo &&((hidDeviceInfo.buttons&&hidDeviceInfo.buttons!==state.rows*state.columns)||hidDeviceInfo.encoders!==state.knobs))
     warns.push('Your layout ('+state.rows*state.columns+' buttons, '+state.knobs+' knobs) differs from what the keyboard reports ('+hidDeviceInfo.buttons+' buttons, '+hidDeviceInfo.encoders+' knobs).');
   const msg='Write '+plan.items+' binding(s) ('+plan.packets.length+' packets, protocol '+famName(hidFamily())+') to the keyboard, replacing those keys on '+
-    ($('hidLayers').value==='all'?'all '+state.layers.length+' layer(s)':'layer '+(layerIdx+1))+'.'+(warns.length?'\n\n'+warns.join('\n\n'):'');
+    (hidWhich()==='all'?'all '+state.layers.length+' layers':'layer '+(hidWhich()+1))+'.'+(warns.length?'\n\n'+warns.join('\n\n'):'');
   if(!await askConfirm(msg,{title:'Upload to the keyboard?',ok:'Upload'})) return;
   if(!hidDev||hidBusy) return;   // unplugged or another upload started while the dialog was open
   hidBusy=true; hidSync();

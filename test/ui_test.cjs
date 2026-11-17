@@ -31,7 +31,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('device info read '+d.getElementById('hidStatus').textContent,/12 buttons and 2 knobs/.test(d.getElementById('hidStatus').textContent));
   ok('info packet sent',sent.some(s=>s.data[0]===0xfb&&s.id===3));
   sent.length=0;
-  d.getElementById('hidLayers').value='current';
+  d.getElementById('hidLayers').value='0';
   click('hidUpload'); await sleep(200);
   ok('confirm shown',/Write 18 binding/.test(c.last));
   // layer 1: 12 buttons + 6 knob actions = 18 bindings, each 4-5 packets
@@ -41,6 +41,16 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('commit trio present',sent.some(s=>s.data[0]===0xfd&&s.data[1]===0xfe&&s.data[2]===0xff));
   console.log('packets sent:',sent.length);
   ok('success status',/Uploaded 18 binding/.test(d.getElementById('hidStatus').textContent));
+  // the Write selector names each layer: "Layer 3" uploads layer 3 even while layer 1 is on screen
+  ok('Write options: All layers, Layer 1-3',[...d.getElementById('hidLayers').options].map(o=>o.textContent).join('|')==='All layers|Layer 1|Layer 2|Layer 3');
+  sent.length=0; c.asked.length=0; d.getElementById('hidLayers').value='2';
+  click('hidUpload'); await sleep(200);
+  const binds=sent.filter(s=>s.data[0]===0xfe);
+  ok('Layer 3 chosen while viewing layer 1: confirm says layer 3, packets carry layer byte 3',/on layer 3\./.test(c.last)&&binds.length>0&&binds.every(s=>s.data[2]===3)&&/^Layer 1/.test(d.getElementById('editTitle').textContent));
+  d.getElementById('hidLayers').value='all'; sent.length=0;
+  click('hidUpload'); await sleep(300);
+  ok('All layers: confirm says all 3 layers, packets for layers 1-3',/on all 3 layers\./.test(c.last)&&[1,2,3].every(n=>sent.some(s=>s.data[0]===0xfe&&s.data[2]===n)));
+  d.getElementById('hidLayers').value='0';
   // invalid action blocks upload
   sent.length=0;
   d.querySelector('.cell').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
