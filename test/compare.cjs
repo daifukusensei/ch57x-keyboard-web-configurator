@@ -6,7 +6,10 @@ const api=new Function(core+';return {parseActionToMacro,bindPackets,keyIdFor,pl
 let fail=0,n=0; const ok=(name,c)=>{n++; if(!c){fail++;console.log('FAIL',name);}};
 // tables
 ok('well-known list identical',JSON.stringify(api.WELL_KNOWN)===JSON.stringify(ref.WELL_KNOWN_CODES));
-ok('media values identical',Object.entries(api.MEDIA_VALUES).every(([k,v])=>ref.MediaCodeValues[k]===v));
+// the editor has upstream's three web-page keys, which ch57x-programmer lacks (its own extras, e.g. KbBrightnessUp, are not
+// in upstream's grammar, so the editor leaves them out); every shared one must match
+ok('media values identical where shared',Object.entries(api.MEDIA_VALUES).filter(([k])=>k in ref.MediaCodeValues).every(([k,v])=>ref.MediaCodeValues[k]===v));
+ok('editor-only media keys are the web-page keys',JSON.stringify(Object.keys(api.MEDIA_VALUES).filter(k=>!(k in ref.MediaCodeValues)))==='["WebPageHome","WebPageBack","WebPageForward"]');
 ok('modifier bit order',api.HID_MODS.every((m,i)=>ref.modifiersValue([m])===1<<i));
 // examples
 const actions=['a','ctrl-a','alt-shift','alt-ctrl,ctrl-b','<100>','click','click(middle)','click+rclick','ctrl-mclick','move(0,10)',
@@ -42,6 +45,6 @@ for(const o of ['normal','upsidedown','clockwise','counterclockwise']){
 }
 ok('family 8840',api.familyFromProductId(0x8840)==='884x'&&api.familyFromProductId(0x8842)==='884x'&&api.familyFromProductId(0x8890)==='8890'&&api.familyFromProductId(0x1234)===null);
 // error cases
-const bad=['ctrl-shift-click','play,a','hyper-a','a,,b','webpagehome','{speed(1)}a','move(200,0)','ctrl-play','nonexistentkey'];
+const bad=['ctrl-shift-click','play,a','hyper-a','a,,b','{speed(1)}a','move(200,0)','ctrl-play','nonexistentkey'];
 for(const b of bad){ let threw=false; try{api.parseActionToMacro(b);}catch(e){threw=true;} ok('rejects '+b,threw); }
 console.log(n+' checks, '+fail+' failed'); process.exit(fail?1:0);

@@ -74,7 +74,7 @@ function renderTabs(){
     onclick:()=>{layerIdx=i;clampSel();renderAll();save();}})));
 }
 function cellEl(t,val,label,extra){
-  const v=validateAction(val);
+  const v=checkAction(state,val,t.t==='b');
   const cls=['cell']; if(extra) cls.push(extra);
   if(v.kind!=='empty'){ if(v.level==='error') cls.push('err'); else if(v.level==='warn') cls.push('warn'); }
   const on=same(t,sel); if(on) cls.push('sel');
@@ -110,7 +110,7 @@ function renderEditor(focus){
 }
 function renderMsg(){
   syncDelayUi();
-  const v=validateAction(getVal(sel)); const box=$('actionMsg'); box.replaceChildren();
+  const v=checkAction(state,getVal(sel),sel.t==='b'); const box=$('actionMsg'); box.replaceChildren();
   if(v.kind==='empty'){ box.append(h('span',{class:'hint',text:'Empty — pick or type an action.'})); return; }
   if(v.level==='ok') box.append(h('span',{class:'ok',text:'✓ Valid '+v.kind+' action'}));
   v.msgs.forEach(m=>box.append(h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m})));
@@ -124,11 +124,11 @@ function renderMsg(){
 function collectIssues(){
   const issues=[]; let empty=0;
   state.layers.forEach((l,li)=>{
-    const chk=(val,label)=>{ const v=validateAction(val);
+    const chk=(val,label,isButton)=>{ const v=checkAction(state,val,isButton);
       if(v.kind==='empty'){empty++;return;}
       if(v.level!=='ok') v.msgs.forEach(m=>issues.push({level:v.level,text:'Layer '+(li+1)+', '+label+': '+m})); };
-    l.buttons.forEach((row,r)=>row.forEach((val,c)=>chk(val,'R'+(r+1)+' C'+(c+1))));
-    l.knobs.forEach((k,n)=>['ccw','press','cw'].forEach(p=>chk(k[p],'knob '+(n+1)+' '+p)));
+    l.buttons.forEach((row,r)=>row.forEach((val,c)=>chk(val,'R'+(r+1)+' C'+(c+1),true)));
+    l.knobs.forEach((k,n)=>['ccw','press','cw'].forEach(p=>chk(k[p],'knob '+(n+1)+' '+p,false)));
   });
   return {issues,empty};
 }

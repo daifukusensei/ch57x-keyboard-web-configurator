@@ -274,7 +274,7 @@ model: ch57x-2
       <p><strong>Mouse.</strong> <code>click</code>, <code>click(left+right)</code>, <code>rclick</code>, <code>mclick</code>, <code>move(x,y)</code>, <code>drag(button,x,y)</code>, <code>wheel(n)</code>, <code>wheelup</code>, <code>wheeldown</code>, with ctrl / shift / alt only.</p>
       <p><strong>Media.</strong> <code>screenbrightnessup</code> <code>screenbrightnessdown</code> <code>next</code> <code>previous</code>/<code>prev</code> <code>stop</code> <code>play</code> <code>mute</code> <code>volumeup</code> <code>volumedown</code> <code>favorites</code> <code>calculator</code> <code>screenlock</code> <code>webpagehome</code> <code>webpageback</code> <code>webpageforward</code>. Media keys can't take modifiers or be mixed with normal keys.</p>
       <p><strong>LEDs</strong> (separate CLI command, not part of the YAML). 0x8840 / 0x8842: <code>led &lt;layer&gt; &lt;mode&gt;…</code> with modes <code>off</code>, <code>backlight</code>, <code>shock</code>, <code>shock2</code>, <code>press</code> and colors red, orange, yellow, green, cyan, blue, purple (backlight also white). 0x8890: <code>led 1</code>.</p>
-      <p><strong>3×1 + 1 knob boards:</strong> modifiers work on the first key of a sequence only.</p>
+      <p><strong>Boards with one row (or column) and one knob</strong> (e.g. 3×1 + 1 knob): modifiers work on the first key of a button's sequence only, as in the original tool's <code>validate</code>; the editor marks other uses as errors.</p>
       <p class="hint">Key names outside the ones this editor knows get a warning, not an error, because the tool's own list (<code>show-keys</code>) is authoritative. Always finish with <code>validate</code>.</p>
     </div>
   </details>

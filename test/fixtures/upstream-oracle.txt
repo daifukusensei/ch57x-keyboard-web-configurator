@@ -1679,6 +1679,150 @@ ORACLE|8850|screenbrightnessup|2|k0ccw|OK|03 fd 11 03 02 00 02 00 00 6f ; 03 fd 
 ORACLE|8850|screenbrightnessup|2|k0press|OK|03 fd 12 03 02 00 02 00 00 6f ; 03 fd fe ff
 ORACLE|8850|screenbrightnessup|2|k1cw|OK|03 fd 16 03 02 00 02 00 00 6f ; 03 fd fe ff
 ORACLE|8850|screenbrightnessup|2|k2press|OK|03 fd 18 03 02 00 02 00 00 6f ; 03 fd fe ff
+ORACLE|884x|webpagehome|0|b0|OK|03 fe 01 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|0|b5|OK|03 fe 06 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|0|b11|OK|03 fe 0c 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|0|b15|ERR|invalid key index
+ORACLE|884x|webpagehome|0|k0ccw|OK|03 fe 10 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|0|k0press|OK|03 fe 11 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|0|k1cw|OK|03 fe 15 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|0|k2press|OK|03 fe 17 01 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|b0|OK|03 fe 01 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|b5|OK|03 fe 06 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|b11|OK|03 fe 0c 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|b15|ERR|invalid key index
+ORACLE|884x|webpagehome|2|k0ccw|OK|03 fe 10 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|k0press|OK|03 fe 11 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|k1cw|OK|03 fe 15 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpagehome|2|k2press|OK|03 fe 17 03 02 00 00 00 00 00 00 23 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|8890|webpagehome|0|b0|OK|03 fe 01 01 01 ; 03 01 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|0|b5|OK|03 fe 01 01 01 ; 03 06 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|0|b11|OK|03 fe 01 01 01 ; 03 0c 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|0|b15|ERR|invalid key index
+ORACLE|8890|webpagehome|0|k0ccw|OK|03 fe 01 01 01 ; 03 0d 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|0|k0press|OK|03 fe 01 01 01 ; 03 0e 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|0|k1cw|OK|03 fe 01 01 01 ; 03 12 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|0|k2press|OK|03 fe 01 01 01 ; 03 14 12 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|b0|OK|03 fe 03 01 01 ; 03 01 32 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|b5|OK|03 fe 03 01 01 ; 03 06 32 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|b11|OK|03 fe 03 01 01 ; 03 0c 32 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|b15|ERR|invalid key index
+ORACLE|8890|webpagehome|2|k0ccw|OK|03 fe 03 01 01 ; 03 0d 32 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|k0press|OK|03 fe 03 01 01 ; 03 0e 32 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|k1cw|OK|03 fe 03 01 01 ; 03 12 32 23 02 ; 03 aa aa
+ORACLE|8890|webpagehome|2|k2press|OK|03 fe 03 01 01 ; 03 14 32 23 02 ; 03 aa aa
+ORACLE|8850|webpagehome|0|b0|OK|03 fd 01 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|b5|OK|03 fd 06 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|b11|OK|03 fd 0c 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|b15|OK|03 fd 10 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|k0ccw|OK|03 fd 11 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|k0press|OK|03 fd 12 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|k1cw|OK|03 fd 16 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|0|k2press|OK|03 fd 18 01 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|b0|OK|03 fd 01 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|b5|OK|03 fd 06 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|b11|OK|03 fd 0c 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|b15|OK|03 fd 10 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|k0ccw|OK|03 fd 11 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|k0press|OK|03 fd 12 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|k1cw|OK|03 fd 16 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpagehome|2|k2press|OK|03 fd 18 03 02 00 02 00 00 23 00 00 02 ; 03 fd fe ff
+ORACLE|884x|webpageback|0|b0|OK|03 fe 01 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|0|b5|OK|03 fe 06 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|0|b11|OK|03 fe 0c 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|0|b15|ERR|invalid key index
+ORACLE|884x|webpageback|0|k0ccw|OK|03 fe 10 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|0|k0press|OK|03 fe 11 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|0|k1cw|OK|03 fe 15 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|0|k2press|OK|03 fe 17 01 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|b0|OK|03 fe 01 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|b5|OK|03 fe 06 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|b11|OK|03 fe 0c 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|b15|ERR|invalid key index
+ORACLE|884x|webpageback|2|k0ccw|OK|03 fe 10 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|k0press|OK|03 fe 11 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|k1cw|OK|03 fe 15 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageback|2|k2press|OK|03 fe 17 03 02 00 00 00 00 00 00 24 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|8890|webpageback|0|b0|OK|03 fe 01 01 01 ; 03 01 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|0|b5|OK|03 fe 01 01 01 ; 03 06 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|0|b11|OK|03 fe 01 01 01 ; 03 0c 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|0|b15|ERR|invalid key index
+ORACLE|8890|webpageback|0|k0ccw|OK|03 fe 01 01 01 ; 03 0d 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|0|k0press|OK|03 fe 01 01 01 ; 03 0e 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|0|k1cw|OK|03 fe 01 01 01 ; 03 12 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|0|k2press|OK|03 fe 01 01 01 ; 03 14 12 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|b0|OK|03 fe 03 01 01 ; 03 01 32 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|b5|OK|03 fe 03 01 01 ; 03 06 32 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|b11|OK|03 fe 03 01 01 ; 03 0c 32 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|b15|ERR|invalid key index
+ORACLE|8890|webpageback|2|k0ccw|OK|03 fe 03 01 01 ; 03 0d 32 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|k0press|OK|03 fe 03 01 01 ; 03 0e 32 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|k1cw|OK|03 fe 03 01 01 ; 03 12 32 24 02 ; 03 aa aa
+ORACLE|8890|webpageback|2|k2press|OK|03 fe 03 01 01 ; 03 14 32 24 02 ; 03 aa aa
+ORACLE|8850|webpageback|0|b0|OK|03 fd 01 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|b5|OK|03 fd 06 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|b11|OK|03 fd 0c 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|b15|OK|03 fd 10 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|k0ccw|OK|03 fd 11 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|k0press|OK|03 fd 12 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|k1cw|OK|03 fd 16 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|0|k2press|OK|03 fd 18 01 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|b0|OK|03 fd 01 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|b5|OK|03 fd 06 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|b11|OK|03 fd 0c 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|b15|OK|03 fd 10 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|k0ccw|OK|03 fd 11 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|k0press|OK|03 fd 12 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|k1cw|OK|03 fd 16 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageback|2|k2press|OK|03 fd 18 03 02 00 02 00 00 24 00 00 02 ; 03 fd fe ff
+ORACLE|884x|webpageforward|0|b0|OK|03 fe 01 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|0|b5|OK|03 fe 06 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|0|b11|OK|03 fe 0c 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|0|b15|ERR|invalid key index
+ORACLE|884x|webpageforward|0|k0ccw|OK|03 fe 10 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|0|k0press|OK|03 fe 11 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|0|k1cw|OK|03 fe 15 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|0|k2press|OK|03 fe 17 01 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|b0|OK|03 fe 01 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|b5|OK|03 fe 06 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|b11|OK|03 fe 0c 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|b15|ERR|invalid key index
+ORACLE|884x|webpageforward|2|k0ccw|OK|03 fe 10 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|k0press|OK|03 fe 11 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|k1cw|OK|03 fe 15 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|884x|webpageforward|2|k2press|OK|03 fe 17 03 02 00 00 00 00 00 00 25 02 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
+ORACLE|8890|webpageforward|0|b0|OK|03 fe 01 01 01 ; 03 01 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|0|b5|OK|03 fe 01 01 01 ; 03 06 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|0|b11|OK|03 fe 01 01 01 ; 03 0c 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|0|b15|ERR|invalid key index
+ORACLE|8890|webpageforward|0|k0ccw|OK|03 fe 01 01 01 ; 03 0d 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|0|k0press|OK|03 fe 01 01 01 ; 03 0e 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|0|k1cw|OK|03 fe 01 01 01 ; 03 12 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|0|k2press|OK|03 fe 01 01 01 ; 03 14 12 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|b0|OK|03 fe 03 01 01 ; 03 01 32 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|b5|OK|03 fe 03 01 01 ; 03 06 32 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|b11|OK|03 fe 03 01 01 ; 03 0c 32 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|b15|ERR|invalid key index
+ORACLE|8890|webpageforward|2|k0ccw|OK|03 fe 03 01 01 ; 03 0d 32 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|k0press|OK|03 fe 03 01 01 ; 03 0e 32 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|k1cw|OK|03 fe 03 01 01 ; 03 12 32 25 02 ; 03 aa aa
+ORACLE|8890|webpageforward|2|k2press|OK|03 fe 03 01 01 ; 03 14 32 25 02 ; 03 aa aa
+ORACLE|8850|webpageforward|0|b0|OK|03 fd 01 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|b5|OK|03 fd 06 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|b11|OK|03 fd 0c 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|b15|OK|03 fd 10 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|k0ccw|OK|03 fd 11 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|k0press|OK|03 fd 12 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|k1cw|OK|03 fd 16 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|0|k2press|OK|03 fd 18 01 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|b0|OK|03 fd 01 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|b5|OK|03 fd 06 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|b11|OK|03 fd 0c 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|b15|OK|03 fd 10 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|k0ccw|OK|03 fd 11 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|k0press|OK|03 fd 12 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|k1cw|OK|03 fd 16 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
+ORACLE|8850|webpageforward|2|k2press|OK|03 fd 18 03 02 00 02 00 00 25 00 00 02 ; 03 fd fe ff
 ORACLE|884x|f13|0|b0|OK|03 fe 01 01 01 00 00 00 00 00 01 00 68 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
 ORACLE|884x|f13|0|b5|OK|03 fe 06 01 01 00 00 00 00 00 01 00 68 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa
 ORACLE|884x|f13|0|b11|OK|03 fe 0c 01 01 00 00 00 00 00 01 00 68 ; 03 aa aa ; 03 fd fe ff ; 03 aa aa

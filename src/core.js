@@ -92,6 +92,21 @@ function validateAction(raw){
   return res;
 }
 
+// Layout rule from the original tool's config.rs (render): a pad with one row or one column of buttons and exactly one knob
+// can only apply modifiers to the first key of a button's sequence. Knob actions are not affected.
+const isOneRowOneKnob = st => (st.rows===1||st.columns===1) && st.knobs===1;
+const ONE_ROW_MSG = 'A pad with 1 row (or column) and 1 knob only takes modifiers on the first key of a sequence';
+function oneRowViolation(raw){
+  let m; try{ m=parseActionToMacro(raw); }catch(e){ return false; }
+  return !!m && m.type==='Keyboard' && m.keyChords.slice(1).some(c=>c.modifiers.length>0);
+}
+// validateAction plus the checks that depend on the layout. isButton: true for a button, false for a knob action.
+function checkAction(st,raw,isButton){
+  const res=validateAction(raw);
+  if(isButton && st && isOneRowOneKnob(st) && oneRowViolation(raw)){ res.level='error'; res.msgs.push(ONE_ROW_MSG); }
+  return res;
+}
+
 // ---------- YAML (subset used by the tool) ----------
 function stripComment(line){
   let q=null;
@@ -310,11 +325,11 @@ const KB_MOD_NAME = {ctrl:'Ctrl',shift:'Shift',alt:'Alt',opt:'Alt',win:'Meta',cm
 const WK_BY_NAME = (()=>{ const m={}; WELL_KNOWN.forEach(n=>{ m[n.toLowerCase()]=n; }); m.macbrightnessdown='ScrollLock'; m.macbrightnessup='Pause'; return m; })();
 Object.keys(WK_BY_NAME).forEach(k=>KNOWN_KEYS.add(k));
 const MEDIA_VALUES = {BrightnessUp:0x6f,BrightnessDown:0x70,Next:0xb5,Previous:0xb6,Stop:0xb7,Play:0xcd,Mute:0xe2,
-  VolumeUp:0xe9,VolumeDown:0xea,Favorites:0x182,Calculator:0x192,Screenlock:0x19e};
+  VolumeUp:0xe9,VolumeDown:0xea,Favorites:0x182,Calculator:0x192,Screenlock:0x19e,
+  WebPageHome:0x223,WebPageBack:0x224,WebPageForward:0x225};
 const MEDIA_BY_NAME = {screenbrightnessup:'BrightnessUp',screenbrightnessdown:'BrightnessDown',next:'Next',previous:'Previous',
   prev:'Previous',stop:'Stop',play:'Play',mute:'Mute',volumeup:'VolumeUp',volumedown:'VolumeDown',favorites:'Favorites',
-  calculator:'Calculator',screenlock:'Screenlock'};
-const MEDIA_UNSUPPORTED = ['webpagehome','webpageback','webpageforward'];
+  calculator:'Calculator',screenlock:'Screenlock',webpagehome:'WebPageHome',webpageback:'WebPageBack',webpageforward:'WebPageForward'};
 const ENC_ACTION = {ccw:0,press:1,cw:2};
 const MOUSE_BTN = {Left:1,Right:2,Middle:4};
 const MOUSE_MOD = {Ctrl:1,Shift:2,Alt:4};   // Alt is 0x04 in the original tool (ch57x-programmer uses 3); verified against its output
@@ -350,7 +365,6 @@ function parseChord(c){
     for(const v of [md.x,md.y,md.delta]) if(v!==undefined && (v<-127||v>127)) throw new Error('value out of range -127..127 ('+c+')');
     return {kind:'mouse',macro:{type:'Mouse',action:md,modifier}};
   }
-  if(MEDIA_UNSUPPORTED.includes(key)) throw new Error('"'+key+'" is not supported by direct upload (use the CLI script)');
   if(MEDIA_BY_NAME[key]){
     if(mods.length) throw new Error('media keys cannot take modifiers ('+c+')');
     return {kind:'media',macro:{type:'Media',mediaCode:MEDIA_BY_NAME[key]}};
@@ -566,6 +580,7 @@ function planUpload(st,family,which){
       try{
         const macro=parseActionToMacro(val);
         if(!macro){ plan.skipped++; return; }
+        if(typeof key==='number' && isOneRowOneKnob(st) && oneRowViolation(val)) throw new Error(ONE_ROW_MSG);
         const pk=bindPackets(family,li,key,macro);
         familyWarnings(family,macro).forEach(w=>plan.warnings.push('Layer '+(li+1)+' '+label+': '+w));
         pk.forEach((bytes,i)=>plan.packets.push({desc:i===0?('Layer '+(li+1)+' '+label+' <- '+val):'',bytes}));
