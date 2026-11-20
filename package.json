@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "Single-file web editor and WebHID uploader for ch57x-keyboard-tool YAML mappings",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "build": "node build.mjs",
     "check": "node build.mjs --check",
     "test": "node test/run.mjs",
     "fetch-refs": "sh scripts/fetch-refs.sh",
-    "build:ref": "NODE_PATH=./node_modules esbuild test/reference/ref_entry.ts --bundle --platform=node --format=cjs --outfile=test/reference/ref.cjs --log-level=warning"
+    "build:ref": "NODE_PATH=./node_modules esbuild test/reference/ref_entry.ts --bundle --platform=node --format=cjs --outfile=test/reference/ref.cjs --banner:js=\"// Bundled from PollRobots/ch57x-programmer, MIT License, Copyright (c) 2026 Paul Roberts, Copyright (c) 2023 Mikhail Trishchenkov. Full notice: THIRD-PARTY-NOTICES.md\" --log-level=warning"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

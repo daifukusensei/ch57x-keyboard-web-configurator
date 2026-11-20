@@ -29,6 +29,8 @@ Browser support: WebHID is Chrome/Edge desktop only. Linux needs a udev rule for
 | `PollRobots/ch57x-programmer` (TypeScript) | Original WebHID reference; used as a second oracle for packet formats | `355e40f` "Writing to 8890 tested and functional" |
 | `daifukusensei/ch57x-keyboard-tool-enhanced` (the **user's fork**) | The only source of the working protocol for the user's 514c:8850 **12-key/4-knob** pad | `fa28f19` |
 
+All three are MIT-licensed (upstream and the fork are MIT OR Apache-2.0, used under MIT). This project is MIT (`LICENSE`); the required notices and the files that copy or port from each repo are in `THIRD-PARTY-NOTICES.md`, the built HTML carries a notice comment from `src/index.template.html`, and `ref.cjs` gets a banner from `build:ref`. When copying more from a reference repo, update `THIRD-PARTY-NOTICES.md`.
+
 Where sources disagree the editor follows **upstream**, except for the 514c:8850 12-key pad where it follows the **fork** (see §4.3).
 
 ---
@@ -239,6 +241,7 @@ See the layout in `README.md`. The old scratchpad bundle was reorganised as foll
 16. (2026-11-17) Keypad canvas text made the **same typeface and size as the Basic keyboard**, keys and knobs enlarged, and a **zoom** control (−/100 %/+, Ctrl+wheel) added.
 17. (2026-11-17) Header **tagline** under the title: "Tool to manage macropad mappings from [ch57x-keyboard-tool](https://github.com/kriomant/ch57x-keyboard-tool). By daifuku." (link shows the repo name only, opens in a new tab). Comment handling reviewed: a `;` in a button note is now escaped as `\;` instead of becoming `,` (§5), and a symbol typed as a key action (`;`, `:`, `#`…) is an error that names the key to use.
 18. (2026-11-17) Per-key comments moved to a **`#@ L1 R1 C1: text` block at the top of the file** (one line per key, no escaping); same-line comments are no longer read (user's choice, after comparing with one-key-per-line). The user's file converted with the previous build. Verified the same day: all 26 historical versions of upstream's and the fork's `example-mapping.yaml` import identically to the build before 2026-11-17 (mapping, action checks, export; LF and CRLF), with 0 key comments and 0 unmatched lines; upstream's own `validate` (v1.7.0, built from `refs/`) gives the same pass/fail for each original and the editor's export of it (26/26; the 2023 versions fail in both because the knob format changed), and passes the `#@` files.
+19. (2026-11-19) **Licensing** for publication: added MIT `LICENSE` and `THIRD-PARTY-NOTICES.md`; licence notice comment at the top of the built HTML (from `src/index.template.html`); attribution banner in `test/reference/ref.cjs` (via `build:ref`); `package.json` licence ISC → MIT. The §7 "Awaiting the user" questions are no longer asked at session start (user's choice); they stay listed until answered.
 ---
 
 ## 10. Pitfalls already hit (so you don't repeat them)

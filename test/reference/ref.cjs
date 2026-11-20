@@ -1,3 +1,4 @@
+// Bundled from PollRobots/ch57x-programmer, MIT License, Copyright (c) 2026 Paul Roberts, Copyright (c) 2023 Mikhail Trishchenkov. Full notice: THIRD-PARTY-NOTICES.md
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;

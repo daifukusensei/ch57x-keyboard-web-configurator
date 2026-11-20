@@ -39,7 +39,7 @@ Edit `src/`, then `npm run build && npm test` before committing.
 - In tall pages the sticky upload bar overlaps Playwright screenshots; use a taller viewport.
 
 ## Session start
-- Until they are resolved, ask the user the questions in HANDOFF.md §7 "Awaiting the user" early in the session, all together in one short message. Record the answers in §7, and remove each item once it is resolved.
+- Do **not** ask the user the questions in HANDOFF.md §7 "Awaiting the user" at session start; the user will answer them when ready (decided 2026-11-19). Keep them listed in §7, record answers there when given, and remove each item once it is resolved.
 
 ## Housekeeping
 - Commit as the repo's existing author, `daifukusensei`. Git has no global identity here, so pass `-c user.name=... -c user.email=...` (the email is in `git log`).

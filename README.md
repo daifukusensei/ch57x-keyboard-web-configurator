@@ -26,6 +26,8 @@ scripts/regen-oracles.sh  reruns the Rust harnesses to regenerate test/fixtures/
 scripts/shots/            Playwright screenshot scripts (visual QA; output in scripts/shots/out/)
 patches/                  oracle harness patches for upstream and the fork
 HANDOFF.md                architecture, protocol decisions, history, open items
+LICENSE                   MIT licence for this project
+THIRD-PARTY-NOTICES.md    MIT notices for ch57x-keyboard-tool (+ fork) and ch57x-programmer, and which files use them
 ```
 
 ## Develop
@@ -57,3 +59,7 @@ sh scripts/regen-oracles.sh   # needs a Rust toolchain
 npm i --no-save playwright && npx playwright install chromium
 node scripts/shots/shot_notes.cjs
 ```
+
+## License
+
+MIT (see `LICENSE`). Builds on [kriomant/ch57x-keyboard-tool](https://github.com/kriomant/ch57x-keyboard-tool) and [PollRobots/ch57x-programmer](https://github.com/PollRobots/ch57x-programmer), both MIT; see `THIRD-PARTY-NOTICES.md`.
