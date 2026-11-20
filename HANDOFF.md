@@ -130,7 +130,7 @@ Ported from the user's fork (`src/keyboard/k884x.rs`, `Keyboard884x::bind_key`).
 - **delay packet** = a full copy of the main packet with kind byte `5` and the delay in bytes 4–5 (max 6000 ms); a delay counts as one of the **max 18 entries**;
 - **knob 4** uses key ids 13–15 (`keyIdFor`); max 4 knobs.
 
-**Which keyboard is it?** The USB ids can't tell the 4×4 pad (upstream `k8850_4x4`, `ch57x-3`) from the 12-key pad, so `resolveFamily` decides by layout: `rows*columns === 16` → 4×4 (`8850`), otherwise `884x-514c`. The connect message says "— chosen from your layout".
+**Which keyboard is it?** The USB ids can't tell the 4×4 pad (upstream `k8850_4x4`, `ch57x-3`) from the 12-key pad, so `resolveFamily` decides by layout: `rows*columns === 16` → 4×4 (`8850`), otherwise `884x-514c`. The connect message names only the keyboard type (e.g. `… · ch57x-3 · protocol 884x-514c (12-key/4-knob)`); until 2026-11-19 it also said "— chosen from your layout", removed at the user's request. The Help text still explains that the layout decides.
 
 > **Verified byte-for-byte against the fork's Rust output, but NOT tested on hardware by us.** The user should confirm on their device.
 

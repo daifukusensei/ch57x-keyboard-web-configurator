@@ -25,7 +25,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('preview shows packets',/Layer 1 R1 C1 <- a/.test(d.getElementById('hidPlan').value) && /fe 01 01 01/.test(d.getElementById('hidPlan').value));
   click('hidConnect'); await sleep(50);
   ok("model follows device: "+d.getElementById("yamlOut").value.split("\n")[1],/^model: ch57x-3$/.test(d.getElementById("yamlOut").value.split("\n")[1]));
-  ok('connected status names 12-key protocol: '+d.getElementById("hidStatus").textContent,/Connected: 514c:8850 .*ch57x-3 · protocol 884x-514c \(12-key\/4-knob\) — chosen from your layout/.test(d.getElementById("hidStatus").textContent));
+  ok('connected status names 12-key protocol: '+d.getElementById("hidStatus").textContent,/Connected: 514c:8850 .*ch57x-3 · protocol 884x-514c \(12-key\/4-knob\)$/.test(d.getElementById("hidStatus").textContent));
   ok('upload and info buttons enabled for the 12-key pad',!d.getElementById('hidUpload').disabled && !d.getElementById('hidInfo').disabled);
   sent.length=0;
   d.getElementById('hidLayers').value='0';

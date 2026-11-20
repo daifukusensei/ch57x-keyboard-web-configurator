@@ -1701,7 +1701,7 @@ async function hidConnect(){
     if(di){ // keep the exported YAML's `model:` consistent with the connected device (same table as the original CLI)
       state.model=di.model; renderYaml(); save();
     }
-    hidSay('ok','Connected: '+hidDev.vendorId.toString(16)+':'+hidDev.productId.toString(16)+' '+(hidDev.productName||'')+' · '+(di?di.model+' · protocol '+famName(fam)+(di.pid===0x8850&&di.vid===0x514c?' — chosen from your layout':''):'unknown'));
+    hidSay('ok','Connected: '+hidDev.vendorId.toString(16)+':'+hidDev.productId.toString(16)+' '+(hidDev.productName||'')+' · '+(di?di.model+' · protocol '+famName(fam):'unknown'));
     if(!fam){ hidSay('err','Product 0x'+hidDev.productId.toString(16)+' is not a known family; upload is disabled.'); hidDev=null; }
   }catch(e){ hidSay('err','Could not connect: '+e.message); hidDev=null; }
   hidSync(); renderMsg();
