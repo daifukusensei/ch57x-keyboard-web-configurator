@@ -570,11 +570,37 @@ function buttonIndex(st,r,c){
     default: return r*C+c;
   }
 }
+const knobsReversed = o => o==='upsidedown'||o==='clockwise';   // as reorient_row() in the original tool
+// Changing the orientation keeps every action and comment on the same physical key/knob: each grid cell moves
+// to the cell with the same hardware index (buttonIndex) in the new orientation, and the knob list flips when
+// knobsReversed changes. Mutates st (expects it normalized) and returns {button:(r,c)=>[r,c], knob:n=>n} for
+// moving a selection along with it.
+function reorient(st,to){
+  const from=st.orientation, ident={button:(r,c)=>[r,c],knob:n=>n};
+  if(!ORIENTATIONS.includes(to)||to===from) return ident;
+  const src={rows:st.rows,columns:st.columns,orientation:from}, dst={...src,orientation:to};   // st.orientation changes below
+  const {R,C}=dimsOf(src), {R:R2,C:C2}=dimsOf(dst);
+  const pos=[];
+  for(let r=0;r<R2;r++) for(let c=0;c<C2;c++) pos[buttonIndex(dst,r,c)]=[r,c];
+  const flip=knobsReversed(from)!==knobsReversed(to), K=st.knobs;
+  const map={button:(r,c)=>pos[buttonIndex(src,r,c)], knob:n=>flip?K-1-n:n};
+  const move=g=>{
+    const out=Array.from({length:R2},()=>Array(C2).fill(''));
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){ const [r2,c2]=map.button(r,c); out[r2][c2]=g[r][c]; }
+    return out;
+  };
+  st.layers.forEach(l=>{
+    l.buttons=move(l.buttons); l.bnotes=move(l.bnotes);
+    if(flip){ l.knobs=l.knobs.slice().reverse(); l.knotes=l.knotes.slice().reverse(); }
+  });
+  st.orientation=to;
+  return map;
+}
 // which: 'all' or a 0-based layer index
 function planUpload(st,family,which){
   const plan={packets:[],items:0,skipped:0,errors:[],warnings:[]};
   const layers = which==='all' ? st.layers.map((l,i)=>[l,i]) : [[st.layers[which],which]];
-  const reverseKnobs = st.orientation==='upsidedown'||st.orientation==='clockwise';   // as reorient_row() in the original tool
+  const reverseKnobs = knobsReversed(st.orientation);
   for(const [l,li] of layers){
     const add=(label,val,key)=>{
       try{

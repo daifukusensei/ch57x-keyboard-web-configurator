@@ -358,7 +358,11 @@ document.addEventListener('keydown',e=>{
 
 // ----- events -----
 function rebuildFromSettings(){
-  state.orientation=$('orientation').value;
+  if($('orientation').value!==state.orientation){   // keys and knobs keep their physical position; the selection follows
+    const m=reorient(state,$('orientation').value);
+    if(sel.t==='b'){ const [r,c]=m.button(sel.r,sel.c)||[0,0]; sel={t:'b',r,c}; }
+    else sel={...sel,k:m.knob(sel.k)};
+  }
   state.rows=$('rows').value; state.columns=$('columns').value; state.knobs=$('knobs').value;
   normalizeState(state); clampSel(); renderAll(); save();
 }
