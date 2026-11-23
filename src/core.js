@@ -81,7 +81,7 @@ function validateAction(raw){
       if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) warn('HID code '+n+' is above 255'); }
       else if(MODS_KB[key]){ /* modifier-only chord, e.g. alt-shift */ }
       else if(CHAR_KEYS[key]) err('"'+key+'" is not a key name; use "'+CHAR_KEYS[key]+'"'+(CHAR_KEYS[key].includes('-')?' (US layout)':''));
-      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, or pick the key from the keycode palette');
+      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, pick the key from the keycode palette, or see Help');
     }
   }
   const set=new Set(kinds);

@@ -112,7 +112,11 @@ function renderMsg(){
   syncDelayUi();
   const v=checkAction(state,getVal(sel),sel.t==='b'); const box=$('actionMsg'); box.replaceChildren();
   if(v.kind==='empty'){ box.append(h('span',{class:'hint',text:'Empty — pick or type an action.'})); return; }
-  v.msgs.forEach(m=>box.append(h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m})));
+  v.msgs.forEach(m=>{
+    const div=h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m.replace(/see Help$/,'see ')});
+    if(/see Help$/.test(m)) div.append(h('a',{href:'#help-actions',class:'helpjump',text:'Help'}));   // opens Help at Actions
+    box.append(div);
+  });
   // The 1189:8890 firmware has no delay feature (the original tool refuses it too), so flag it while editing, not only at upload.
   if(hidDev && hidFamily()==='8890' && DELAY_RE.test(getVal(sel)))
     box.append(h('div',{class:'warn',text:'⚠ The connected keyboard (1189:8890) has no delay feature, so this action cannot be uploaded. Remove the delay option to upload it.'}));
@@ -322,7 +326,8 @@ function wirePalette(){
     if(!/^\d+$/.test(v)||+v>255){ toast('Enter a code from 0 to 255'); return; }
     assignKey('<'+parseInt(v,10)+'>');
   });
-  document.querySelectorAll('#helpLink,.helpjump').forEach(a=>a.addEventListener('click',()=>{ $('help').open=true; }));
+  // delegated, so links added later (the "see Help" in key warnings) open the drawer too; the browser then scrolls to the anchor
+  document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#helpLink,.helpjump')) $('help').open=true; });
 }
 
 // ----- confirmation dialog: replaces window.confirm (themed; Esc or a click outside = cancel, Enter = OK) -----

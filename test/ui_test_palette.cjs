@@ -95,7 +95,17 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
 
   // ---- drawers and help ----
   ok('YAML and help drawers start closed, no CLI-script drawer',!d.getElementById('cliDrawer')&&['yamlDrawer','help'].every(id=>!d.getElementById(id).open));
+  { const a=d.getElementById('action'); a.value='notakey'; a.dispatchEvent(new w.Event('input',{bubbles:true})); }
+  const jump=d.querySelector('#actionMsg a.helpjump');
+  ok('unknown-key warning ends with a Help link: '+d.getElementById('actionMsg').textContent,
+    /"notakey" is not a key name this editor recognises\. Check the spelling, pick the key from the keycode palette, or see Help$/.test(d.getElementById('actionMsg').textContent.trim())&&jump&&jump.getAttribute('href')==='#help-actions');
+  click(jump); ok('the warning link opens Help',d.getElementById('help').open);
+  d.getElementById('help').open=false;
   click('#helpLink'); ok('Help link opens the help drawer',d.getElementById('help').open);
+  { const b=d.querySelector('#help .body'), leads=[...b.children].slice(0,2).map(e=>e.textContent.trim());
+    ok('Help starts with the tagline, then "Build a layout" on its own line',leads[0]==='Visual editor for ch57x-keyboard-tool mapping files. By daifuku.'&&/^Build a layout/.test(leads[1]));
+    ok('Help sections in order, each its own block',[...b.querySelectorAll('section.hsec')].map(x=>x.id+':'+x.querySelector('h3').textContent).join('|')
+      ==='help-actions:Actions|help-comments:Comments on keys|help-webhid:Direct upload (WebHID)|help-cli:Without WebHID: the command-line tool'); }
   ok('YAML still generated while its drawer is closed',/knobs: 4/.test(d.getElementById('yamlOut').value));
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();

@@ -265,6 +265,12 @@ SOFTWARE.
   details.more>summary{cursor:pointer;font-weight:600;padding:11px 14px;list-style-position:inside}
   details.more>.body{padding:2px 14px 14px}
   details.more h3{font-size:14px;margin:16px 0 6px}
+  #help .lead{font-weight:600;margin-bottom:2px}
+  #help .lead+p{margin-top:0}
+  /* each Help topic is its own tile, so the sections read as separate blocks */
+  .hsec{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:2px 16px 4px;margin-top:12px;scroll-margin-top:12px}
+  .hsec>h3{margin:12px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .hsec pre.cli{background:var(--panel)}
   pre.cli{background:var(--input);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:12.5px;margin:10px 0}
   #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);
     padding:8px 14px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -502,29 +508,38 @@ SOFTWARE.
   <details class="more" id="help">
     <summary>Help and reference</summary>
     <div class="body">
-      <p>Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. Build a layout, then upload straight from this page, or save it with <em>Save config</em> and use the CLI.</p>
-      <h3>Actions</h3>
-      <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. A <em>chord</em> is one key, optionally held with modifiers (<code>ctrl-shift-t</code>). A <em>sequence</em> is up to 5 chords separated by commas, pressed one after another: <code>win-r,c,m,d,enter</code> opens the Run box, types <code>cmd</code> and presses Enter. Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>
-      <p><strong>Mouse.</strong> <code>click</code>, <code>click(left+right)</code>, <code>rclick</code>, <code>mclick</code>, <code>move(x,y)</code>, <code>drag(button,x,y)</code>, <code>wheel(n)</code>, <code>wheelup</code>, <code>wheeldown</code>, with ctrl / shift / alt only.</p>
-      <p><strong>Media.</strong> <code>screenbrightnessup</code> <code>screenbrightnessdown</code> <code>next</code> <code>previous</code>/<code>prev</code> <code>stop</code> <code>play</code> <code>mute</code> <code>volumeup</code> <code>volumedown</code> <code>favorites</code> <code>calculator</code> <code>screenlock</code> <code>webpagehome</code> <code>webpageback</code> <code>webpageforward</code>. Media keys can't take modifiers or be mixed with normal keys.</p>
-      <p><strong>LEDs</strong> (separate CLI command, not part of the YAML). 0x8840 / 0x8842: <code>led &lt;layer&gt; &lt;mode&gt;…</code> with modes <code>off</code>, <code>backlight</code>, <code>shock</code>, <code>shock2</code>, <code>press</code> and colors red, orange, yellow, green, cyan, blue, purple (backlight also white). 0x8890: <code>led 1</code>.</p>
-      <p><strong>Boards with one row (or column) and one knob</strong> (e.g. 3×1 + 1 knob): modifiers work on the first key of a button's sequence only, as in the original tool's <code>validate</code>; the editor marks other uses as errors.</p>
-      <p class="hint">A key name this editor doesn't recognise gets a warning, not an error: it may be a typo, or a name the tool accepts that the editor doesn't list. <code>./ch57x-keyboard-tool show-keys</code> prints every name the tool accepts. Always finish with <code>validate</code>.</p>
-      <h3>Comments on keys</h3>
-      <p>Type a note in the <em>Comment</em> box under the action to remember what a key does. Comments are saved at the top of the YAML, one line per key, starting with <code>#@</code>. The tool treats these lines as ordinary comments, so the file still validates and uploads exactly as before; comments are never sent to the keyboard. Importing a file reads them back onto their keys and turns on <em>Show comments on keys</em> so you can read them on the keycaps.</p>
-      <pre class="cli">#@ L1 R2 C3: split; "zen" view
+      <p class="lead">Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. By daifuku.</p>
+      <p>Build a layout, then upload straight from this page, or save it with <em>Save config</em> and use the CLI.</p>
+      <section class="hsec" id="help-actions">
+        <h3>Actions</h3>
+        <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. A <em>chord</em> is one key, optionally held with modifiers (<code>ctrl-shift-t</code>). A <em>sequence</em> is up to 5 chords separated by commas, pressed one after another: <code>win-r,c,m,d,enter</code> opens the Run box, types <code>cmd</code> and presses Enter. Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>
+        <p><strong>Mouse.</strong> <code>click</code>, <code>click(left+right)</code>, <code>rclick</code>, <code>mclick</code>, <code>move(x,y)</code>, <code>drag(button,x,y)</code>, <code>wheel(n)</code>, <code>wheelup</code>, <code>wheeldown</code>, with ctrl / shift / alt only.</p>
+        <p><strong>Media.</strong> <code>screenbrightnessup</code> <code>screenbrightnessdown</code> <code>next</code> <code>previous</code>/<code>prev</code> <code>stop</code> <code>play</code> <code>mute</code> <code>volumeup</code> <code>volumedown</code> <code>favorites</code> <code>calculator</code> <code>screenlock</code> <code>webpagehome</code> <code>webpageback</code> <code>webpageforward</code>. Media keys can't take modifiers or be mixed with normal keys.</p>
+        <p><strong>LEDs</strong> (separate CLI command, not part of the YAML). 0x8840 / 0x8842: <code>led &lt;layer&gt; &lt;mode&gt;…</code> with modes <code>off</code>, <code>backlight</code>, <code>shock</code>, <code>shock2</code>, <code>press</code> and colors red, orange, yellow, green, cyan, blue, purple (backlight also white). 0x8890: <code>led 1</code>.</p>
+        <p><strong>Boards with one row (or column) and one knob</strong> (e.g. 3×1 + 1 knob): modifiers work on the first key of a button's sequence only, as in the original tool's <code>validate</code>; the editor marks other uses as errors.</p>
+        <p class="hint">A key name this editor doesn't recognise gets a warning, not an error: it may be a typo, or a name the tool accepts that the editor doesn't list. <code>./ch57x-keyboard-tool show-keys</code> prints every name the tool accepts. Always finish with <code>validate</code>.</p>
+      </section>
+      <section class="hsec" id="help-comments">
+        <h3>Comments on keys</h3>
+        <p>Type a note in the <em>Comment</em> box under the action to remember what a key does. Comments are saved at the top of the YAML, one line per key, starting with <code>#@</code>. The tool treats these lines as ordinary comments, so the file still validates and uploads exactly as before; comments are never sent to the keyboard. Importing a file reads them back onto their keys and turns on <em>Show comments on keys</em> so you can read them on the keycaps.</p>
+        <pre class="cli">#@ L1 R2 C3: split; "zen" view
 #@ L1 K1 ccw: zoom out
 #@ L1 K1 press: reset zoom
 model: ch57x-2
 ...</pre>
-      <p class="hint"><code>L</code> is the layer, <code>R</code> and <code>C</code> the button row and column, and <code>K</code> the knob followed by <code>ccw</code>, <code>press</code> or <code>cw</code>, all counted from 1 in the order the file lists them (the same numbers the editor shows). The text runs to the end of the line exactly as typed, so <code>;</code>, <code>#</code>, quotes and backslashes need no escaping. Lines that name a key the pad doesn't have are skipped, and the import message says how many. A comment written at the end of a key line (<code>- ["a", "b"]  # note</code>) is not read.</p>
-      <h3>Direct upload (WebHID)</h3>
-      <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
-      <h3>Without WebHID: the command-line tool</h3>
-      <p>In Firefox or Safari, or when the browser can't reach the keyboard, save the mapping with <em>Save config</em> and upload it with <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a>:</p>
-      <pre class="cli">./ch57x-keyboard-tool validate mapping.yaml
+        <p class="hint"><code>L</code> is the layer, <code>R</code> and <code>C</code> the button row and column, and <code>K</code> the knob followed by <code>ccw</code>, <code>press</code> or <code>cw</code>, all counted from 1 in the order the file lists them (the same numbers the editor shows). The text runs to the end of the line exactly as typed, so <code>;</code>, <code>#</code>, quotes and backslashes need no escaping. Lines that name a key the pad doesn't have are skipped, and the import message says how many. A comment written at the end of a key line (<code>- ["a", "b"]  # note</code>) is not read.</p>
+      </section>
+      <section class="hsec" id="help-webhid">
+        <h3>Direct upload (WebHID)</h3>
+        <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
+      </section>
+      <section class="hsec" id="help-cli">
+        <h3>Without WebHID: the command-line tool</h3>
+        <p>In Firefox or Safari, or when the browser can't reach the keyboard, save the mapping with <em>Save config</em> and upload it with <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a>:</p>
+        <pre class="cli">./ch57x-keyboard-tool validate mapping.yaml
 ./ch57x-keyboard-tool upload mapping.yaml</pre>
-      <p class="hint">Linux without udev rules: prefix the commands with <code>sudo</code>. Windows: run <code>.\ch57x-keyboard-tool.exe</code> the same way (needs USBDK installed). If your build reads the config from standard input: <code>./ch57x-keyboard-tool upload &lt; mapping.yaml</code>.</p>
+        <p class="hint">Linux without udev rules: prefix the commands with <code>sudo</code>. Windows: run <code>.\ch57x-keyboard-tool.exe</code> the same way (needs USBDK installed). If your build reads the config from standard input: <code>./ch57x-keyboard-tool upload &lt; mapping.yaml</code>.</p>
+      </section>
     </div>
   </details>
 </main>
@@ -625,7 +640,7 @@ function validateAction(raw){
       if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) warn('HID code '+n+' is above 255'); }
       else if(MODS_KB[key]){ /* modifier-only chord, e.g. alt-shift */ }
       else if(CHAR_KEYS[key]) err('"'+key+'" is not a key name; use "'+CHAR_KEYS[key]+'"'+(CHAR_KEYS[key].includes('-')?' (US layout)':''));
-      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, or pick the key from the keycode palette');
+      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, pick the key from the keycode palette, or see Help');
     }
   }
   const set=new Set(kinds);
@@ -1301,7 +1316,11 @@ function renderMsg(){
   syncDelayUi();
   const v=checkAction(state,getVal(sel),sel.t==='b'); const box=$('actionMsg'); box.replaceChildren();
   if(v.kind==='empty'){ box.append(h('span',{class:'hint',text:'Empty — pick or type an action.'})); return; }
-  v.msgs.forEach(m=>box.append(h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m})));
+  v.msgs.forEach(m=>{
+    const div=h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m.replace(/see Help$/,'see ')});
+    if(/see Help$/.test(m)) div.append(h('a',{href:'#help-actions',class:'helpjump',text:'Help'}));   // opens Help at Actions
+    box.append(div);
+  });
   // The 1189:8890 firmware has no delay feature (the original tool refuses it too), so flag it while editing, not only at upload.
   if(hidDev && hidFamily()==='8890' && DELAY_RE.test(getVal(sel)))
     box.append(h('div',{class:'warn',text:'⚠ The connected keyboard (1189:8890) has no delay feature, so this action cannot be uploaded. Remove the delay option to upload it.'}));
@@ -1511,7 +1530,8 @@ function wirePalette(){
     if(!/^\d+$/.test(v)||+v>255){ toast('Enter a code from 0 to 255'); return; }
     assignKey('<'+parseInt(v,10)+'>');
   });
-  document.querySelectorAll('#helpLink,.helpjump').forEach(a=>a.addEventListener('click',()=>{ $('help').open=true; }));
+  // delegated, so links added later (the "see Help" in key warnings) open the drawer too; the browser then scrolls to the anchor
+  document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#helpLink,.helpjump')) $('help').open=true; });
 }
 
 // ----- confirmation dialog: replaces window.confirm (themed; Esc or a click outside = cancel, Enter = OK) -----
