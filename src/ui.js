@@ -140,10 +140,10 @@ function renderYaml(){
   const {issues,empty}=collectIssues();
   const box=$('summary'); box.replaceChildren();
   const errs=issues.filter(i=>i.level==='error').length, warns=issues.length-errs;
-  box.append(h('span',{class:errs?'err':warns?'warn':'ok',
-    text:errs?errs+' error'+(errs>1?'s':'')+(warns?', '+warns+' warning'+(warns>1?'s':''):''):
-         warns?warns+' warning'+(warns>1?'s':''):'No problems found'}));
-  if(empty) box.append(h('span',{class:'hint',text:' · '+empty+' empty action'+(empty>1?'s':'')}));
+  // Only problems are reported; a clean mapping shows just the empty-action count, if any.
+  if(issues.length) box.append(h('span',{class:errs?'err':'warn',
+    text:errs?errs+' error'+(errs>1?'s':'')+(warns?', '+warns+' warning'+(warns>1?'s':''):''):warns+' warning'+(warns>1?'s':'')}));
+  if(empty) box.append(h('span',{class:'hint',text:(issues.length?' · ':'')+empty+' empty action'+(empty>1?'s':'')}));
   if(issues.length){
     const ul=h('ul',{class:'issues'}); issues.slice(0,40).forEach(i=>ul.append(h('li',{class:i.level,text:i.text})));
     if(issues.length>40) ul.append(h('li',{text:'…and '+(issues.length-40)+' more'}));

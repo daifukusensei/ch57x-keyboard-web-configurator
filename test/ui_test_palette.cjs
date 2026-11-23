@@ -37,7 +37,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   ok('sequence mode appends a chord with modifiers',act()==='v,ctrl-shift-z');
   click(key('f13')); ok('F13 appended',act()==='v,ctrl-shift-z,f13');
   click('#seqMode');
-  ok('summary reflects the action',/No problems|warning|error/.test(d.getElementById('summary').textContent));
+  ok('summary reflects the action',!/No problems/.test(d.getElementById('summary').textContent));
   ok('cell legend shows the action',cells()[0].textContent.includes('v,ctrl-shift-z,f13'));
 
   // ---- selecting another key edits that key only ----
@@ -101,11 +101,17 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
     /"notakey" is not a key name this editor recognises\. Check the spelling, pick the key from the keycode palette, or see Help$/.test(d.getElementById('actionMsg').textContent.trim())&&jump&&jump.getAttribute('href')==='#help-actions');
   click(jump); ok('the warning link opens Help',d.getElementById('help').open);
   d.getElementById('help').open=false;
+  { const l=d.querySelector('.legendrow a.legendlink');
+    ok('"What do the labels and outlines mean?" links to its own Help section, first in Help',l&&l.textContent==='What do the labels and outlines mean?'&&l.getAttribute('href')==='#help-keypad'
+      &&d.querySelector('#help section.hsec').id==='help-keypad'&&/Amber outline = warning/.test(d.getElementById('help-keypad').textContent)&&!d.querySelector('details.legend'));
+    click(l); ok('the labels link opens Help',d.getElementById('help').open); d.getElementById('help').open=false; }
+  { const by=[...d.querySelectorAll('a')].filter(a=>a.textContent==='daifuku');
+    ok('both "daifuku" mentions link to the repo',by.length===2&&by.every(a=>a.href==='https://github.com/daifukusensei/ch57x-keyboard-web-configurator'&&a.target==='_blank')); }
   click('#helpLink'); ok('Help link opens the help drawer',d.getElementById('help').open);
   { const b=d.querySelector('#help .body'), leads=[...b.children].slice(0,2).map(e=>e.textContent.trim());
     ok('Help starts with the tagline, then "Build a layout" on its own line',leads[0]==='Visual editor for ch57x-keyboard-tool mapping files. By daifuku.'&&/^Build a layout/.test(leads[1]));
     ok('Help sections in order, each its own block',[...b.querySelectorAll('section.hsec')].map(x=>x.id+':'+x.querySelector('h3').textContent).join('|')
-      ==='help-actions:Actions|help-comments:Comments on keys|help-webhid:Direct upload (WebHID)|help-cli:Without WebHID: the command-line tool'); }
+      ==='help-keypad:Reading the keypad|help-actions:Actions|help-comments:Comments on keys|help-webhid:Direct upload (WebHID)|help-cli:Without WebHID: the command-line tool'); }
   ok('YAML still generated while its drawer is closed',/knobs: 4/.test(d.getElementById('yamlOut').value));
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();

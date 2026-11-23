@@ -42,7 +42,7 @@ function boot(seed){
     noteOf(cells[12])==='decrease zoom (Edge browser & vscode))'&&noteOf(cells[13])==='default zoom (Edge browser & vscode)'&&noteOf(cells[14])==='increase zoom (Edge browser & vscode))');
   ok('knob 2 has no comments; knob 4 does',[15,16,17].every(i=>noteOf(cells[i])==='')&&noteOf(cells[21])==='volume down'&&noteOf(cells[22])==='mute'&&noteOf(cells[23])==='volume up');
   ok('keycap tooltip carries action and comment',/shift-f4/.test(cells[3].title)&&/IntelliJ split/.test(cells[3].title));
-  ok('summary still has no problems (comments do not affect validation)',/No problems found/.test(d.getElementById('summary').textContent));
+  ok('summary still reports no problems, and no "No problems found" text (comments do not affect validation)',!/error|warning|No problems/.test(d.getElementById('summary').textContent));
 
   // ---- selecting a key shows its comment in the box ----
   A.click(cells[4]);
@@ -123,7 +123,7 @@ function boot(seed){
 
   // ---- 1-line examples in the help ----
   ok('help and drawer mention comments',/Comments on keys/.test(d.getElementById('help').textContent)&&/#@ lines/.test(d.getElementById('yamlDrawer').textContent));
-  ok('legend mentions the dot',/small dot/.test(d.querySelector('details.legend').textContent));
+  ok('keypad help mentions the dot',/small dot/.test(d.getElementById('help-keypad').textContent));
   ok('no script errors at the end',A.errors.length===0&&B.errors.length===0&&D.errors.length===0);
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();
