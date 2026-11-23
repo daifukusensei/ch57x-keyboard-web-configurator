@@ -13,7 +13,7 @@ click(cells()[0]);
 // --- clear confirmation
 ok('selected cell has action',$('action').value==='a');
 c.answer=false; click('btnClear'); await c.tick();
-ok('clear asks when action has content',c.asked.length===1&&/"a" is removed/.test(c.last));
+ok('clear asks when action has content: '+c.last,c.asked.length===1&&c.last==='Layer 1 · Button row 1, column 1: "a"'&&$('confirmTitle').textContent==='Clear this key?');
 ok('declining keeps action',$('action').value==='a');
 c.answer=true; click('btnClear'); await c.tick();
 ok('accepting clears',$('action').value==='' && c.asked.length===2);

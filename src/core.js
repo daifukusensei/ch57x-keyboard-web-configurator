@@ -61,10 +61,10 @@ function validateAction(raw){
     if(!s){err('Option given but no keys follow');return res;}
   }
   const chords=splitTop(s,',').map(x=>x.trim());
-  if(chords.length>5) err('At most 5 steps per key ('+chords.length+' given; steps are separated by commas)');
+  if(chords.length>5) err('At most 5 chords per key ('+chords.length+' given; chords are separated by commas)');
   const kinds=[];
   for(const c of chords){
-    if(!c){err('Empty step: two commas in a row, or a comma at the start or end');continue;}
+    if(!c){err('Empty chord: two commas in a row, or a comma at the start or end');continue;}
     const toks=splitDash(c); const key=toks.pop(); const mods=toks;
     if(!key){err('Missing key in "'+c+'"');continue;}
     const mp=mouseParse(key);
@@ -81,12 +81,12 @@ function validateAction(raw){
       if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) warn('HID code '+n+' is above 255'); }
       else if(MODS_KB[key]){ /* modifier-only chord, e.g. alt-shift */ }
       else if(CHAR_KEYS[key]) err('"'+key+'" is not a key name; use "'+CHAR_KEYS[key]+'"'+(CHAR_KEYS[key].includes('-')?' (US layout)':''));
-      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, or pick the key from the keycode palette. If the name is right, it may still work: ./ch57x-keyboard-tool show-keys lists every name the tool accepts');
+      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, or pick the key from the keycode palette');
     }
   }
   const set=new Set(kinds);
-  if(set.has('media') && (kinds.length>1)) err('A media key must be the only step, with no modifiers or other keys');
-  else if(set.has('mouse') && kinds.length>1) warn('Mouse actions in a sequence with other steps are untested here; run validate');
+  if(set.has('media') && (kinds.length>1)) err('A media key must be the only chord, with no modifiers or other keys');
+  else if(set.has('mouse') && kinds.length>1) warn('Mouse actions in a sequence with other chords are untested here; run validate');
   res.kind = set.size===1 ? [...set][0] : 'mixed';
   if(om && (set.has('media')||set.has('mouse')) && kinds.length===1) warn('delay option has no effect on a single action');
   return res;

@@ -112,7 +112,6 @@ function renderMsg(){
   syncDelayUi();
   const v=checkAction(state,getVal(sel),sel.t==='b'); const box=$('actionMsg'); box.replaceChildren();
   if(v.kind==='empty'){ box.append(h('span',{class:'hint',text:'Empty — pick or type an action.'})); return; }
-  if(v.level==='ok') box.append(h('span',{class:'ok',text:'✓ Valid '+v.kind+' action'}));
   v.msgs.forEach(m=>box.append(h('div',{class:v.level==='error'?'err':'warn',text:(v.level==='error'?'✗ ':'⚠ ')+m})));
   // The 1189:8890 firmware has no delay feature (the original tool refuses it too), so flag it while editing, not only at upload.
   if(hidDev && hidFamily()==='8890' && DELAY_RE.test(getVal(sel)))
@@ -388,10 +387,12 @@ document.querySelector('.case').addEventListener('wheel',e=>{
   e.preventDefault(); setZoom(zoomPct+(e.deltaY<0?ZOOM_STEP:-ZOOM_STEP));
 },{passive:false});
 applyZoom();
+// Clear empties the action and its comment; it asks only when there is something to lose.
 $('btnClear').addEventListener('click',async()=>{
-  if(getVal(sel).trim()!=='' && !await askConfirm('Layer '+(layerIdx+1)+' · '+selLabel(sel)+': "'+getVal(sel).trim()+'" is removed.'+(getNote(sel).trim()?' Its comment is kept.':''),
-    {title:'Clear this action?',ok:'Clear',danger:true})) return;
-  setVal(sel,''); $('action').value=''; onActionChanged(); $('action').focus();
+  const v=getVal(sel).trim(), n=getNote(sel).trim();
+  if((v||n) && !await askConfirm('Layer '+(layerIdx+1)+' · '+selLabel(sel)+': '+(v?'"'+v+'"':'comment "'+n+'"'),
+    {title:'Clear this key?',ok:'Clear',danger:true})) return;
+  setVal(sel,''); setNote(sel,''); $('action').value=''; $('note').value=''; onActionChanged(); $('action').focus();
 });
 wirePalette();
 // The delay button toggles between "Apply delay option" and "Remove delay option" depending on the selected action.
@@ -413,7 +414,7 @@ $('btnDelay').addEventListener('click',()=>{
   }
   $('action').value=getVal(sel); onActionChanged();
 });
-const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Use Save config first if you want to keep it.';
+const DISCARD_MSG='This replaces the current mapping on all layers. Use Save config first if you want to keep it.';
 // Save config reuses the name of the file last loaded, and its line endings (the user's files are CRLF).
 let cfgName='mapping.yaml', cfgCrlf=false;
 $('btnLoad').addEventListener('click',async()=>{
@@ -421,7 +422,7 @@ $('btnLoad').addEventListener('click',async()=>{
   $('fileIn').click();   // the OK click still counts as the user gesture the file picker needs
 });
 $('btnSave').addEventListener('click',async()=>{
-  if(!await askConfirm('Downloads the mapping on all layers, comments included, as "'+cfgName+'". Your browser saves it to its downloads folder or asks where, depending on its settings.',
+  if(!await askConfirm('Downloads the mapping on all layers as "'+cfgName+'".',
     {title:'Save the config file?',ok:'Save'})) return;
   const text=$('yamlOut').value.replace(/\r?\n/g,cfgCrlf?'\r\n':'\n');
   const a=h('a',{href:URL.createObjectURL(new Blob([text],{type:'text/yaml'})),download:cfgName});

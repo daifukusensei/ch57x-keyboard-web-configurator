@@ -13,8 +13,8 @@ function boot(seed){
     w.alert=()=>{}; w.addEventListener('error',e=>errors.push(e.message));
     if(seed) for(const [k,v] of Object.entries(seed)) w.localStorage.setItem(k,v);
   }});
-  const w=dom.window,d=w.document; autoConfirm(w);
-  return {w,d,errors,
+  const w=dom.window,d=w.document; const confirm=autoConfirm(w);
+  return {w,d,errors,confirm,
     click:el=>(typeof el==='string'?d.querySelector(el):el).dispatchEvent(new w.MouseEvent('click',{bubbles:true})),
     type:(id,v)=>{ const e=d.getElementById(id); e.value=v; e.dispatchEvent(new w.Event('input',{bubbles:true})); },
     cells:()=>[...d.querySelectorAll('#device .cell')],
@@ -70,10 +70,12 @@ function boot(seed){
   ok('odd characters are kept as typed',(A.click(A.cells()[15]),A.type('note','back; rewind # "x" \\ C:\\dir\\'),/\n#@ L1 K2 ccw: back; rewind # "x" \\ C:\\dir\\\n/.test(A.yaml())));
   A.click(A.cells()[15]); A.type('note','');
 
-  // Clear only clears the action
-  A.click(A.cells()[3]); A.click('#btnClear'); await sleep(0);
-  ok('Clear removes the action, not the comment',d.getElementById('action').value===''&&d.getElementById('note').value==='IntelliJ split'&&noteOf(A.cells()[3])==='IntelliJ split'&&A.cells()[3].querySelector('.val').textContent==='—');
-  A.type('action','shift-f4');
+  // Clear empties the action and its comment
+  A.click(A.cells()[3]); const act3=d.getElementById('action').value; A.click('#btnClear'); await sleep(0);
+  ok('Clear removes the action and the comment',d.getElementById('action').value===''&&d.getElementById('note').value===''&&noteOf(A.cells()[3])===''&&!A.cells()[3].classList.contains('hasnote')&&A.cells()[3].querySelector('.val').textContent==='—'&&!/IntelliJ split/.test(A.yaml()));
+  A.type('note','IntelliJ split'); A.click('#btnClear'); await sleep(0);
+  ok('a comment alone is cleared too, after asking',d.getElementById('note').value===''&&/comment "IntelliJ split"/.test(A.confirm.last));
+  A.type('note','IntelliJ split'); A.type('action',act3); A.type('action','shift-f4');
 
   // ---- toggle ----
   A.click('#showNotes');
