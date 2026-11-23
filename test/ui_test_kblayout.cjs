@@ -1,5 +1,5 @@
 const autoConfirm=require('./lib/autoconfirm.cjs');
-// Basic-tab keyboard: ANSI/ISO from the browser language, manual override (saved), board modifiers, nothing lost.
+// Basic-tab keyboard: US (ANSI) by default whatever the browser language, US/UK choice (saved), board modifiers, nothing lost.
 const {JSDOM}=require('jsdom'); const fs=require('fs');
 const html=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'../ch57x-keyboard-web-configurator.html'),'utf8');
 let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console.log('ok  ',n); };
@@ -17,11 +17,11 @@ function open(langs,store){
 }
 const ALL=['backslash','nonushash','nonusbackslash'];
 (async()=>{
-  // ---- US browser -> ANSI ----
+  // ---- default -> ANSI ----
   let p=open(['en-US','en']);
   ok('no script errors (US) '+p.errors.join(';'),p.errors.length===0);
   ok('US: board is ANSI',p.d.getElementById('kbBoard').classList.contains('ansi'));
-  ok('US: auto option names the detected layout',/Auto — US \(ANSI\)/.test(p.d.querySelector('#kbLayout option[value="auto"]').textContent)&&p.d.getElementById('kbLayout').value==='auto');
+  ok('select offers US and UK only (no Auto), US selected',[...p.d.querySelectorAll('#kbLayout option')].map(o=>o.value).join()==='us,uk'&&p.d.getElementById('kbLayout').value==='us');
   ok('US: backslash on the board, ISO keys listed below',!!p.board('backslash')&&!p.board('nonushash')&&!!p.extra('nonushash')&&!!p.extra('nonusbackslash'));
   ok('US: 2 shows @',p.board('2').textContent.includes('@'));
   ok('full size: 104 keys on the ANSI board',p.d.querySelectorAll('#kbBoard .kcap').length===104);
@@ -49,9 +49,13 @@ const ALL=['backslash','nonushash','nonusbackslash'];
   ok('all '+want.length+' keycodes offered: missing '+want.filter(k=>!keys.includes(k)).join(','),want.every(k=>keys.includes(k)));
   ok('keycodes unique and valid',new Set(keys).size===keys.length&&keys.every(k=>val(k).level==='ok'));
 
-  // ---- UK browser -> ISO ----
+  // ---- no detection: a UK browser still starts on US ----
   p=open(['en-GB','en']);
-  ok('no script errors (UK)',p.errors.length===0);
+  ok('no script errors (en-GB)',p.errors.length===0);
+  ok('en-GB browser: still ANSI, nothing detected',p.d.getElementById('kbBoard').classList.contains('ansi')&&p.d.getElementById('kbLayout').value==='us');
+  // ---- choosing UK -> ISO, saved ----
+  let sel=p.d.getElementById('kbLayout'); sel.value='uk'; sel.dispatchEvent(new p.w.Event('change',{bubbles:true}));
+  ok('choosing UK saves it',p.w.localStorage.getItem('ch57x-configurator-kblayout')==='uk');
   ok('UK: board is ISO with the tall Enter',p.d.getElementById('kbBoard').classList.contains('iso')&&!!p.d.querySelector('#kbBoard .isoenter [data-key="enter"]'));
   ok('UK: # and \\| keys on the board, ANSI backslash below',!!p.board('nonushash')&&!!p.board('nonusbackslash')&&!p.board('backslash')&&!!p.extra('backslash'));
   ok('UK legends: " on 2, £ on 3, @ on quote, ~ # , ¬ on grave, AltGr',p.board('2').textContent.includes('"')&&p.board('3').textContent.includes('£')
@@ -59,14 +63,13 @@ const ALL=['backslash','nonushash','nonusbackslash'];
     &&p.d.querySelector('#kbBoard [data-mod="ralt"]').textContent.includes('AltGr'));
   ok('full size: 105 keys on the ISO board',p.d.querySelectorAll('#kbBoard .kcap').length===105);
   p.click('#btnBlank'); await p.c.tick(); p.click(p.board('nonushash')); ok('UK # key -> nonushash (positional name)',p.act()==='nonushash');
-  ok('en-IE also gets ISO',open(['en-IE']).d.getElementById('kbBoard').classList.contains('iso'));
 
-  // ---- manual override, saved ----
-  const sel=p.d.getElementById('kbLayout'); sel.value='us'; sel.dispatchEvent(new p.w.Event('change',{bubbles:true}));
-  ok('override to US redraws ANSI',p.d.getElementById('kbBoard').classList.contains('ansi')&&p.w.localStorage.getItem('ch57x-configurator-kblayout')==='us');
-  p=open(['en-GB'],{'ch57x-configurator-kblayout':'us'});
-  ok('saved override wins over the browser language',p.d.getElementById('kbBoard').classList.contains('ansi')&&p.d.getElementById('kbLayout').value==='us');
-  p=open(['en-GB'],{'ch57x-configurator-kblayout':'bogus'});
-  ok('unknown saved value falls back to auto',p.d.getElementById('kbBoard').classList.contains('iso')&&p.d.getElementById('kbLayout').value==='auto');
+  // ---- back to US, saved choices ----
+  sel=p.d.getElementById('kbLayout'); sel.value='us'; sel.dispatchEvent(new p.w.Event('change',{bubbles:true}));
+  ok('choosing US redraws ANSI',p.d.getElementById('kbBoard').classList.contains('ansi')&&p.w.localStorage.getItem('ch57x-configurator-kblayout')==='us');
+  p=open(['en-US'],{'ch57x-configurator-kblayout':'uk'});
+  ok('saved UK choice is restored',p.d.getElementById('kbBoard').classList.contains('iso')&&p.d.getElementById('kbLayout').value==='uk');
+  for(const v of ['auto','bogus']){ p=open(['en-GB'],{'ch57x-configurator-kblayout':v});
+    ok('saved "'+v+'" falls back to US',p.d.getElementById('kbBoard').classList.contains('ansi')&&p.d.getElementById('kbLayout').value==='us'&&p.errors.length===0); }
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();

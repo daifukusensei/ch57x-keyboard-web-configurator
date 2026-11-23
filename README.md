@@ -4,7 +4,7 @@ A single-file web app for editing [ch57x-keyboard-tool](https://github.com/kriom
 YAML mappings and uploading them straight to the keyboard over WebHID (Chrome/Edge desktop). In other
 browsers, save the file and upload it with the original CLI (see Help in the page).
 
-**The deliverable is [`ch57x-keyboard-web-configurator.html`](ch57x-keyboard-web-configurator.html)**: one file, no dependencies, no
+**Download and use [`ch57x-keyboard-web-configurator.html`](ch57x-keyboard-web-configurator.html)**: one file, no dependencies, no
 network. Open it in a browser. It is *built* from `src/`; don't edit it by hand.
 
 ## Layout

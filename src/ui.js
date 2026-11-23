@@ -213,21 +213,16 @@ Object.assign(KB_LEGEND_US,{numlock:'Num',numpadslash:'/',numpadasterisk:'*',num
 // Shorter legends used when the board is drawn narrow (phones).
 const KB_SHORT = {printscreen:'PS',scrolllock:'SL',pause:'Pa',insert:'In',home:'Hm',pageup:'PU',delete:'De',end:'En',pagedown:'PD',
   backspace:'⌫',tab:'⇥',capslock:'Cap',enter:'⏎',numpadenter:'⏎',numlock:'NL',shift:'⇧',rshift:'⇧',ctrl:'Ct',rctrl:'Ct',alt:'Al',ralt:'Al',win:'Wi',rwin:'Wi',application:'☰'};
-// Add a layout here (e.g. de / fr) with its own legend overrides; `match` tests the browser language.
+// Add a layout here (e.g. de / fr) with its own legend overrides. The first entry is the default.
 const KB_LAYOUTS = {
-  us:{name:'US (ANSI)', iso:false, match:null, legend:{}},
-  uk:{name:'UK (ISO)', iso:true, match:/^en-(gb|uk|ie)\b/i,
+  us:{name:'US (ANSI)', iso:false, legend:{}},
+  uk:{name:'UK (ISO)', iso:true,
     legend:{grave:['¬','`'],2:['"','2'],3:['£','3'],quote:['@',"'"],nonushash:['~','#'],nonusbackslash:['|','\\'],ralt:'AltGr'}},
 };
-const KB_PREF = 'ch57x-configurator-kblayout';   // 'auto' (default) | a KB_LAYOUTS id
-function detectKbLayout(){
-  const langs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']);
-  const lang=String(langs[0]||'');
-  return Object.keys(KB_LAYOUTS).find(id=>KB_LAYOUTS[id].match&&KB_LAYOUTS[id].match.test(lang))||'us';
-}
-let kbPref='auto';
-try{ const v=localStorage.getItem(KB_PREF); if(v==='auto'||KB_LAYOUTS[v]) kbPref=v; }catch(e){}
-const kbLayoutId = () => kbPref==='auto' ? detectKbLayout() : kbPref;
+const KB_PREF = 'ch57x-configurator-kblayout';   // a KB_LAYOUTS id; anything else (incl. the old 'auto') -> the first layout
+let kbPref=Object.keys(KB_LAYOUTS)[0];
+try{ const v=localStorage.getItem(KB_PREF); if(KB_LAYOUTS[v]) kbPref=v; }catch(e){}
+const kbLayoutId = () => kbPref;
 function kbLegend(name,lay){ const l=lay.legend[name]!==undefined?lay.legend[name]:KB_LEGEND_US[name]; return l!==undefined?l:name.toUpperCase(); }
 function buildBoard(){
   const lay=KB_LAYOUTS[kbLayoutId()];
@@ -257,7 +252,6 @@ function buildBoard(){
   const missing=['backslash','nonushash','nonusbackslash','numpadequal'].filter(n=>!onBoard.has(n));
   const xlabel={backslash:'ANSI \\',nonushash:'ISO #',nonusbackslash:'ISO \\|',numpadequal:'Numpad ='};
   if(missing.length) extra.append(group('Not on a '+lay.name+' keyboard',missing.map(n=>pcap(xlabel[n],n,()=>assignKey(n),'wide',n))));
-  $('kbLayout').querySelector('option[value="auto"]').textContent='Auto — '+KB_LAYOUTS[detectKbLayout()].name;
   $('kbLayout').value=kbPref;
 }
 const MEDIALABEL = {screenbrightnessup:'Bright +',screenbrightnessdown:'Bright −',next:'Next',previous:'Prev',stop:'Stop',play:'Play',
@@ -279,7 +273,7 @@ function buildControls(){
     b.addEventListener('click',()=>toggleMod(m));
     mc.append(b);
   });
-  $('kbLayout').append(h('option',{value:'auto',text:'Auto'}),...Object.entries(KB_LAYOUTS).map(([id,l])=>h('option',{value:id,text:l.name})));
+  $('kbLayout').append(...Object.entries(KB_LAYOUTS).map(([id,l])=>h('option',{value:id,text:l.name})));
   buildBoard();
   $('kbLayout').addEventListener('change',()=>{ kbPref=$('kbLayout').value; try{ localStorage.setItem(KB_PREF,kbPref); }catch(e){} buildBoard(); });
   const basic=$('kbGroups');
