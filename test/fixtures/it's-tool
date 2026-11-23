@@ -1,4 +1,0 @@
-#!/bin/sh
-echo "STUB $1 $2"
-[ "$1" = validate ] && [ -n "$FAILV" ] && exit 3
-exit 0

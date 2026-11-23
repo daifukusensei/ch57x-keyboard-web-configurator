@@ -17,7 +17,7 @@ Edit `src/`, then `npm run build && npm test` before committing.
 ## Hard requirements (from the user)
 - One self-contained `.html`: no build step for users, no runtime dependencies, no network calls.
 - YAML syntax identical to upstream, so files round-trip with the original CLI.
-- WebHID upload (Chrome/Edge desktop) with the CLI-script fallback kept.
+- WebHID upload (Chrome/Edge desktop). Other browsers: *Save config*, then the original CLI, as explained in Help (the generated upload script was removed 2026-11-23 at the user's request).
 - `model:` is not in the UI; it is filled in from the connected keyboard.
 - User hardware: 514c:8850 12-key/4-knob pads and a 1189:8890. Their YAML files use CRLF line endings.
 

@@ -58,6 +58,6 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   click('hidUpload'); await sleep(100);
   ok('invalid action blocks upload',sent.length===0&&/^Cannot upload — Layer 1 R1 C1: /.test(d.getElementById('hidStatus').textContent));
   // script generator still works
-  ok('script button present',!!d.getElementById('btnUpScript'));
+  ok('no CLI-script controls',!d.getElementById('btnUpScript')&&!d.getElementById('upOs'));
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();

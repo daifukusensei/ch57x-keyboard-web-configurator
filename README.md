@@ -1,8 +1,8 @@
 # CH57x Keyboard Web Configurator
 
 A single-file web app for editing [ch57x-keyboard-tool](https://github.com/kriomant/ch57x-keyboard-tool)
-YAML mappings and uploading them straight to the keyboard over WebHID (Chrome/Edge desktop), with a
-CLI-script fallback for other browsers.
+YAML mappings and uploading them straight to the keyboard over WebHID (Chrome/Edge desktop). In other
+browsers, save the file and upload it with the original CLI (see Help in the page).
 
 **The deliverable is [`ch57x-keyboard-web-configurator.html`](ch57x-keyboard-web-configurator.html)**: one file, no dependencies, no
 network. Open it in a browser. It is *built* from `src/`; don't edit it by hand.
@@ -19,7 +19,7 @@ src/theme-ui.js           theme toggle
 build.mjs                 inlines src/ into ch57x-keyboard-web-configurator.html (zero dependencies)
 test/                     suites (*.cjs) + run.mjs; they load the *built* HTML
 test/lib/                 shared test helpers (autoconfirm.cjs answers the in-page confirmation dialog)
-test/fixtures/            user YAML (old same-line and `#@` comment forms), upstream example-mapping.yaml, Rust oracle outputs + their action lists, pre-comments HTML, stub tool
+test/fixtures/            user YAML (old same-line and `#@` comment forms), upstream example-mapping.yaml, Rust oracle outputs + their action lists, pre-comments HTML
 test/reference/           ch57x-programmer TS reference bundled to ref.cjs (committed)
 scripts/fetch-refs.sh     clones the reference repos into refs/ at pinned revisions + applies patches/
 scripts/regen-oracles.sh  reruns the Rust harnesses to regenerate test/fixtures/*-oracle.txt (needs cargo)

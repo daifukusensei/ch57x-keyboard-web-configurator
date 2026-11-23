@@ -397,7 +397,7 @@ SOFTWARE.
     <div class="msg" id="actionMsg"></div>
     <div class="noterow">
       <label for="note">Comment</label>
-      <input type="text" id="note" autocomplete="off" placeholder="What does this key do?  (saved as a #@ comment line in the YAML; the tool ignores it)">
+      <input type="text" id="note" autocomplete="off" placeholder="Describe what the key does">
     </div>
   </section>
 
@@ -499,32 +499,6 @@ SOFTWARE.
     </div>
   </details>
 
-  <details class="more" id="cliDrawer">
-    <summary>No WebHID? Upload with the command-line tool</summary>
-    <div class="body">
-      <pre class="cli">./ch57x-keyboard-tool validate mapping.yaml
-./ch57x-keyboard-tool upload mapping.yaml
-# Linux without udev rules: prefix with sudo
-# If your build reads the config from stdin instead: ./ch57x-keyboard-tool upload &lt; mapping.yaml</pre>
-      <p class="hint" style="margin:0 0 10px">If WebHID isn't available (Firefox, Safari, or your OS doesn't expose the interface), this generates a script that writes <code>mapping.yaml</code>, runs <code>validate</code>, and only then runs <code>upload</code> with the original tool.</p>
-      <div class="row">
-        <label class="f">System
-          <select id="upOs">
-            <option value="sh">Linux / macOS (.sh)</option>
-            <option value="ps1">Windows (PowerShell .ps1)</option>
-          </select>
-        </label>
-        <label class="f">Path to ch57x-keyboard-tool
-          <input type="text" id="upTool" size="30" spellcheck="false">
-        </label>
-        <label class="chip" id="upSudoWrap"><input type="checkbox" id="upSudo">use sudo</label>
-        <button id="btnUpScript" type="button">Download upload script</button>
-        <button id="btnUpCopy" type="button">Copy commands</button>
-      </div>
-      <p class="hint" style="margin:10px 0 0">Put the script next to the tool, or give the tool's full path. Linux/macOS: <code>chmod +x upload-ch57x.sh &amp;&amp; ./upload-ch57x.sh</code>. Windows: <code>powershell -ExecutionPolicy Bypass -File upload-ch57x.ps1</code> (needs USBDK installed).</p>
-    </div>
-  </details>
-
   <details class="more" id="help">
     <summary>Help and reference</summary>
     <div class="body">
@@ -546,6 +520,11 @@ model: ch57x-2
       <p class="hint"><code>L</code> is the layer, <code>R</code> and <code>C</code> the button row and column, and <code>K</code> the knob followed by <code>ccw</code>, <code>press</code> or <code>cw</code>, all counted from 1 in the order the file lists them (the same numbers the editor shows). The text runs to the end of the line exactly as typed, so <code>;</code>, <code>#</code>, quotes and backslashes need no escaping. Lines that name a key the pad doesn't have are skipped, and the import message says how many. A comment written at the end of a key line (<code>- ["a", "b"]  # note</code>) is not read.</p>
       <h3>Direct upload (WebHID)</h3>
       <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
+      <h3>Without WebHID: the command-line tool</h3>
+      <p>In Firefox or Safari, or when the browser can't reach the keyboard, save the mapping with <em>Save config</em> and upload it with <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a>:</p>
+      <pre class="cli">./ch57x-keyboard-tool validate mapping.yaml
+./ch57x-keyboard-tool upload mapping.yaml</pre>
+      <p class="hint">Linux without udev rules: prefix the commands with <code>sudo</code>. Windows: run <code>.\ch57x-keyboard-tool.exe</code> the same way (needs USBDK installed). If your build reads the config from standard input: <code>./ch57x-keyboard-tool upload &lt; mapping.yaml</code>.</p>
     </div>
   </details>
 </main>
@@ -849,25 +828,6 @@ function toYaml(st){
     }
   });
   return out.join('\n')+'\n';
-}
-
-function makeUploadScript(yaml, os, tool, sudo){
-  yaml = yaml.replace(/\r\n/g,'\n').replace(/\n*$/,'\n');
-  if(os==='ps1'){
-    if(/^'@/m.test(yaml)) throw new Error('YAML contains a line that would end the PowerShell here-string');
-    const t=tool.replace(/'/g,"''");
-    return ['# Generated by CH57x Keyboard Web Configurator','$ErrorActionPreference = \'Stop\'',
-      'Set-Location -LiteralPath $PSScriptRoot','$Tool = \''+t+'\'',
-      '$yaml = @\'', yaml.replace(/\n$/,''), '\'@',
-      '[System.IO.File]::WriteAllText((Join-Path $PSScriptRoot \'mapping.yaml\'), $yaml + "`n", (New-Object System.Text.UTF8Encoding $false))',
-      '& $Tool validate mapping.yaml','if($LASTEXITCODE -ne 0){ Write-Error \'Validation failed, nothing uploaded.\'; exit $LASTEXITCODE }',
-      '& $Tool upload mapping.yaml','if($LASTEXITCODE -ne 0){ exit $LASTEXITCODE }','Write-Host \'Uploaded.\'',''].join('\n');
-  }
-  if(/^CH57X_YAML_EOF$/m.test(yaml)) throw new Error('YAML contains the heredoc delimiter');
-  const t="'"+tool.replace(/'/g,"'\\''")+"'";
-  return ['#!/usr/bin/env bash','# Generated by CH57x Keyboard Web Configurator','set -euo pipefail','cd "$(dirname "$0")"',
-    'TOOL='+t,'cat > mapping.yaml <<\'CH57X_YAML_EOF\'', yaml.replace(/\n$/,''), 'CH57X_YAML_EOF',
-    '"$TOOL" validate mapping.yaml',(sudo?'sudo ':'')+'"$TOOL" upload mapping.yaml','echo Uploaded.',''].join('\n');
 }
 
 // ---------- Direct upload via WebHID ----------
@@ -1728,7 +1688,7 @@ function readDeviceInfo(dev){
   });
 }
 async function hidConnect(){
-  if(!navigator.hid){ hidSay('err','WebHID is not available in this browser. Use Chrome or Edge on desktop, or the CLI script below.'); return; }
+  if(!navigator.hid){ hidSay('err','WebHID is not available in this browser. Use Chrome or Edge on desktop, or the command-line tool (see Help).'); return; }
   try{
     let devs=(await navigator.hid.getDevices()).filter(d=>HID_FILTERS.some(f=>f.vendorId===d.vendorId&&f.productId===d.productId)&&isCfgDev(d));
     if(!devs.length) devs=(await navigator.hid.requestDevice({filters:HID_FILTERS})).filter(isCfgDev);
@@ -1753,7 +1713,7 @@ if(navigator.hid){
   navigator.hid.addEventListener('disconnect',e=>{
     if(e.device===hidDev){ hidDev=null; hidDeviceInfo=null; hidSync(); renderMsg(); hidSay('warn','Keyboard disconnected.'); }
   });
-}else{ hidSay('warn','WebHID is not available in this browser — use Chrome or Edge on desktop, or the CLI script below.'); }
+}else{ hidSay('warn','WebHID is not available in this browser — use Chrome or Edge on desktop, or the command-line tool (see Help).'); }
 $('hidInfo').addEventListener('click',async()=>{
   if(!hidDev) return; hidBusy=true; hidSync();
   try{
@@ -1799,33 +1759,6 @@ $('hidUpload').addEventListener('click',async()=>{
   hidBusy=false; hidSync();
 });
 hidSync();
-
-// ----- upload script -----
-function upDefaults(){
-  const win = $('upOs').value==='ps1';
-  $('upTool').value = win ? '.\\ch57x-keyboard-tool.exe' : './ch57x-keyboard-tool';
-  $('upSudoWrap').style.display = win ? 'none' : '';
-}
-$('upOs').value = /win/i.test(navigator.platform||'') ? 'ps1' : 'sh';
-$('upOs').addEventListener('change',upDefaults); upDefaults();
-async function buildScript(){
-  const {issues}=collectIssues();
-  const errs=issues.filter(i=>i.level==='error').length;
-  if(errs && !await askConfirm(errs+' action(s) are invalid. The script runs the tool\'s validate step first, so the upload stops if the tool rejects them.',
-    {title:'Generate the script anyway?',ok:'Generate anyway'})) return null;
-  try{ return makeUploadScript(toYaml(state), $('upOs').value, $('upTool').value.trim()||'ch57x-keyboard-tool', $('upSudo').checked); }
-  catch(e){ toast(e.message); return null; }
-}
-$('btnUpScript').addEventListener('click',async()=>{
-  const s=await buildScript(); if(s==null) return;
-  const ext=$('upOs').value, blob=new Blob([s],{type:'text/plain'});
-  const a=h('a',{href:URL.createObjectURL(blob),download:'upload-ch57x.'+ext});
-  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
-});
-$('btnUpCopy').addEventListener('click',async()=>{
-  const s=await buildScript(); if(s==null) return;
-  try{ await navigator.clipboard.writeText(s); toast('Script copied'); } catch(e){ toast('Copy failed — use Download'); }
-});
 
 // ----- init -----
 buildControls();

@@ -499,7 +499,7 @@ function readDeviceInfo(dev){
   });
 }
 async function hidConnect(){
-  if(!navigator.hid){ hidSay('err','WebHID is not available in this browser. Use Chrome or Edge on desktop, or the CLI script below.'); return; }
+  if(!navigator.hid){ hidSay('err','WebHID is not available in this browser. Use Chrome or Edge on desktop, or the command-line tool (see Help).'); return; }
   try{
     let devs=(await navigator.hid.getDevices()).filter(d=>HID_FILTERS.some(f=>f.vendorId===d.vendorId&&f.productId===d.productId)&&isCfgDev(d));
     if(!devs.length) devs=(await navigator.hid.requestDevice({filters:HID_FILTERS})).filter(isCfgDev);
@@ -524,7 +524,7 @@ if(navigator.hid){
   navigator.hid.addEventListener('disconnect',e=>{
     if(e.device===hidDev){ hidDev=null; hidDeviceInfo=null; hidSync(); renderMsg(); hidSay('warn','Keyboard disconnected.'); }
   });
-}else{ hidSay('warn','WebHID is not available in this browser — use Chrome or Edge on desktop, or the CLI script below.'); }
+}else{ hidSay('warn','WebHID is not available in this browser — use Chrome or Edge on desktop, or the command-line tool (see Help).'); }
 $('hidInfo').addEventListener('click',async()=>{
   if(!hidDev) return; hidBusy=true; hidSync();
   try{
@@ -570,33 +570,6 @@ $('hidUpload').addEventListener('click',async()=>{
   hidBusy=false; hidSync();
 });
 hidSync();
-
-// ----- upload script -----
-function upDefaults(){
-  const win = $('upOs').value==='ps1';
-  $('upTool').value = win ? '.\\ch57x-keyboard-tool.exe' : './ch57x-keyboard-tool';
-  $('upSudoWrap').style.display = win ? 'none' : '';
-}
-$('upOs').value = /win/i.test(navigator.platform||'') ? 'ps1' : 'sh';
-$('upOs').addEventListener('change',upDefaults); upDefaults();
-async function buildScript(){
-  const {issues}=collectIssues();
-  const errs=issues.filter(i=>i.level==='error').length;
-  if(errs && !await askConfirm(errs+' action(s) are invalid. The script runs the tool\'s validate step first, so the upload stops if the tool rejects them.',
-    {title:'Generate the script anyway?',ok:'Generate anyway'})) return null;
-  try{ return makeUploadScript(toYaml(state), $('upOs').value, $('upTool').value.trim()||'ch57x-keyboard-tool', $('upSudo').checked); }
-  catch(e){ toast(e.message); return null; }
-}
-$('btnUpScript').addEventListener('click',async()=>{
-  const s=await buildScript(); if(s==null) return;
-  const ext=$('upOs').value, blob=new Blob([s],{type:'text/plain'});
-  const a=h('a',{href:URL.createObjectURL(blob),download:'upload-ch57x.'+ext});
-  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
-});
-$('btnUpCopy').addEventListener('click',async()=>{
-  const s=await buildScript(); if(s==null) return;
-  try{ await navigator.clipboard.writeText(s); toast('Script copied'); } catch(e){ toast('Copy failed — use Download'); }
-});
 
 // ----- init -----
 buildControls();

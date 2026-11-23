@@ -94,7 +94,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   click('#ptab-basic'); click(key('space')); ok('assign to a knob',act()==='space');
 
   // ---- drawers and help ----
-  ok('YAML, CLI and help drawers start closed',['yamlDrawer','cliDrawer','help'].every(id=>!d.getElementById(id).open));
+  ok('YAML and help drawers start closed, no CLI-script drawer',!d.getElementById('cliDrawer')&&['yamlDrawer','help'].every(id=>!d.getElementById(id).open));
   click('#helpLink'); ok('Help link opens the help drawer',d.getElementById('help').open);
   ok('YAML still generated while its drawer is closed',/knobs: 4/.test(d.getElementById('yamlOut').value));
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);

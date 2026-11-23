@@ -89,6 +89,6 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++;console.log('FAIL',n);} else console
   d.querySelector('.cell').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
   ok('12-key layout: no 4x4 delay warning (delay is supported there): '+msg(),!/ignores the delay option/.test(msg()));
   // script generator still works
-  ok('script button present',!!d.getElementById('btnUpScript'));
+  ok('no CLI-script controls',!d.getElementById('btnUpScript')&&!d.getElementById('upOs'));
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();
