@@ -7,6 +7,8 @@ browsers, save the file and upload it with the original CLI (see Help in the pag
 **Download and use [`ch57x-keyboard-web-configurator.html`](ch57x-keyboard-web-configurator.html)**: one file, no dependencies, no
 network. Open it in a browser. It is *built* from `src/`; don't edit it by hand.
 
+![The configurator: layout settings, a 3×4 keypad with two knobs, and the action editor for the selected key](docs/screenshot.png)
+
 ## Layout
 
 ```
@@ -23,7 +25,8 @@ test/fixtures/            user YAML (old same-line and `#@` comment forms), upst
 test/reference/           ch57x-programmer TS reference bundled to ref.cjs (committed)
 scripts/fetch-refs.sh     clones the reference repos into refs/ at pinned revisions + applies patches/
 scripts/regen-oracles.sh  reruns the Rust harnesses to regenerate test/fixtures/*-oracle.txt (needs cargo)
-scripts/shots/            Playwright screenshot scripts (visual QA; output in scripts/shots/out/)
+scripts/shots/            Playwright screenshot scripts (visual QA; output in scripts/shots/out/; shot_readme.cjs writes docs/screenshot.png)
+docs/screenshot.png       README screenshot
 patches/                  oracle harness patches for upstream and the fork
 HANDOFF.md                architecture, protocol decisions, history, open items
 LICENSE                   MIT licence for this project
