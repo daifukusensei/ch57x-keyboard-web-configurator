@@ -126,6 +126,7 @@ SOFTWARE.
   /* ---- keyboard / layout selectors ---- */
   .toolbar .row{align-items:flex-end}
   .toolbar select{max-width:100%}
+  .toolbar .cfgbtns{display:flex;flex-wrap:wrap;gap:8px}   /* Load / Save / New blank wrap as one group */
 
   /* ---- keymap ---- */
   .keymap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:stretch}
@@ -318,7 +319,7 @@ SOFTWARE.
       <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="2" width="11" height="11" rx="3" fill="#6b97ff"/><rect x="15" y="2" width="11" height="11" rx="3" fill="#8fb1ff"/><rect x="2" y="15" width="11" height="11" rx="3" fill="#8fb1ff"/><circle cx="20.5" cy="20.5" r="5.5" fill="none" stroke="#6b97ff" stroke-width="2.5" stroke-dasharray="3 2.4"/></svg>
       <div class="titles">
         <h1>CH57x Keyboard Web Configurator</h1>
-        <p class="tagline" id="tagline">Tool to manage macropad mappings from <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener noreferrer">ch57x-keyboard-tool</a>. By daifuku.</p>
+        <p class="tagline" id="tagline">Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener noreferrer">ch57x-keyboard-tool</a> mapping files. By daifuku.</p>
       </div>
     </div>
     <span class="spacer"></span>
@@ -343,8 +344,12 @@ SOFTWARE.
       <label class="f">Columns<input type="number" id="columns" min="1" max="8"></label>
       <label class="f">Knobs<input type="number" id="knobs" min="0" max="6"></label>
       <span class="spacer"></span>
-      <button id="btnExample" type="button">Load repo example</button>
-      <button id="btnBlank" type="button">New blank</button>
+      <div class="cfgbtns">
+        <button id="btnLoad" type="button" title="Open a mapping file (.yaml) from your computer">Load config</button>
+        <button id="btnSave" type="button" title="Download the mapping as a .yaml file">Save config</button>
+        <input type="file" id="fileIn" accept=".yaml,.yml,.txt,text/yaml" hidden>
+        <button id="btnBlank" type="button">New blank</button>
+      </div>
     </div>
     <p class="hint" style="margin:10px 0 0">Count the rows and columns of keys on your keyboard with it in <em>normal</em> orientation (knobs on the right).</p>
   </section>
@@ -386,7 +391,7 @@ SOFTWARE.
     <div class="strip-head"><span id="editTitle">Action</span></div>
     <div class="strip-row">
       <input type="text" id="action" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Pick a keycode below, or type e.g.  ctrl-c   |   h,e,l,l,o   |   volumeup">
-      <label class="chip" title="Clicking a keycode adds another chord (up to 5) instead of replacing the action"><input type="checkbox" id="seqMode">Add as next chord</label>
+      <label class="chip" title="Clicking a keycode adds it as the next step instead of replacing the action, to build a sequence like ctrl-c then ctrl-v (up to 5 steps)"><input type="checkbox" id="seqMode">Add as next step</label>
       <button id="btnClear" type="button">Clear</button>
     </div>
     <div class="msg" id="actionMsg"></div>
@@ -442,7 +447,7 @@ SOFTWARE.
     <div id="pane-advanced" hidden>
       <div class="pgroup"><h4>Delay</h4>
         <div class="prow" style="margin-top:0">
-          <label class="f">Delay between chords (ms)<input type="number" id="delay" min="0" placeholder="none"></label>
+          <label class="f">Delay between steps (ms)<input type="number" id="delay" min="0" placeholder="none"></label>
           <button id="btnDelay" type="button">Apply delay option</button>
         </div>
         <p class="hint" style="margin:8px 0 0">Not available on 1189:8890 boards.</p>
@@ -479,18 +484,16 @@ SOFTWARE.
   <textarea id="hidPlan" rows="8" readonly spellcheck="false" hidden aria-label="Packets to send"></textarea>
 
   <details class="more" id="yamlDrawer">
-    <summary>YAML: copy, download, import</summary>
+    <summary>YAML: view, copy, paste</summary>
     <div class="body">
       <textarea id="yamlOut" rows="14" readonly spellcheck="false"></textarea>
       <div class="row" style="margin-top:10px">
         <button id="btnCopy" type="button">Copy YAML</button>
-        <button id="btnDownload" type="button">Download mapping.yaml</button>
       </div>
       <h3>Import existing YAML</h3>
       <textarea id="yamlIn" rows="6" spellcheck="false" placeholder="Paste a mapping file here…"></textarea>
       <div class="row" style="margin-top:8px">
         <button id="btnImport" type="button">Load pasted YAML</button>
-        <label class="f">…or choose a file<input type="file" id="fileIn" accept=".yaml,.yml,.txt,text/yaml"></label>
       </div>
       <p class="hint">The importer reads the mapping format used by the tool (model, orientation, rows, columns, knobs, layers). Per-key comments are read from <code>#@</code> lines (see Help). Other comments, including ones at the end of a key line, are ignored and dropped when the file is re-exported.</p>
     </div>
@@ -525,7 +528,7 @@ SOFTWARE.
   <details class="more" id="help">
     <summary>Help and reference</summary>
     <div class="body">
-      <p>Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. Build a layout, then upload straight from this page, or copy or download the YAML and use the CLI.</p>
+      <p>Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. Build a layout, then upload straight from this page, or save it with <em>Save config</em> and use the CLI.</p>
       <h3>Comments on keys</h3>
       <p>Type a note in the <em>Comment</em> box under the action to remember what a key does. Comments are saved at the top of the YAML, one line per key, starting with <code>#@</code>. The tool treats these lines as ordinary comments, so the file still validates and uploads exactly as before; comments are never sent to the keyboard. Importing a file reads them back onto their keys and turns on <em>Show comments on keys</em> so you can read them on the keycaps.</p>
       <pre class="cli">#@ L1 R2 C3: split; "zen" view
@@ -537,12 +540,12 @@ model: ch57x-2
       <h3>Direct upload (WebHID)</h3>
       <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
       <h3>Actions</h3>
-      <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. Sequences use commas: <code>win-r,c,m,d,enter</code>. Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>
+      <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. A <em>sequence</em> is several steps separated by commas, pressed one after another: <code>win-r,c,m,d,enter</code> opens the Run box, types <code>cmd</code> and presses Enter. Each step is one key, optionally held with modifiers (<code>ctrl-shift-t</code>); up to 5 steps per key. (The tool's own documentation calls a step a <em>chord</em>.) Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>
       <p><strong>Mouse.</strong> <code>click</code>, <code>click(left+right)</code>, <code>rclick</code>, <code>mclick</code>, <code>move(x,y)</code>, <code>drag(button,x,y)</code>, <code>wheel(n)</code>, <code>wheelup</code>, <code>wheeldown</code>, with ctrl / shift / alt only.</p>
       <p><strong>Media.</strong> <code>screenbrightnessup</code> <code>screenbrightnessdown</code> <code>next</code> <code>previous</code>/<code>prev</code> <code>stop</code> <code>play</code> <code>mute</code> <code>volumeup</code> <code>volumedown</code> <code>favorites</code> <code>calculator</code> <code>screenlock</code> <code>webpagehome</code> <code>webpageback</code> <code>webpageforward</code>. Media keys can't take modifiers or be mixed with normal keys.</p>
       <p><strong>LEDs</strong> (separate CLI command, not part of the YAML). 0x8840 / 0x8842: <code>led &lt;layer&gt; &lt;mode&gt;…</code> with modes <code>off</code>, <code>backlight</code>, <code>shock</code>, <code>shock2</code>, <code>press</code> and colors red, orange, yellow, green, cyan, blue, purple (backlight also white). 0x8890: <code>led 1</code>.</p>
       <p><strong>Boards with one row (or column) and one knob</strong> (e.g. 3×1 + 1 knob): modifiers work on the first key of a button's sequence only, as in the original tool's <code>validate</code>; the editor marks other uses as errors.</p>
-      <p class="hint">Key names outside the ones this editor knows get a warning, not an error, because the tool's own list (<code>show-keys</code>) is authoritative. Always finish with <code>validate</code>.</p>
+      <p class="hint">A key name this editor doesn't recognise gets a warning, not an error: it may be a typo, or a name the tool accepts that the editor doesn't list. <code>./ch57x-keyboard-tool show-keys</code> prints every name the tool accepts. Always finish with <code>validate</code>.</p>
     </div>
   </details>
 </main>
@@ -623,10 +626,10 @@ function validateAction(raw){
     if(!s){err('Option given but no keys follow');return res;}
   }
   const chords=splitTop(s,',').map(x=>x.trim());
-  if(chords.length>5) err('At most 5 chords per action ('+chords.length+' given)');
+  if(chords.length>5) err('At most 5 steps per key ('+chords.length+' given; steps are separated by commas)');
   const kinds=[];
   for(const c of chords){
-    if(!c){err('Empty chord (stray comma?)');continue;}
+    if(!c){err('Empty step: two commas in a row, or a comma at the start or end');continue;}
     const toks=splitDash(c); const key=toks.pop(); const mods=toks;
     if(!key){err('Missing key in "'+c+'"');continue;}
     const mp=mouseParse(key);
@@ -643,12 +646,12 @@ function validateAction(raw){
       if(/^<\d+>$/.test(key)){ const n=parseInt(key.slice(1,-1),10); if(n>255) warn('HID code '+n+' is above 255'); }
       else if(MODS_KB[key]){ /* modifier-only chord, e.g. alt-shift */ }
       else if(CHAR_KEYS[key]) err('"'+key+'" is not a key name; use "'+CHAR_KEYS[key]+'"'+(CHAR_KEYS[key].includes('-')?' (US layout)':''));
-      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not in the key list this editor knows — check ./ch57x-keyboard-tool show-keys');
+      else if(!KNOWN_KEYS.has(key.toLowerCase())) warn('"'+key+'" is not a key name this editor recognises. Check the spelling, or pick the key from the keycode palette. If the name is right, it may still work: ./ch57x-keyboard-tool show-keys lists every name the tool accepts');
     }
   }
   const set=new Set(kinds);
-  if(set.has('media') && (kinds.length>1)) err('Media commands cannot be mixed with normal keys, modifiers or other chords');
-  else if(set.has('mouse') && kinds.length>1) warn('Mouse actions combined with other chords are untested here — run validate');
+  if(set.has('media') && (kinds.length>1)) err('A media key must be the only step, with no modifiers or other keys');
+  else if(set.has('mouse') && kinds.length>1) warn('Mouse actions in a sequence with other steps are untested here; run validate');
   res.kind = set.size===1 ? [...set][0] : 'mixed';
   if(om && (set.has('media')||set.has('mouse')) && kinds.length===1) warn('delay option has no effect on a single action');
   return res;
@@ -1639,15 +1642,25 @@ $('btnDelay').addEventListener('click',()=>{
   }
   $('action').value=getVal(sel); onActionChanged();
 });
-const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Download the YAML first if you want to keep it.';
-$('btnExample').addEventListener('click',async()=>{
-  if(!await askConfirm(DISCARD_MSG,{title:'Load the repo example?',ok:'Load example',danger:true})) return;
-  loadText(EXAMPLE,'Loaded repo example');
+const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Use Save config first if you want to keep it.';
+// Save config reuses the name of the file last loaded, and its line endings (the user's files are CRLF).
+let cfgName='mapping.yaml', cfgCrlf=false;
+$('btnLoad').addEventListener('click',async()=>{
+  if(!await askConfirm(DISCARD_MSG,{title:'Load a config file?',ok:'Choose file',danger:true})) return;
+  $('fileIn').click();   // the OK click still counts as the user gesture the file picker needs
+});
+$('btnSave').addEventListener('click',async()=>{
+  if(!await askConfirm('Downloads the mapping on all layers, comments included, as "'+cfgName+'". Your browser saves it to its downloads folder or asks where, depending on its settings.',
+    {title:'Save the config file?',ok:'Save'})) return;
+  const text=$('yamlOut').value.replace(/\r?\n/g,cfgCrlf?'\r\n':'\n');
+  const a=h('a',{href:URL.createObjectURL(new Blob([text],{type:'text/yaml'})),download:cfgName});
+  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  toast('Saved '+cfgName);
 });
 $('btnBlank').addEventListener('click',async()=>{
   if(!await askConfirm(DISCARD_MSG,{title:'Start with a blank mapping?',ok:'Start blank',danger:true})) return;
   state=normalizeState({model:'ch57x-2',orientation:'normal',rows:3,columns:4,knobs:2,layers:[]});
-  layerIdx=0; sel={t:'b',r:0,c:0}; renderAll(); save();
+  layerIdx=0; sel={t:'b',r:0,c:0}; cfgName='mapping.yaml'; cfgCrlf=false; renderAll(); save();
 });
 function loadText(text, okMsg){
   try{
@@ -1659,23 +1672,21 @@ function loadText(text, okMsg){
     renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':'')
       +(u?' · '+u+' comment line'+(u>1?'s':'')+' matched no key (skipped)':'')
       +(extra>0?' · only the first '+LAYER_COUNT+' layers kept':''));
-  }catch(e){ toast('Import failed: '+e.message); }
+    return true;
+  }catch(e){ toast('Import failed: '+e.message); return false; }
 }
 $('btnImport').addEventListener('click',()=>{ const t=$('yamlIn').value; if(t.trim()) loadText(t,'Imported YAML'); else toast('Paste some YAML first'); });
 $('fileIn').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
-  const rd=new FileReader(); rd.onload=()=>loadText(String(rd.result),'Loaded '+f.name); rd.readAsText(f);
+  const rd=new FileReader();
+  rd.onload=()=>{ const t=String(rd.result); if(loadText(t,'Loaded '+f.name)){ cfgName=f.name; cfgCrlf=/\r\n/.test(t); } };
+  rd.readAsText(f);
   e.target.value='';
 });
 $('btnCopy').addEventListener('click',async()=>{
   const text=$('yamlOut').value;
   try{ await navigator.clipboard.writeText(text); toast('YAML copied'); }
   catch(e){ $('yamlOut').select(); try{ document.execCommand('copy'); toast('YAML copied'); }catch(_){ toast('Select and copy manually'); } }
-});
-$('btnDownload').addEventListener('click',()=>{
-  const blob=new Blob([$('yamlOut').value],{type:'text/yaml'});
-  const a=h('a',{href:URL.createObjectURL(blob),download:'mapping.yaml'});
-  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
 });
 
 // ----- direct upload (WebHID) -----

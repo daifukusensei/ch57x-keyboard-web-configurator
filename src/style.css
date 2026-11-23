@@ -86,6 +86,7 @@
   /* ---- keyboard / layout selectors ---- */
   .toolbar .row{align-items:flex-end}
   .toolbar select{max-width:100%}
+  .toolbar .cfgbtns{display:flex;flex-wrap:wrap;gap:8px}   /* Load / Save / New blank wrap as one group */
 
   /* ---- keymap ---- */
   .keymap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:stretch}

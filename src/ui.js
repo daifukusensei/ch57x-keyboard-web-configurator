@@ -413,15 +413,25 @@ $('btnDelay').addEventListener('click',()=>{
   }
   $('action').value=getVal(sel); onActionChanged();
 });
-const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Download the YAML first if you want to keep it.';
-$('btnExample').addEventListener('click',async()=>{
-  if(!await askConfirm(DISCARD_MSG,{title:'Load the repo example?',ok:'Load example',danger:true})) return;
-  loadText(EXAMPLE,'Loaded repo example');
+const DISCARD_MSG='This replaces the current mapping on all layers, comments included. Use Save config first if you want to keep it.';
+// Save config reuses the name of the file last loaded, and its line endings (the user's files are CRLF).
+let cfgName='mapping.yaml', cfgCrlf=false;
+$('btnLoad').addEventListener('click',async()=>{
+  if(!await askConfirm(DISCARD_MSG,{title:'Load a config file?',ok:'Choose file',danger:true})) return;
+  $('fileIn').click();   // the OK click still counts as the user gesture the file picker needs
+});
+$('btnSave').addEventListener('click',async()=>{
+  if(!await askConfirm('Downloads the mapping on all layers, comments included, as "'+cfgName+'". Your browser saves it to its downloads folder or asks where, depending on its settings.',
+    {title:'Save the config file?',ok:'Save'})) return;
+  const text=$('yamlOut').value.replace(/\r?\n/g,cfgCrlf?'\r\n':'\n');
+  const a=h('a',{href:URL.createObjectURL(new Blob([text],{type:'text/yaml'})),download:cfgName});
+  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  toast('Saved '+cfgName);
 });
 $('btnBlank').addEventListener('click',async()=>{
   if(!await askConfirm(DISCARD_MSG,{title:'Start with a blank mapping?',ok:'Start blank',danger:true})) return;
   state=normalizeState({model:'ch57x-2',orientation:'normal',rows:3,columns:4,knobs:2,layers:[]});
-  layerIdx=0; sel={t:'b',r:0,c:0}; renderAll(); save();
+  layerIdx=0; sel={t:'b',r:0,c:0}; cfgName='mapping.yaml'; cfgCrlf=false; renderAll(); save();
 });
 function loadText(text, okMsg){
   try{
@@ -433,23 +443,21 @@ function loadText(text, okMsg){
     renderAll(); save(); toast((okMsg||'Loaded')+(n?' · '+n+' comment'+(n>1?'s':'')+' on keys':'')
       +(u?' · '+u+' comment line'+(u>1?'s':'')+' matched no key (skipped)':'')
       +(extra>0?' · only the first '+LAYER_COUNT+' layers kept':''));
-  }catch(e){ toast('Import failed: '+e.message); }
+    return true;
+  }catch(e){ toast('Import failed: '+e.message); return false; }
 }
 $('btnImport').addEventListener('click',()=>{ const t=$('yamlIn').value; if(t.trim()) loadText(t,'Imported YAML'); else toast('Paste some YAML first'); });
 $('fileIn').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
-  const rd=new FileReader(); rd.onload=()=>loadText(String(rd.result),'Loaded '+f.name); rd.readAsText(f);
+  const rd=new FileReader();
+  rd.onload=()=>{ const t=String(rd.result); if(loadText(t,'Loaded '+f.name)){ cfgName=f.name; cfgCrlf=/\r\n/.test(t); } };
+  rd.readAsText(f);
   e.target.value='';
 });
 $('btnCopy').addEventListener('click',async()=>{
   const text=$('yamlOut').value;
   try{ await navigator.clipboard.writeText(text); toast('YAML copied'); }
   catch(e){ $('yamlOut').select(); try{ document.execCommand('copy'); toast('YAML copied'); }catch(_){ toast('Select and copy manually'); } }
-});
-$('btnDownload').addEventListener('click',()=>{
-  const blob=new Blob([$('yamlOut').value],{type:'text/yaml'});
-  const a=h('a',{href:URL.createObjectURL(blob),download:'mapping.yaml'});
-  document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
 });
 
 // ----- direct upload (WebHID) -----

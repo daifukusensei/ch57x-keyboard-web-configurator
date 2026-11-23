@@ -27,7 +27,7 @@ const wheel=(dy,ctrl)=>{ const e=new p.w.WheelEvent('wheel',{deltaY:dy,ctrlKey:c
 ok('plain wheel does nothing',!wheel(-100,false)&&p.zoom()==='1');
 ok('ctrl+wheel up zooms in (page zoom prevented)',wheel(-100,true)&&p.zoom()==='1.1');
 ok('ctrl+wheel down zooms out',wheel(100,true)&&p.zoom()==='1');
-p.click('btnExample'); ok('zoom survives a re-render',p.zoom()==='1');
+p.d.querySelectorAll('#tabs .tab')[1].dispatchEvent(new p.w.MouseEvent('click',{bubbles:true})); ok('zoom survives a re-render',p.zoom()==='1');
 p=open({'ch57x-configurator-zoom':'150'}); ok('saved zoom restored',p.zoom()==='1.5'&&p.label()==='150%');
 p=open({'ch57x-configurator-zoom':'banana'}); ok('bad saved value -> 100%',p.zoom()==='1');
 p=open({'ch57x-configurator-zoom':'900'}); ok('out-of-range saved value -> 100%',p.zoom()==='1');

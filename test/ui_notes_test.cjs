@@ -114,8 +114,8 @@ function boot(seed){
   ok('file import: '+D.toast(),/Loaded daise_514C-8850\.yaml · 30 comments on keys/.test(D.toast())&&D.cells().length===24);
   D.d.getElementById('yamlIn').value=inlineYaml+'\n#@ L9 R1 C1: nowhere\n'; D.click('#btnImport'); await sleep(10);
   ok('same-line comments are not read; unmatched lines reported: '+D.toast(),D.toast()==='Imported YAML · 1 comment line matched no key (skipped)'&&!D.cells().some(c=>c.classList.contains('hasnote')));
-  D.click('#btnExample'); await sleep(10);
-  ok('repo example has no comments: no dots, no count in the toast, view stays as the user left it',!D.cells().some(c=>c.classList.contains('hasnote'))&&D.toast()==='Loaded repo example'&&D.d.getElementById('showNotes').checked);
+  D.d.getElementById('yamlIn').value=fs.readFileSync(path.join(__dirname,'fixtures/upstream-example.yaml'),'utf8'); D.click('#btnImport'); await sleep(10);
+  ok('upstream example has no comments: no dots, no count in the toast, view stays as the user left it',!D.cells().some(c=>c.classList.contains('hasnote'))&&D.toast()==='Imported YAML'&&D.d.getElementById('showNotes').checked);
   D.click('#btnBlank'); await sleep(0);
   ok('new blank: comments gone',D.cells().every(c=>c.querySelector('.note').textContent===''));
 

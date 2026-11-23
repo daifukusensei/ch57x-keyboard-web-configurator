@@ -58,6 +58,7 @@ sh scripts/regen-oracles.sh   # needs a Rust toolchain
 ```sh
 npm i --no-save playwright && npx playwright install chromium
 node scripts/shots/shot_notes.cjs
+node scripts/shots/shot_config.cjs   # settings card with Load/Save config, desktop + phone
 ```
 
 ## License
