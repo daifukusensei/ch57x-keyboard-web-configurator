@@ -104,7 +104,16 @@ SOFTWARE.
   <div class="status">
     <div class="msg" id="summary"></div>
     <div class="legendrow">
-      <a href="#help-keypad" class="helpjump legendlink">What do the labels and outlines mean?</a>
+      <details class="legend">
+        <summary>What do the labels and outlines mean?</summary>
+        <ul>
+          <li>Click a button or knob action to edit it.</li>
+          <li>Amber outline = warning, red = invalid.</li>
+          <li><strong>R1 C1</strong> = row 1, column 1 of the button grid, counted from the top left (R2 C3 = row 2, column 3, and so on).</li>
+          <li>On each knob, <strong>↺ ccw</strong> = turn counter-clockwise, <strong>● press</strong> = push the knob in, <strong>↻ cw</strong> = turn clockwise.</li>
+          <li>A small dot in a key's corner = it has a comment.</li>
+        </ul>
+      </details>
       <label class="chip" id="showNotesWrap" title="Show each key's comment on its keycap instead of just the action"><input type="checkbox" id="showNotes">Show comments on keys</label>
     </div>
   </div>
@@ -227,16 +236,6 @@ SOFTWARE.
     <div class="body">
       <p class="lead">Visual editor for <a href="https://github.com/kriomant/ch57x-keyboard-tool" target="_blank" rel="noopener">ch57x-keyboard-tool</a> mapping files. By <a href="https://github.com/daifukusensei/ch57x-keyboard-web-configurator" target="_blank" rel="noopener noreferrer">daifuku</a>.</p>
       <p>Build a layout, then upload straight from this page, or save it with <em>Save config</em> and use the CLI.</p>
-      <section class="hsec" id="help-keypad">
-        <h3>Reading the keypad</h3>
-        <ul>
-          <li>Click a button or knob action to edit it.</li>
-          <li>Amber outline = warning, red = invalid.</li>
-          <li><strong>R1 C1</strong> = row 1, column 1 of the button grid, counted from the top left (R2 C3 = row 2, column 3, and so on).</li>
-          <li>On each knob, <strong>↺ ccw</strong> = turn counter-clockwise, <strong>● press</strong> = push the knob in, <strong>↻ cw</strong> = turn clockwise.</li>
-          <li>A small dot in a key's corner = it has a comment.</li>
-        </ul>
-      </section>
       <section class="hsec" id="help-actions">
         <h3>Actions</h3>
         <p><strong>Keyboard.</strong> <code>a</code>, <code>enter</code>, <code>ctrl-c</code>, <code>cmd-alt-escape</code>. Modifiers: <code>ctrl</code> <code>shift</code> <code>alt</code>/<code>opt</code> <code>win</code>/<code>cmd</code> and right-hand variants <code>rctrl</code> <code>rshift</code> <code>ralt</code>/<code>ropt</code> <code>rwin</code>/<code>rcmd</code>. A <em>chord</em> is one key, optionally held with modifiers (<code>ctrl-shift-t</code>). A <em>sequence</em> is up to 5 chords separated by commas, pressed one after another: <code>win-r,c,m,d,enter</code> opens the Run box, types <code>cmd</code> and presses Enter. Raw HID codes: <code>&lt;101&gt;</code>. Option prefix: <code>{delay(100)}left,a,right</code>. Letters are physical QWERTY keys, not characters. Run <code>show-keys</code> for the full key list.</p>

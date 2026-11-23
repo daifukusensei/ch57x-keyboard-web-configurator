@@ -152,9 +152,9 @@
   .status{padding:0 2px}
   .issues{margin:6px 0 0;padding-left:18px;font-size:13px}
   .issues li.err{color:var(--err)} .issues li.warn{color:var(--warn)}
-  .legendlink{font-size:13px}
-  .hsec ul{margin:6px 0 10px;padding-left:20px}
-  .hsec li{margin:3px 0}
+  details.legend{font-size:13px;color:var(--muted)}
+  details.legend summary{cursor:pointer}
+  details.legend ul{margin:6px 0 0;padding-left:20px}
 
   /* ---- selected key ---- */
   .strip-head{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between}
@@ -166,7 +166,7 @@
   .noterow{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
   .noterow>label{font-size:12px;color:var(--muted);min-width:64px}
   .legendrow{display:flex;gap:6px 14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
-  .legendrow .legendlink{flex:1 1 320px}
+  .legendrow details.legend{flex:1 1 320px}
 
   /* ---- keycode palette ---- */
   .ptabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:-4px -4px 10px;flex-wrap:wrap}

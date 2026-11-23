@@ -123,7 +123,7 @@ function boot(seed){
 
   // ---- 1-line examples in the help ----
   ok('help and drawer mention comments',/Comments on keys/.test(d.getElementById('help').textContent)&&/#@ lines/.test(d.getElementById('yamlDrawer').textContent));
-  ok('keypad help mentions the dot',/small dot/.test(d.getElementById('help-keypad').textContent));
+  ok('legend mentions the dot',/small dot/.test(d.querySelector('details.legend').textContent));
   ok('no script errors at the end',A.errors.length===0&&B.errors.length===0&&D.errors.length===0);
   console.log(fail?fail+' FAILED':'ALL PASSED'); process.exit(fail?1:0);
 })();
