@@ -385,6 +385,7 @@ $('showNotes').addEventListener('change',e=>{ showNotes=e.target.checked; saveNo
 function applyDebug(){
   $('debugMode').checked=debugMode;
   $('hidInfo').hidden=!debugMode; $('hidPreview').hidden=!debugMode;
+  if(!debugMode){ $('hidPlan').hidden=true; $('hidPlan').value=''; }   // drop any packet listing shown while it was on
 }
 $('debugMode').addEventListener('change',e=>{ debugMode=e.target.checked; try{ localStorage.setItem(DEBUG_PREF, debugMode?'1':'0'); }catch(e2){} applyDebug(); });
 function applyZoom(){
@@ -497,13 +498,15 @@ function hidSync(){
 function hidWhich(){ const v=$('hidLayers').value; return v==='all' ? 'all' : Math.min(parseInt(v,10)||0, state.layers.length-1); }   // 'all' or a layer index
 // First blocking problem, spelled out, so the status line says what to fix rather than just that something is wrong.
 const planErrorText = plan => plan.errors[0]+(plan.errors.length>1 ? ' (+'+(plan.errors.length-1)+' more, see list)' : '');
+// The packet bytes are listed only with Developer tools on; otherwise just the errors/warnings ("see list"), hidden when there are none.
 function showPlan(plan){
-  const ta=$('hidPlan'); ta.hidden=false;
+  const ta=$('hidPlan');
   const lines=[];
   plan.errors.forEach(e=>lines.push('ERROR  '+e));
   plan.warnings.forEach(w=>lines.push('WARN   '+w));
-  plan.packets.forEach(p=>{ if(p.desc) lines.push('# '+p.desc); lines.push('  '+hex(p.bytes)); });
-  ta.value=lines.join('\n') || '(nothing to send)';
+  if(debugMode) plan.packets.forEach(p=>{ if(p.desc) lines.push('# '+p.desc); lines.push('  '+hex(p.bytes)); });
+  ta.value=lines.join('\n') || (debugMode ? '(nothing to send)' : '');
+  ta.hidden=!ta.value;
 }
 function readDeviceInfo(dev){
   return new Promise((resolve,reject)=>{
@@ -582,7 +585,7 @@ $('hidUpload').addEventListener('click',async()=>{
       await hidDev.sendReport(3,makeReport(plan.packets[i].bytes));
       if(i%5===0||i===plan.packets.length-1) hidSay('ok','Sending… '+(i+1)+' / '+plan.packets.length);
     }
-    hidSay('ok','Uploaded '+plan.items+' binding(s). If a key still behaves oddly, replug the keyboard and test again.');
+    hidSay('ok','Success! Uploaded '+plan.items+' binding(s). If a key still behaves oddly, replug the keyboard and test again.');
     toast('Uploaded to keyboard');
   }catch(e){ hidSay('err','Upload failed after partial write: '+e.message+'. Reconnect and try again.'); }
   hidBusy=false; hidSync();

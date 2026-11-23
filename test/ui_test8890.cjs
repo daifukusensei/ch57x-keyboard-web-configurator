@@ -6,7 +6,7 @@ const dev={vendorId:0x1189,productId:0x8890,productName:'Mock 8890',opened:false
   async open(){this.opened=true;}, async sendReport(id,data){ sent.push({id,data:Array.from(data)}); },
   addEventListener(){}, removeEventListener(){} };
 const errors=[];
-const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
+const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/?debug=1',beforeParse(w){
   w.navigator.hid={getDevices:async()=>[],requestDevice:async()=>[dev],addEventListener(){}};
   w.alert=()=>{};
   w.addEventListener('error',e=>errors.push(e.message));

@@ -9,7 +9,7 @@ const dev={vendorId:0x1189,productId:0x8840,productName:'Mock Macropad',opened:f
     if(data[0]===0xfb){ setTimeout(()=>{ (listeners.inputreport||[]).forEach(f=>f({data:new DataView(new Uint8Array([0xfb,12,2,0]).buffer)})); },5); } },
   addEventListener(t,f){(listeners[t]=listeners[t]||[]).push(f);}, removeEventListener(t,f){listeners[t]=(listeners[t]||[]).filter(x=>x!==f);} };
 const errors=[];
-const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',beforeParse(w){
+const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/?debug=1',beforeParse(w){
   w.navigator.hid={getDevices:async()=>[],requestDevice:async()=>[dev],addEventListener(){}};
   w.alert=()=>{};
   w.addEventListener('error',e=>errors.push(e.message));
