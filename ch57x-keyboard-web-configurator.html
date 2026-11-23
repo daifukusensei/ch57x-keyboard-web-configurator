@@ -190,6 +190,8 @@ SOFTWARE.
   .cell.warn{outline:2px solid var(--warn);outline-offset:2px}
   .cell.err{outline:2px solid var(--err);outline-offset:2px}
   .status{padding:0 2px}
+  #summary:empty{display:none}   /* nothing to report: no blank line between the keypad and the legend row */
+  #summary:empty+.legendrow{margin-top:0}
   .issues{margin:6px 0 0;padding-left:18px;font-size:13px}
   .issues li.err{color:var(--err)} .issues li.warn{color:var(--warn)}
   details.legend{font-size:13px;color:var(--muted)}
