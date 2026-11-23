@@ -474,7 +474,7 @@ SOFTWARE.
   <section class="card bar" aria-label="Upload">
     <div class="row">
       <button id="hidConnect" type="button">Connect keyboard</button>
-      <button id="hidInfo" type="button" disabled>Read device info</button>
+      <button id="hidInfo" type="button" disabled hidden>Read device info</button>
       <span class="spacer"></span>
       <label class="f" style="grid-auto-flow:column;align-items:center;gap:6px">Write
         <select id="hidLayers">
@@ -484,7 +484,7 @@ SOFTWARE.
           <option value="2">Layer 3</option>
         </select>
       </label>
-      <button id="hidPreview" type="button">Preview packets</button>
+      <button id="hidPreview" type="button" hidden>Preview packets</button>
       <button id="hidUpload" class="go" type="button" disabled>Upload to keyboard</button>
     </div>
     <div class="msg" id="hidStatus"></div>
@@ -534,6 +534,8 @@ model: ch57x-2
       <section class="hsec" id="help-webhid">
         <h3>Direct upload (WebHID)</h3>
         <p>Writes the mapping straight to the keyboard from this page (Chrome or Edge on desktop; the keyboard must be connected by USB cable). Packet formats come from <a href="https://github.com/PollRobots/ch57x-programmer" target="_blank" rel="noopener">ch57x-programmer</a>. Supports ch57x-1 (1189:8840, 1189:8842), ch57x-2 (1189:8890) and ch57x-3 (514c:8850); the <code>model:</code> line in the YAML is filled in from the connected keyboard. 514c:8850 is shared by two different keyboards, so the protocol follows your layout: 16 buttons is the 4×4 pad, any other layout is the 12-key, 4-knob pad (protocol from <a href="https://github.com/daifukusensei/ch57x-keyboard-tool-enhanced" target="_blank" rel="noopener">ch57x-keyboard-tool-enhanced</a>; there a click cannot carry a modifier, the wheel moves one step, and drag is unavailable). Empty actions are skipped, so whatever is on the keyboard for those keys stays unchanged.</p>
+        <p><label class="chip" title="Show Read device info and Preview packets in the upload bar"><input type="checkbox" id="debugMode">Developer tools</label></p>
+        <p class="hint">Adds <em>Read device info</em> (asks the keyboard how many buttons and knobs it has; Upload then warns if your layout differs) and <em>Preview packets</em> (lists the bytes an upload would send, without a keyboard) to the upload bar. Remembered in this browser. Opening the page with <code>?debug=1</code> or <code>?debug=0</code> turns it on or off.</p>
       </section>
       <section class="hsec" id="help-cli">
         <h3>Without WebHID: the command-line tool</h3>
@@ -1220,6 +1222,14 @@ const ZOOM_PREF = 'ch57x-configurator-zoom', ZOOM_MIN = 60, ZOOM_MAX = 200, ZOOM
 let zoomPct = 100;
 try{ const z=parseInt(localStorage.getItem(ZOOM_PREF),10); if(z>=ZOOM_MIN && z<=ZOOM_MAX) zoomPct=Math.round(z/ZOOM_STEP)*ZOOM_STEP; }catch(e){}
 
+// Developer tools (Read device info, Preview packets in the upload bar): off by default, a per-viewer preference.
+// ?debug=1 / ?debug=0 in the URL sets it (and saves it); the Help switch #debugMode toggles it.
+const DEBUG_PREF = 'ch57x-configurator-debug';
+let debugMode = false;
+try{ debugMode = localStorage.getItem(DEBUG_PREF)==='1'; }catch(e){}
+try{ const q=new URLSearchParams(location.search).get('debug');
+  if(q!==null){ debugMode = q!=='0' && q!=='false' && q!=='off'; localStorage.setItem(DEBUG_PREF, debugMode?'1':'0'); } }catch(e){}
+
 function h(tag, props = {}, ...kids){
   const e = document.createElement(tag);
   for(const [k,v] of Object.entries(props)){
@@ -1580,6 +1590,11 @@ function rebuildFromSettings(){
 $('action').addEventListener('input',e=>{ setVal(sel,e.target.value); onActionChanged(); });
 $('note').addEventListener('input',e=>{ setNote(sel,e.target.value); renderDevice(); renderYaml(); save(); });
 $('showNotes').addEventListener('change',e=>{ showNotes=e.target.checked; saveNotesPref(); renderDevice(); });
+function applyDebug(){
+  $('debugMode').checked=debugMode;
+  $('hidInfo').hidden=!debugMode; $('hidPreview').hidden=!debugMode;
+}
+$('debugMode').addEventListener('change',e=>{ debugMode=e.target.checked; try{ localStorage.setItem(DEBUG_PREF, debugMode?'1':'0'); }catch(e2){} applyDebug(); });
 function applyZoom(){
   $('device').style.setProperty('--zoom', zoomPct/100);
   $('zoomReset').textContent=zoomPct+'%';
@@ -1785,7 +1800,7 @@ hidSync();
 // ----- init -----
 buildControls();
 state = loadSaved() || fromObj(parseYaml(EXAMPLE));
-clampSel(); renderAll();
+applyDebug(); clampSel(); renderAll();
 </script>
 <script id="theme-ui">
 (function(){

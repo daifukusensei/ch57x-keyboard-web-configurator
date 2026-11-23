@@ -14,6 +14,14 @@ const ZOOM_PREF = 'ch57x-configurator-zoom', ZOOM_MIN = 60, ZOOM_MAX = 200, ZOOM
 let zoomPct = 100;
 try{ const z=parseInt(localStorage.getItem(ZOOM_PREF),10); if(z>=ZOOM_MIN && z<=ZOOM_MAX) zoomPct=Math.round(z/ZOOM_STEP)*ZOOM_STEP; }catch(e){}
 
+// Developer tools (Read device info, Preview packets in the upload bar): off by default, a per-viewer preference.
+// ?debug=1 / ?debug=0 in the URL sets it (and saves it); the Help switch #debugMode toggles it.
+const DEBUG_PREF = 'ch57x-configurator-debug';
+let debugMode = false;
+try{ debugMode = localStorage.getItem(DEBUG_PREF)==='1'; }catch(e){}
+try{ const q=new URLSearchParams(location.search).get('debug');
+  if(q!==null){ debugMode = q!=='0' && q!=='false' && q!=='off'; localStorage.setItem(DEBUG_PREF, debugMode?'1':'0'); } }catch(e){}
+
 function h(tag, props = {}, ...kids){
   const e = document.createElement(tag);
   for(const [k,v] of Object.entries(props)){
@@ -374,6 +382,11 @@ function rebuildFromSettings(){
 $('action').addEventListener('input',e=>{ setVal(sel,e.target.value); onActionChanged(); });
 $('note').addEventListener('input',e=>{ setNote(sel,e.target.value); renderDevice(); renderYaml(); save(); });
 $('showNotes').addEventListener('change',e=>{ showNotes=e.target.checked; saveNotesPref(); renderDevice(); });
+function applyDebug(){
+  $('debugMode').checked=debugMode;
+  $('hidInfo').hidden=!debugMode; $('hidPreview').hidden=!debugMode;
+}
+$('debugMode').addEventListener('change',e=>{ debugMode=e.target.checked; try{ localStorage.setItem(DEBUG_PREF, debugMode?'1':'0'); }catch(e2){} applyDebug(); });
 function applyZoom(){
   $('device').style.setProperty('--zoom', zoomPct/100);
   $('zoomReset').textContent=zoomPct+'%';
@@ -579,4 +592,4 @@ hidSync();
 // ----- init -----
 buildControls();
 state = loadSaved() || fromObj(parseYaml(EXAMPLE));
-clampSel(); renderAll();
+applyDebug(); clampSel(); renderAll();
